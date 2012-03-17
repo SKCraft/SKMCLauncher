@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.sk89q</groupId>
   <artifactId>mclauncher</artifactId>
-  <version>3.1.0</version>
+  <version>3.1.1-SNAPSHOT</version>
   <name>SK's Minecraft Launcher</name>
   <description>SK's launcher for Minecraft.</description>
   <url>http://www.sk89q.com</url>
