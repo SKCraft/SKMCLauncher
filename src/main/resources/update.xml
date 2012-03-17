@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<package version="1.1">
+  <name>Minecraft</name>
+  <filegroup source="http://s3.amazonaws.com/MinecraftDownload/" dest="bin" verify="md5">
+    <file size="738345">lwjgl.jar</file>
+    <file size="227833">jinput.jar</file>
+    <file size="138318">lwjgl_util.jar</file>
+    <file size="3988921" filename="minecraft.jar">minecraft.jar?user=%user%&amp;ticket=%ticket%</file>
+  </filegroup>
+  <filegroup source="http://s3.amazonaws.com/MinecraftDownload/" dest="bin/natives" verify="md5">
+    <archive size="491232" platform="windows">windows_natives.jar.lzma</archive>
+    <archive size="551247" platform="linux">linux_natives.jar.lzma</archive>
+    <archive size="262436" platform="mac_os_x">macosx_natives.jar.lzma</archive>
+    <archive size="272470" platform="solaris">solaris_natives.jar.lzma</archive>
+  </filegroup>
+</package>
