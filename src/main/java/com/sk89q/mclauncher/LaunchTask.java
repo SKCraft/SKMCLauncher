@@ -218,7 +218,7 @@ public class LaunchTask extends Task {
         String actualJar = activeJar != null ? activeJar : "minecraft.jar";
         File actualWorkingDirectory = configuration.getBaseDir();
         
-        if (!new File(actualWorkingDirectory, actualJar).exists()) {
+        if (!new File(configuration.getMinecraftDir(), "bin/" + actualJar).exists()) {
             throw new ExecutionException("The game is not installed.");
         }
         
