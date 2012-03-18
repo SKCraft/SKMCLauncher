@@ -61,18 +61,18 @@ public class AddonInstallerTask extends Task {
         fireStatusChange("Installing " + file.getName() + "...");
         fireValueChange(-1);
 
-        String id = file.getName().replaceAll("\\..*$", "");
-        String name = file.getName().replaceAll("\\..*$", "");
+        String id = file.getName().replaceAll("\\..[^\\.]+$", "");
+        String name = id;
         String detectedModLoaderName = null;
         boolean multipleModLoaderMods = false;
         InputStream in = null;
         int entriesCount = 0;
         boolean hasRoot = false;
-        boolean foundMCClasses = false;
+        boolean foundClasses = false;
         String mungePath = null;
         boolean multipleMunge = false;
 
-        Pattern mcClassRE = Pattern.compile("^.*[a-z]{1,3}\\.class$");
+        Pattern classRE = Pattern.compile("^.*\\.class$");
         Pattern modLoaderNameRE = Pattern.compile("^(?:.*/)?mod_([A-Za-z0-9_]+)\\.class$");
         
         // First, scan to see if we need to munge paths
@@ -109,8 +109,8 @@ public class AddonInstallerTask extends Task {
                 }
                 
                 // Detect paths to munge
-                if (mcClassRE.matcher(path).matches()) {
-                    foundMCClasses = true;
+                if (!hasRoot && classRE.matcher(path).matches()) {
+                    foundClasses = true;
                     if (path.indexOf('/') == -1) {
                         hasRoot = true;
                     } else {
@@ -127,8 +127,24 @@ public class AddonInstallerTask extends Task {
                                 // Our set munge path is above this current path
                                 continue;
                             } else {
+                                String[] parts1 = mungePath.split("/");
+                                String[] parts2 = folderPath.split("/");
+                                StringBuilder finalPathBuilder = new StringBuilder();
+                                
+                                int num = Math.min(parts1.length, parts2.length);
+                                for (int i = 0; i < num; i++) {
+                                    if (parts1[i].equals(parts2[i])) {
+                                        finalPathBuilder.append(parts1[i]);
+                                        finalPathBuilder.append('/');
+                                    }
+                                }
+                                
                                 // Not good
-                                multipleMunge = true;
+                                if (finalPathBuilder.length() > 0) {
+                                    mungePath = finalPathBuilder.toString();
+                                } else {
+                                    multipleMunge = true;
+                                }
                             }
                         } else {
                             // Our first munge path, yippee
@@ -145,11 +161,15 @@ public class AddonInstallerTask extends Task {
         } finally {
             Util.close(in);
         }
+        
+        if (!foundClasses) {
+            throw new ExecutionException(
+                    "The selected addon didn't have any Java .class files.");
+        }
 
         // Do we munge?
-        boolean needToMunge = foundMCClasses && !hasRoot && mungePath != null
-                && !multipleMunge;
-        
+        boolean needToMunge = !hasRoot && mungePath != null && !multipleMunge;
+
         // If we have multiple munge paths, we best do nothing
         // Maybe we'll try munging anyway in the future
         if (multipleMunge) {
@@ -159,14 +179,8 @@ public class AddonInstallerTask extends Task {
                     public void run() {
                         JOptionPane.showMessageDialog(
                                 getComponent(),
-                                "To install addons where the Java .class files " +
-                                "are not at the top of the archive, the installer " +
-                                "tries to move the files to the root of the archive. " +
-                                "However, in this case, it appears that the file " +
-                                "you selected has multiple folders with Java files, " +
-                                "so the installer will attempt to move nothing. You may " +
-                                "have to manually install the addon by adding the files to " +
-                                "minecraft.jar if the addon doesn't load properly.",
+                                "There appears to be multiple folders with .class files. " +
+                                "You may have to install this mod manually.",
                                 "Installation warning",
                                 JOptionPane.WARNING_MESSAGE);
                     }
