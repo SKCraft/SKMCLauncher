@@ -628,18 +628,20 @@ public class LaunchTask extends Task {
         }
         
         // Remind the user to disable mods
-        try {
-            SwingUtilities.invokeAndWait(new Runnable() {
-                @Override
-                public void run() {
-                    JOptionPane.showMessageDialog(getComponent(),
-                            "Your game has been updated. If you encounter problems, " +
-                            "try disabling any mods (if any) that you have installed.",
-                            "Update completed", JOptionPane.INFORMATION_MESSAGE);
-                }
-            });
-        } catch (InterruptedException e) {
-        } catch (InvocationTargetException e) {
+        if (last) {
+            try {
+                SwingUtilities.invokeAndWait(new Runnable() {
+                    @Override
+                    public void run() {
+                        JOptionPane.showMessageDialog(getComponent(),
+                                "Your game has been updated. If you encounter problems, " +
+                                "try disabling any mods (if any) that you have installed.",
+                                "Update completed", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                });
+            } catch (InterruptedException e) {
+            } catch (InvocationTargetException e) {
+            }
         }
     }
 
