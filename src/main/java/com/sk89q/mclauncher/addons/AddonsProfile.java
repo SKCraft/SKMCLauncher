@@ -371,7 +371,9 @@ public class AddonsProfile implements TableModel {
         
         if (addons.remove(addon)) {
             fireTableChanged(new TableModelEvent(this));
-            addon.getFile().delete();
+            if (addon.getFile() != null) {
+                addon.getFile().delete();
+            }
         } else {
             // Should never happen
             throw new IllegalArgumentException("Tried to remove addon that was supposed to existed");
