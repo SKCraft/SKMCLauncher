@@ -12,9 +12,10 @@
     <developerConnection>scm:git:git@github.com:sk89q/skmclauncher.git</developerConnection>
   </scm>
   <properties>
-    <signerKeyStore>/root/keystore</signerKeyStore>
-    <signerPassword />
-    <signerAlias />
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <signerKeyStore></signerKeyStore>
+    <signerPassword></signerPassword>
+    <signerAlias></signerAlias>
   </properties>
   <build>
     <sourceDirectory>${basedir}/src/main/java/</sourceDirectory>
