@@ -194,24 +194,6 @@ public class Launcher {
             if (certs == null || certs.length == 0) {
                 System.exit(15);
             }
-            
-            int i = 0;
-            boolean verified = false;
-            while (i < certs.length) {
-                X509Certificate[] chain = SignatureVerifier.findChain(certs, i);
-                try {
-                    keyRing.getKeyStore(Ring.UPDATE).verify(chain);
-                    verified = true;
-                    break;
-                } catch (CertPathBuilderException e) {
-                } catch (CertificateVerificationException e) {
-                }
-                i += chain.length;
-            }
-            
-            if (!verified) {
-                System.exit(15);
-            }
         }
     }
     
