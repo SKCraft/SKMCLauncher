@@ -7,6 +7,11 @@
   <name>SK's Minecraft Launcher</name>
   <description>SK's launcher for Minecraft.</description>
   <url>http://www.sk89q.com</url>
+  <scm>
+    <connection>scm:git:git://github.com/sk89q/skmclauncher.git</connection>
+    <url>https://github.com/sk89q/skmclauncher</url>
+    <developerConnection>scm:git:git@github.com:sk89q/skmclauncher.git</developerConnection>
+  </scm>
   <properties>
     <signerKeyStore>/root/keystore</signerKeyStore>
     <signerPassword></signerPassword>
@@ -91,6 +96,15 @@
         <artifactId>maven-assembly-plugin</artifactId>
         <configuration>
           <descriptor>${basedir}/src/main/assembly/default.xml</descriptor>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <configuration>
+          <preparationGoals>assembly:assembly</preparationGoals>
+          <goals>assembly:assembly</goals>
+          <tagNameFormat>release-@{project.version}</tagNameFormat>
         </configuration>
       </plugin>
     </plugins>
