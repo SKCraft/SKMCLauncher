@@ -1,8 +1,8 @@
 <launch4jConfig>
   <dontWrapJar>false</dontWrapJar>
   <headerType>gui</headerType>
-  <jar>target\SKMCLauncher.jar</jar>
-  <outfile>target\SKMCLauncher.exe</outfile>
+  <jar>target/SKMCLauncher.jar</jar>
+  <outfile>target/SKMCLauncher.exe</outfile>
   <errTitle></errTitle>
   <cmdLine></cmdLine>
   <chdir></chdir>
