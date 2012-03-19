@@ -429,7 +429,7 @@ public class LaunchTask extends Task {
      */
     public void checkForUpdates() throws ExecutionException {
         // Check account
-        if (!session.isValid()) {
+        if (!session.isValid() && !this.playOffline) {
             throw new ExecutionException("Please login first to download Minecraft.");
         }
         
