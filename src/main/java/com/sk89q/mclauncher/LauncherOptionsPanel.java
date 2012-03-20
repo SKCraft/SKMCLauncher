@@ -36,13 +36,13 @@ public class LauncherOptionsPanel extends OptionsPanel {
         createFieldGroup("Launcher");
         addField(Def.LAUNCHER_NO_NEWS, new JCheckBox("Don't load the news"));
         addField(Def.LAUNCHER_ALWAYS_MORE_OPTIONS, new JCheckBox("Start with all options shown"));
-        addField(Def.LAUNCHER_REOPEN, new JCheckBox("Keep the launcher open, re-show on game close"));
+        addField(Def.LAUNCHER_REOPEN, new JCheckBox("Show the launcher on Minecraft close"));
 
         createFieldGroup("Console");
         /*addField(Def.LOCAL_CONSOLE, new JCheckBox("Open console in launcher process"))
         .setToolTipText("Unchecked, the console opens in the same process as Minecraft, which can crash");*/
         addField(Def.COLORED_CONSOLE, new JCheckBox("Use colors in the console"));
-        addField(Def.CONSOLE_KILLS_PROCESS, new JCheckBox("Kill Minecraft when the console closes"));
+        addField(Def.CONSOLE_KILLS_PROCESS, new JCheckBox("Kill Minecraft on console close"));
     }
 
 }

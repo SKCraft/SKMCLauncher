@@ -145,9 +145,7 @@ public class OptionsDialog extends JDialog {
         buttonsPanel.setLayout(new FlowLayout(FlowLayout.RIGHT, 5, 5));
         JButton okButton = new JButton("OK");
         JButton cancelButton = new JButton("Cancel");
-        cancelButton.setPreferredSize(new Dimension(70, (int) cancelButton
-                .getPreferredSize().getHeight()));
-        okButton.setPreferredSize(cancelButton.getPreferredSize());
+        UIUtil.equalWidth(okButton, cancelButton);
         buttonsPanel.add(okButton);
         buttonsPanel.add(cancelButton);
         container.add(buttonsPanel, BorderLayout.SOUTH);
