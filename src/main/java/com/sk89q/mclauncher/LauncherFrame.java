@@ -247,6 +247,18 @@ public class LauncherFrame extends JFrame {
     }
 
     /**
+     * Set whether the console should be shown.
+     * 
+     * @param show true to show the console
+     */
+    public void setShowConsole(boolean show) {
+        if (show) {
+            expandBtn.doClick();
+        }
+        showConsoleCheck.setSelected(show);
+    }
+
+    /**
      * Open the options window.
      * 
      * @return dialog

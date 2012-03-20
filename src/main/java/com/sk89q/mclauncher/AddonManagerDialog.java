@@ -480,7 +480,7 @@ public class AddonManagerDialog extends JDialog {
 
         panel.add(Box.createHorizontalGlue());
 
-        JButton launchBtn = new JButton("Launch");
+        JButton launchBtn = new JButton("Launch...");
         panel.add(launchBtn);
         launchBtn.addActionListener(new ActionListener() {
             @Override
@@ -488,6 +488,21 @@ public class AddonManagerDialog extends JDialog {
                 saveAddonsProfile();
                 Launcher.getInstance().getOptions().save();
                 self.dispose();
+                launcherFrame.launch();
+            }
+        });
+
+        panel.add(Box.createHorizontalStrut(3));
+
+        JButton testBtn = new JButton("Test...");
+        panel.add(testBtn);
+        testBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                saveAddonsProfile();
+                Launcher.getInstance().getOptions().save();
+                self.dispose();
+                launcherFrame.setShowConsole(true);
                 launcherFrame.launch();
             }
         });
@@ -508,7 +523,7 @@ public class AddonManagerDialog extends JDialog {
             }
         });
 
-        UIUtil.equalWidth(launchBtn, okBtn);
+        UIUtil.equalWidth(launchBtn, testBtn, okBtn);
 
         return panel;
     }
