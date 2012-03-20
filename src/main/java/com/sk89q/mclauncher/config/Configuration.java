@@ -287,7 +287,7 @@ public class Configuration {
         for (File f : files) {
             String name = f.getName();
             
-            if (name.matches("[A-Za-z0-9\\-_ ]+\\.jar$") && !name.equalsIgnoreCase("jinput.jar")
+            if (name.matches("^[^\\/:;]+\\.jar$") && !name.equalsIgnoreCase("jinput.jar")
                     && !name.equalsIgnoreCase("lwjgl.jar")
                     && !name.equalsIgnoreCase("lwjgl_util.jar")
                     && !name.equalsIgnoreCase("minecraft.jar")) {
