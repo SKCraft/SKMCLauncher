@@ -212,8 +212,8 @@ public class Launcher {
     public static File toMinecraftDir(File base) {
         switch (getPlatform()) {
             case LINUX:
+            case LINUX_JAVA7:
             case SOLARIS:
-                return new File(base, ".minecraft");
             case WINDOWS:
                 return new File(base, ".minecraft");
             case MAC_OS_X:
@@ -236,6 +236,7 @@ public class Launcher {
 
         switch (getPlatform()) {
         case LINUX:
+        case LINUX_JAVA7:
         case SOLARIS:
             workingDir = new File(homeDir);
             break;
@@ -270,6 +271,7 @@ public class Launcher {
 
         switch (getPlatform()) {
         case LINUX:
+        case LINUX_JAVA7:
         case SOLARIS:
             workingDir = new File(homeDir, "." + appDir + "/");
             break;
@@ -302,6 +304,7 @@ public class Launcher {
         
         switch (getPlatform()) {
             case LINUX:
+            case LINUX_JAVA7:
             case SOLARIS:
                 workingDir = new File(homeDir, ".skmclauncher");
                 break;
