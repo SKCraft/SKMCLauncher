@@ -210,5 +210,26 @@ public class Util {
         thread.setDaemon(true);
         thread.start();
     }
+    
+    /**
+     * Given a path, get a File instance for the given directory. If the
+     * directory does not exist, keep going up the path to find a directory
+     * that does exist. If no directory can be found, return null.
+     * 
+     * @param path path, or null to return null
+     * @return File representing directory, or null
+     */
+    public static File getClosestDirectory(String path) {
+        if (path == null) return null;
+        File f = new File(path);
+        while (!f.isDirectory()) {
+            File parent = f.getParentFile();
+            if (parent == null) {
+                return null; // Path simply doesn't exist or we can't get a better one
+            }
+            f = parent;
+        }
+        return f;
+    }
 
 }

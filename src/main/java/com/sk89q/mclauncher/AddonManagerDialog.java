@@ -65,7 +65,7 @@ import com.sk89q.mclauncher.util.UIUtil;
 public class AddonManagerDialog extends JDialog {
 
     private static final long serialVersionUID = 3904227517893227045L;
-    
+
     private LauncherFrame launcherFrame;
     private Configuration configuration;
     private JTable table;
@@ -73,22 +73,26 @@ public class AddonManagerDialog extends JDialog {
     private AddonsProfile addonsProfile;
     private TaskWorker worker = new TaskWorker();
     private String lastSelectedJar = null;
-    private File lastFolder = null;
-    
+
     /**
      * Construct the dialog.
      * 
-     * @param owner owning frame
-     * @param config configuration
-     * @param jar jar to use
+     * @param owner
+     *            owning frame
+     * @param config
+     *            configuration
+     * @param jar
+     *            jar to use
      */
-    public AddonManagerDialog(LauncherFrame owner, Configuration config, String jar) {
-        super(owner, "Manage Addons for configuration '" + config.getName() + "'", true);
-        
+    public AddonManagerDialog(LauncherFrame owner, Configuration config,
+            String jar) {
+        super(owner, "Manage Addons for configuration '" + config.getName()
+                + "'", true);
+
         final AddonManagerDialog self = this;
         this.configuration = config;
         this.launcherFrame = owner;
-        
+
         setResizable(true);
         buildUI();
         pack();
@@ -97,7 +101,7 @@ public class AddonManagerDialog extends JDialog {
 
         // Populate the jar list
         populateJarList();
-        
+
         // Select a JAR
         for (int i = 0; i < jarCombo.getItemCount(); i++) {
             Object o = jarCombo.getItemAt(i);
@@ -105,7 +109,7 @@ public class AddonManagerDialog extends JDialog {
                 jarCombo.setSelectedItem(o);
             }
         }
-        
+
         // Load the addons profile
         loadAddonsProfile();
         lastSelectedJar = jar;
@@ -115,7 +119,8 @@ public class AddonManagerDialog extends JDialog {
             @Override
             public void itemStateChanged(ItemEvent e) {
                 Object selected = ((JComboBox) e.getSource()).getSelectedItem();
-                if (selected == null) return;
+                if (selected == null)
+                    return;
                 String jar = selected.toString();
                 if (lastSelectedJar == null || lastSelectedJar != jar) {
                     lastSelectedJar = jar;
@@ -129,11 +134,12 @@ public class AddonManagerDialog extends JDialog {
             @Override
             public void windowClosing(WindowEvent event) {
                 saveAddonsProfile();
+                Launcher.getInstance().getOptions().save();
                 self.dispose();
             }
         });
     }
-    
+
     /**
      * Get the currently active JAR.
      * 
@@ -146,57 +152,63 @@ public class AddonManagerDialog extends JDialog {
         }
         return (String) o;
     }
-    
+
     /**
      * Load the addons profile for the given JAR. If a load task is already in
      * progress, nothing will happen.
      */
     private void loadAddonsProfile() {
-        if (worker.isAlive()) return;
+        if (worker.isAlive())
+            return;
         this.addonsProfile = null;
-        AddonsProfile addonsProfile = configuration.getAddonsProfile(getActiveJar());
-        worker = Task.startWorker(this, new AddonsProfileLoaderTask(addonsProfile, this));
+        AddonsProfile addonsProfile = configuration
+                .getAddonsProfile(getActiveJar());
+        worker = Task.startWorker(this, new AddonsProfileLoaderTask(
+                addonsProfile, this));
     }
 
     /**
      * Used to set the addons profile from a task. This is for internal usage.
      * 
-     * @param addonsProfile profile
+     * @param addonsProfile
+     *            profile
      */
-    void setAddonsProfile(AddonsProfile addonsProfile)  {
+    void setAddonsProfile(AddonsProfile addonsProfile) {
         saveAddonsProfile();
         this.addonsProfile = addonsProfile;
         table.setModel(addonsProfile);
         table.getColumnModel().getColumn(0).setMaxWidth(30);
     }
-    
+
     /**
      * Try saving the addons profile, popping up an error dialog if an error
      * should occur.
      */
     private void saveAddonsProfile() {
-        if (addonsProfile == null) return;
+        if (addonsProfile == null)
+            return;
         if (!addonsProfile.save()) {
-            JOptionPane.showMessageDialog(this, "Changes to addons profile could not be saved.",
+            JOptionPane.showMessageDialog(this,
+                    "Changes to addons profile could not be saved.",
                     "Save error", JOptionPane.ERROR_MESSAGE);
         }
     }
-    
+
     /**
-     * Used to quick check if a procedure can continue only if an addons
-     * profile has been loaded. Sometimes an addons profile load may
-     * fail.
+     * Used to quick check if a procedure can continue only if an addons profile
+     * has been loaded. Sometimes an addons profile load may fail.
      * 
      * @return true if it is loaded
      */
     private boolean checkAddonsProfileLoaded() {
         if (addonsProfile == null) {
-            UIUtil.showError(this, "Not loaded", "The addon list could not be loaded, and so you cannot do this.");
+            UIUtil.showError(this, "Not loaded",
+                    "The addon list could not be loaded, and so you cannot do this.");
             return false;
         }
         return true;
     }
-    
+
     /**
      * Open the install addon dialog.
      */
@@ -207,6 +219,7 @@ public class AddonManagerDialog extends JDialog {
         // Ask for a file.
         JFileChooser chooser = new JFileChooser();
         chooser.setDialogTitle("Select addon to install");
+        File lastFolder = Launcher.getInstance().getOptions().getLastInstallDir(); 
         if (lastFolder != null) chooser.setCurrentDirectory(lastFolder);
         chooser.setFileFilter(new FileFilter() {
             @Override
@@ -229,7 +242,8 @@ public class AddonManagerDialog extends JDialog {
         });
         
         int returnVal = chooser.showOpenDialog(this);
-        lastFolder = chooser.getCurrentDirectory();
+        Launcher.getInstance().getOptions().setLastInstallDir(
+                chooser.getCurrentDirectory());
         
         // Proceed with installation
         if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -237,31 +251,36 @@ public class AddonManagerDialog extends JDialog {
                     chooser.getSelectedFile()));
         }
     }
-    
+
     /**
      * Start an uninstall of the given addons.
      * 
-     * @param addons list of addons to uninstall
+     * @param addons
+     *            list of addons to uninstall
      */
     private void startUninstall(List<Addon> addons) {
-        if (worker.isAlive()) return;
-        if (!checkAddonsProfileLoaded()) return;
-        
-        worker = Task.startWorker(this, new AddonUninstallerTask(addonsProfile, addons));
+        if (worker.isAlive())
+            return;
+        if (!checkAddonsProfileLoaded())
+            return;
+
+        worker = Task.startWorker(this, new AddonUninstallerTask(addonsProfile,
+                addons));
     }
-    
+
     /**
      * Open the tools menu.
      * 
-     * @param component component to open from
+     * @param component
+     *            component to open from
      */
     private void popupToolsMenu(Component component) {
         final AddonManagerDialog self = this;
-        
+
         JPopupMenu popup = new JPopupMenu();
         JMenuItem menuItem;
-        
-        menuItem = new JMenuItem("Open Minecraft data folder..."); 
+
+        menuItem = new JMenuItem("Open Minecraft data folder...");
         menuItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -269,18 +288,19 @@ public class AddonManagerDialog extends JDialog {
             }
         });
         popup.add(menuItem);
-        
-        menuItem = new JMenuItem("Open texture packs folder..."); 
+
+        menuItem = new JMenuItem("Open texture packs folder...");
         menuItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                File f = new File(configuration.getMinecraftDir(), "texturepacks");
+                File f = new File(configuration.getMinecraftDir(),
+                        "texturepacks");
                 f.mkdirs();
                 UIUtil.browse(f, self);
             }
         });
         popup.add(menuItem);
-        
+
         popup.show(component, 0, component.getHeight());
     }
 
@@ -291,7 +311,7 @@ public class AddonManagerDialog extends JDialog {
         JPanel container = new JPanel();
         container.setLayout(new BorderLayout(8, 8));
         container.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
-        
+
         table = new JTable();
         table.setShowGrid(false);
         table.setRowHeight(table.getRowHeight() + 2);
@@ -304,10 +324,10 @@ public class AddonManagerDialog extends JDialog {
         container.add(buildButtons(), BorderLayout.SOUTH);
         container.add(buildActiveJarSelector(), BorderLayout.NORTH);
         container.add(buildManageButtons(), BorderLayout.WEST);
-        
+
         add(container, BorderLayout.CENTER);
     }
-    
+
     /**
      * Build the UI for the active JAR.
      * 
@@ -316,16 +336,16 @@ public class AddonManagerDialog extends JDialog {
     private JPanel buildActiveJarSelector() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-        
+
         panel.add(new JLabel("Active JAR:"));
-        
+
         panel.add(Box.createHorizontalStrut(5));
-        
+
         jarCombo = new JComboBox();
         panel.add(jarCombo);
 
         panel.add(Box.createHorizontalGlue());
-        
+
         JButton toolsBtn = new JButton("Tools...");
         panel.add(toolsBtn);
         toolsBtn.addActionListener(new ActionListener() {
@@ -334,10 +354,10 @@ public class AddonManagerDialog extends JDialog {
                 popupToolsMenu((Component) e.getSource());
             }
         });
-        
+
         return panel;
     }
-    
+
     /**
      * Build the UI for the manage addon buttons.
      * 
@@ -345,9 +365,9 @@ public class AddonManagerDialog extends JDialog {
      */
     private JPanel buildManageButtons() {
         final AddonManagerDialog self = this;
-        
+
         JPanel panel = new JPanel();
-        
+
         GridBagConstraints c = new GridBagConstraints();
         c.fill = GridBagConstraints.HORIZONTAL;
         c.weightx = 1.0;
@@ -356,12 +376,12 @@ public class AddonManagerDialog extends JDialog {
 
         GridBagConstraints vertFill = new GridBagConstraints();
         vertFill.anchor = GridBagConstraints.NORTH;
-        vertFill.fill = GridBagConstraints.VERTICAL; 
-        vertFill.weighty = 1.0; 
-        
+        vertFill.fill = GridBagConstraints.VERTICAL;
+        vertFill.weighty = 1.0;
+
         GridBagLayout layout = new GridBagLayout();
         panel.setLayout(layout);
-        
+
         JButton installBtn = new JButton("Install...");
         panel.add(installBtn, c);
         installBtn.addActionListener(new ActionListener() {
@@ -370,72 +390,83 @@ public class AddonManagerDialog extends JDialog {
                 openInstallDialog();
             }
         });
-        
+
         JButton moveUpBtn = new JButton("Move Up");
-        moveUpBtn.setToolTipText("Higher entries are loaded first, so addons that are depended on by others should be near the top.");
+        moveUpBtn
+                .setToolTipText("Higher entries are loaded first, so addons that are depended on by others should be near the top.");
         panel.add(moveUpBtn, c);
         moveUpBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (!checkAddonsProfileLoaded()) return;
+                if (!checkAddonsProfileLoaded())
+                    return;
                 int min = table.getSelectionModel().getMinSelectionIndex();
                 int max = table.getSelectionModel().getMaxSelectionIndex();
                 if (min != -1 && max != -1) {
                     if (addonsProfile.moveUp(min, max)) {
-                        table.getSelectionModel().setSelectionInterval(min - 1, max - 1);
+                        table.getSelectionModel().setSelectionInterval(min - 1,
+                                max - 1);
                     }
                 }
             }
         });
-        
+
         JButton moveDownBtn = new JButton("Move Down");
         moveDownBtn.setToolTipText(moveUpBtn.getToolTipText());
         panel.add(moveDownBtn, c);
         moveDownBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (!checkAddonsProfileLoaded()) return;
+                if (!checkAddonsProfileLoaded())
+                    return;
                 int min = table.getSelectionModel().getMinSelectionIndex();
                 int max = table.getSelectionModel().getMaxSelectionIndex();
                 if (min != -1 && max != -1) {
                     if (addonsProfile.moveDown(min, max)) {
-                        table.getSelectionModel().setSelectionInterval(min + 1, max + 1);
+                        table.getSelectionModel().setSelectionInterval(min + 1,
+                                max + 1);
                     }
                 }
             }
         });
-        
+
         JButton deleteBtn = new JButton("Uninstall...");
         panel.add(deleteBtn, c);
         deleteBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (!checkAddonsProfileLoaded()) return;
+                if (!checkAddonsProfileLoaded())
+                    return;
                 int min = table.getSelectionModel().getMinSelectionIndex();
                 int max = table.getSelectionModel().getMaxSelectionIndex();
                 if (min == -1 || max == -1) {
-                    JOptionPane.showMessageDialog(self, "You have not selected any addons.",
+                    JOptionPane.showMessageDialog(self,
+                            "You have not selected any addons.",
                             "Selection error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
-                
-                if (JOptionPane.showConfirmDialog(self, "Are you sure you want to uninstall the selected addons?",
-                        "Uninstall", JOptionPane.YES_NO_OPTION) != 0) return;
-                
+
+                if (JOptionPane
+                        .showConfirmDialog(
+                                self,
+                                "Are you sure you want to uninstall the selected addons?",
+                                "Uninstall", JOptionPane.YES_NO_OPTION) != 0)
+                    return;
+
                 List<Addon> addons = new ArrayList<Addon>();
                 for (int i = min; i <= max; i++) {
                     addons.add(addonsProfile.getAddonAt(i));
                 }
-                
+
                 startUninstall(addons);
             }
         });
 
         panel.add(Box.createVerticalGlue(), vertFill);
-        
+
         return panel;
     }
-    
+
     /**
      * Build the bottom button bar.
      * 
@@ -443,42 +474,45 @@ public class AddonManagerDialog extends JDialog {
      */
     private JPanel buildButtons() {
         final AddonManagerDialog self = this;
-        
+
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
 
         panel.add(Box.createHorizontalGlue());
-        
+
         JButton launchBtn = new JButton("Launch");
         panel.add(launchBtn);
         launchBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 saveAddonsProfile();
+                Launcher.getInstance().getOptions().save();
                 self.dispose();
                 launcherFrame.launch();
             }
         });
-        
+
         panel.add(Box.createHorizontalStrut(3));
-        
+
         JButton okBtn = new JButton("Close");
         Dimension pref = okBtn.getPreferredSize();
-        okBtn.setPreferredSize(new Dimension(Math.max(pref.width, 80), pref.height));
+        okBtn.setPreferredSize(new Dimension(Math.max(pref.width, 80),
+                pref.height));
         panel.add(okBtn);
         okBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 saveAddonsProfile();
+                Launcher.getInstance().getOptions().save();
                 self.dispose();
             }
         });
-        
+
         UIUtil.equalWidth(launchBtn, okBtn);
-        
+
         return panel;
     }
-    
+
     /**
      * Popular the active JAR combo box with entries.
      */

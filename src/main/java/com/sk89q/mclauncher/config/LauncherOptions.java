@@ -73,6 +73,7 @@ public class LauncherOptions {
     private File file;
     private String lastConfigName;
     private String lastUsername;
+    private File lastInstallDir;
     private ServerHotListManager serverHotList = new ServerHotListManager();
     private ConfigurationsManager configsManager = new ConfigurationsManager();
     private Map<String, String> identities = new HashMap<String, String>();
@@ -237,6 +238,24 @@ public class LauncherOptions {
     }
     
     /**
+     * Gets the directory of where addons were last installed from.
+     * 
+     * @return directory, or null if one isn't set
+     */
+    public File getLastInstallDir() {
+        return lastInstallDir;
+    }
+
+    /**
+     * Set the last directory that addons were installed from.
+     * 
+     * @param dir directory
+     */
+    public void setLastInstallDir(File dir) {
+        this.lastInstallDir = dir;
+    }
+
+    /**
      * Get the settings list.
      * 
      * @return settings
@@ -266,7 +285,10 @@ public class LauncherOptions {
             XPath xpath = XPathFactory.newInstance().newXPath();
 
             lastUsername = getStringOrNull(doc, xpath.compile("/launcher/username"));
-            lastConfigName = getStringOrNull(doc, xpath.compile("/launcher/lastConfiguration"));
+            lastConfigName = getStringOrNull(doc,
+                    xpath.compile("/launcher/lastConfiguration"));
+            lastInstallDir = Util.getClosestDirectory(getStringOrNull(doc,
+                    xpath.compile("/launcher/lastInstallDirectory")));
 
             XPathExpression nameExpr = xpath.compile("name/text()");
             XPathExpression keyExpr = xpath.compile("key/text()");
@@ -381,7 +403,10 @@ public class LauncherOptions {
             
             root.addNode("username").addValue(lastUsername);
             root.addNode("lastConfiguration").addValue(lastConfigName);
-            
+            root.addNode("lastInstallDirectory").addValue(
+                    lastInstallDir != null ? lastInstallDir
+                            .getAbsolutePath() : null);
+
             SimpleNode identitiesNode = root.addNode("identities");
             for (Map.Entry<String, String> entry : identities.entrySet()) {
                 SimpleNode identityNode = identitiesNode.addNode("identity");
