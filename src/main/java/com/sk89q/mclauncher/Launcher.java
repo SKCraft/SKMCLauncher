@@ -298,7 +298,10 @@ public class Launcher {
      */
     public static File getLauncherDataDir() {
         String homeDir = System.getProperty("user.home", ".");
-        File workingDir;
+        File workingDir = new File(".", "config.xml");
+        if (workingDir.exists()) {
+            return new File(".");
+        }
         
         switch (getPlatform()) {
             case LINUX:
@@ -320,7 +323,9 @@ public class Launcher {
             default:
                 workingDir = new File(homeDir, "SKMCLauncher");
         }
-        
+        if (!new File(workingDir, "config.xml").exists()) {
+            workingDir = getOfficialDataDir();
+        }
         if (!workingDir.exists() && !workingDir.mkdirs()) {
             throw new RuntimeException("Unable to create " + workingDir);
         }
