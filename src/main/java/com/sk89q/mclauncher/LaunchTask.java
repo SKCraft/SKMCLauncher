@@ -567,18 +567,8 @@ public class LaunchTask extends Task {
                 // For vanilla, we bundle the package
                 update(rootDir, cache, Launcher.class.getResourceAsStream("/resources/minecraft.xml"),
                         forceUpdate, username, ticket, false);
-                if (System.getProperty("java.specification.version").equals("1.7")) {
-                    /* TODO this is an ugly hack because Jens didn't update LWJGL for 1.2
-                      and the current version has blackscreens on most Java 7 setups
-                      So we update to 2.8.3, the latest version.
-                      This should be removed once Minecraft is officially on the latest version
-                      -- K900 */
-                    update(rootDir, cache, Launcher.class.getResourceAsStream("/resources/lwjgl-java7.xml"),
-                            forceUpdate, username, ticket, true);
-                } else {
-                    update(rootDir, cache, Launcher.class.getResourceAsStream("/resources/lwjgl.xml"),
-                            forceUpdate, username, ticket, true);
-                }
+                update(rootDir, cache, Launcher.class.getResourceAsStream("/resources/lwjgl.xml"),
+                        forceUpdate, username, ticket, true);
             }
             
             // Check for cancel

@@ -400,11 +400,13 @@ public class Launcher {
             return Platform.MAC_OS_X;
         if (osName.contains("solaris") || osName.contains("sunos"))
             return Platform.SOLARIS;
-        if (osName.contains("linux"))
-            return Platform.LINUX;
-        if (osName.contains("unix"))
-            return Platform.LINUX;
-        
+        if (osName.contains("linux") || osName.contains("unix")) {
+            if (System.getProperty("java.specification.version").equals("1.7")) {
+                return Platform.LINUX_JAVA7;
+            } else {
+                return Platform.LINUX;
+            }
+        }
         return Platform.UNKNOWN;
     }
     

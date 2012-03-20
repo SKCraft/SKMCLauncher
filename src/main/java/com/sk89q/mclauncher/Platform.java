@@ -24,5 +24,5 @@ package com.sk89q.mclauncher;
  * @author sk89q
  */
 public enum Platform {
-    WINDOWS, MAC_OS_X, LINUX, SOLARIS, UNKNOWN;
+    WINDOWS, MAC_OS_X, LINUX, LINUX_JAVA7, SOLARIS, UNKNOWN;
 }
