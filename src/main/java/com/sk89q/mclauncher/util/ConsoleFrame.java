@@ -27,6 +27,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
@@ -50,14 +54,19 @@ import javax.swing.text.StyleConstants;
 public class ConsoleFrame extends JFrame {
 
     private static final long serialVersionUID = -3266712569265372777L;
+    private static final Logger rootLogger = Logger.getLogger("");;
     
     private Process trackProc;
+    private Handler loggerHandler;
     private JTextComponent textComponent;
     private Document document;
     private int numLines;
     private boolean colorEnabled = false;
-    private SimpleAttributeSet defaultAttributes = new SimpleAttributeSet();
-    private SimpleAttributeSet highlightedAttributes;
+    private final SimpleAttributeSet defaultAttributes = new SimpleAttributeSet();
+    private final SimpleAttributeSet highlightedAttributes;
+    private final SimpleAttributeSet errorAttributes;
+    private final SimpleAttributeSet infoAttributes;
+    private final SimpleAttributeSet debugAttributes;
     
     /**
      * Construct the frame.
@@ -88,6 +97,13 @@ public class ConsoleFrame extends JFrame {
         StyleConstants.setForeground(highlightedAttributes, Color.BLACK);
         StyleConstants.setBackground(highlightedAttributes, Color.YELLOW);
         
+        this.errorAttributes = new SimpleAttributeSet();
+        StyleConstants.setForeground(errorAttributes, new Color(200, 0, 0));
+        this.infoAttributes = new SimpleAttributeSet();
+        StyleConstants.setForeground(infoAttributes, new Color(200, 0, 0));
+        this.debugAttributes = new SimpleAttributeSet();
+        StyleConstants.setForeground(debugAttributes, Color.DARK_GRAY);
+        
         setSize(new Dimension(650, 400));
         buildUI();
         
@@ -101,6 +117,9 @@ public class ConsoleFrame extends JFrame {
             public void windowClosing(WindowEvent event) {
                 if (trackProc != null && killProcess) {
                     trackProc.destroy();
+                }
+                if (loggerHandler != null) {
+                    rootLogger.removeHandler(loggerHandler);
                 }
                 event.getWindow().dispose();
             }
@@ -282,6 +301,18 @@ public class ConsoleFrame extends JFrame {
         thread.setDaemon(true);
         thread.start();
     }
+
+    /**
+     * Registera global logger listener.
+     */
+    public void registerLoggerHandler() {
+        for (Handler handler : rootLogger.getHandlers()) {
+            rootLogger.removeHandler(handler);
+        }
+        
+        loggerHandler = new ConsoleLoggerHandler();
+        rootLogger.addHandler(loggerHandler);
+    }
     
     /**
      * Used to send console messages to the console.
@@ -299,6 +330,37 @@ public class ConsoleFrame extends JFrame {
             if (data.length() == 0) return;
             log(data, attributes);
             reset();
+        }
+    }
+
+    /**
+     * Used to send logger messages to the console.
+     */
+    private class ConsoleLoggerHandler extends Handler {
+        @Override
+        public void publish(LogRecord record) {
+            Level level = record.getLevel();
+            Throwable t = record.getThrown();
+            AttributeSet attributes = defaultAttributes;
+
+            if (level.intValue() >= Level.WARNING.intValue()) {
+                attributes = errorAttributes;
+            } else if (level.intValue() < Level.INFO.intValue()) {
+                attributes = debugAttributes;
+            }
+
+            log(record.getMessage() + "\n", attributes);
+            if (t != null) {
+                log(Util.getStackTrace(t) + "\n", attributes);
+            }
+        }
+
+        @Override
+        public void flush() {
+        }
+
+        @Override
+        public void close() throws SecurityException {
         }
     }
 
