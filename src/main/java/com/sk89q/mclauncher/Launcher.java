@@ -66,7 +66,7 @@ public class Launcher {
     public static final String VERSION;
     private static String noticesText;
 
-    private static ConsoleFrame consoleFrame;
+    private static volatile ConsoleFrame consoleFrame;
     private LauncherOptions options;
     private X509KeyRing keyRing;
     private static Launcher instance;
@@ -416,6 +416,7 @@ public class Launcher {
                     if (frame == null || frame.isActive()) {
                         frame = new ConsoleFrame(10000, colorEnabled);
                         consoleFrame = frame;
+                        frame.setTitle("Launcher Debugging Console");
                         frame.registerLoggerHandler();
                         frame.setVisible(true);
                     }
