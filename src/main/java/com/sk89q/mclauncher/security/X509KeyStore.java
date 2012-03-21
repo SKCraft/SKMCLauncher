@@ -201,7 +201,7 @@ public class X509KeyStore implements X509TrustManager {
      */
     @Override
     public X509Certificate[] getAcceptedIssuers() {
-        throw new UnsupportedOperationException("Client certificates are supported");
+        return new X509Certificate[0];
     }
 
 }
