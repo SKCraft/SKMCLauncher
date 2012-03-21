@@ -25,6 +25,7 @@ package com.sk89q.mclauncher.config;
  */
 public class Def {
 
+    public static final String FAST_TEST = "addons.test.fast";
     public static final String LOCAL_CONSOLE = "console.local";
     public static final String COLORED_CONSOLE = "console.colored";
     public static final String CONSOLE_KILLS_PROCESS = "console.kill-process";

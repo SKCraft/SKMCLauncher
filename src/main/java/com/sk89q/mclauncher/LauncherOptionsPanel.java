@@ -43,6 +43,9 @@ public class LauncherOptionsPanel extends OptionsPanel {
         .setToolTipText("Unchecked, the console opens in the same process as Minecraft, which can crash");*/
         addField(Def.COLORED_CONSOLE, new JCheckBox("Use colors in the console"));
         addField(Def.CONSOLE_KILLS_PROCESS, new JCheckBox("Kill Minecraft on console close"));
+
+        createFieldGroup("Addons");
+        addField(Def.FAST_TEST, new JCheckBox("Make the addon test button launch in offline mode"));
     }
 
 }

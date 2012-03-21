@@ -826,7 +826,7 @@ public class LauncherFrame extends JFrame {
         LaunchTask task = new LaunchTask(this, configuration, username,
                 password, jar);
         task.setForceUpdate(forceUpdateCheck.isSelected());
-        task.setPlayOffline(playOfflineCheck.isSelected());
+        task.setPlayOffline(playOfflineCheck.isSelected() || options.getSettings().getBool(Def.FAST_TEST, false));
         task.setShowConsole(showConsoleCheck.isSelected());
         if (autoConnect != null) {
             task.setAutoConnect(autoConnect);
