@@ -45,7 +45,7 @@ public class LauncherOptionsPanel extends OptionsPanel {
         addField(Def.CONSOLE_KILLS_PROCESS, new JCheckBox("Kill Minecraft on console close"));
 
         createFieldGroup("Addons");
-        addField(Def.FAST_TEST, new JCheckBox("Make the addon test button launch in offline mode"));
+        addField(Def.FAST_TEST, new JCheckBox("Addon test uses offline mode"));
     }
 
 }
