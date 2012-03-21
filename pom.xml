@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.sk89q</groupId>
   <artifactId>mclauncher</artifactId>
-  <version>3.1.2-SNAPSHOT</version>
+  <version>3.1.3</version>
   <name>SK's Minecraft Launcher</name>
   <description>SK's launcher for Minecraft.</description>
   <url>http://www.sk89q.com</url>
@@ -13,9 +13,9 @@
   </scm>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <signerKeyStore></signerKeyStore>
-    <signerPassword></signerPassword>
-    <signerAlias></signerAlias>
+    <signerKeyStore />
+    <signerPassword />
+    <signerAlias />
   </properties>
   <build>
     <sourceDirectory>${basedir}/src/main/java/</sourceDirectory>
