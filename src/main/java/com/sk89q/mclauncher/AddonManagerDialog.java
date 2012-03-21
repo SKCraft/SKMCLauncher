@@ -503,7 +503,7 @@ public class AddonManagerDialog extends JDialog {
                 Launcher.getInstance().getOptions().save();
                 self.dispose();
                 launcherFrame.setShowConsole(true);
-                launcherFrame.launch();
+                launcherFrame.launch(null, true);
             }
         });
 

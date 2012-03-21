@@ -770,16 +770,19 @@ public class LauncherFrame extends JFrame {
      * Launch the game.
      */
     public void launch() {
-        launch(null);
+        launch(null, false);
     }
 
+    public void launch(String autoConnect) {
+        launch(autoConnect, false);
+    }
     /**
      * Launch the game.
      * 
      * @param autoConnect
      *            address to try auto-connecting to
      */
-    public void launch(String autoConnect) {
+    public void launch(String autoConnect, boolean test) {
         if (worker.isAlive())
             return;
 
@@ -826,7 +829,7 @@ public class LauncherFrame extends JFrame {
         LaunchTask task = new LaunchTask(this, configuration, username,
                 password, jar);
         task.setForceUpdate(forceUpdateCheck.isSelected());
-        task.setPlayOffline(playOfflineCheck.isSelected() || options.getSettings().getBool(Def.FAST_TEST, false));
+        task.setPlayOffline(playOfflineCheck.isSelected() || (test && options.getSettings().getBool(Def.FAST_TEST, false)));
         task.setShowConsole(showConsoleCheck.isSelected());
         if (autoConnect != null) {
             task.setAutoConnect(autoConnect);
