@@ -63,8 +63,7 @@ public class NewsLayoutManager implements LayoutManager {
                 Dimension size = comp.getPreferredSize();
                 comp.setLocation((parent.getWidth() - PROGRESS_WIDTH) / 2,
                         (int) (parent.getHeight() / 2.0 - size.height / 2.0));
-                comp.setSize(PROGRESS_WIDTH,
-                        (int) comp.getPreferredSize().height);
+                comp.setSize(PROGRESS_WIDTH, comp.getPreferredSize().height);
             } else {
                 comp.setLocation(insets.left, insets.top);
                 comp.setSize(maxWidth, maxHeight);

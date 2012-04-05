@@ -86,7 +86,7 @@ class GameAppletContainer extends Applet implements AppletStub {
 
     @Override
     public String getParameter(String name) {
-        String custom = (String) parameters.get(name);
+        String custom = parameters.get(name);
         if (custom != null)
             return custom;
         try {
