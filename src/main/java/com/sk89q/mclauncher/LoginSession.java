@@ -100,7 +100,7 @@ public class LoginSession {
             conn.setUseCaches(false);
             conn.setDoInput(true);
             conn.setDoOutput(true);
-            conn.setReadTimeout(15000);
+            conn.setReadTimeout(1000 * 60 * 10);
 
             conn.connect();
             
