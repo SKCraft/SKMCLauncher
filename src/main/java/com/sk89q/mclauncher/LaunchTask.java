@@ -185,7 +185,7 @@ public class LaunchTask extends Task {
         }
         
         // Read some settings
-        String username = playOffline ? "Player" : this.username;
+        String username = this.username;
         String runtimePath = Util.nullEmpty(settings.get(Def.JAVA_RUNTIME));
         String wrapperPath = Util.nullEmpty(settings.get(Def.JAVA_WRAPPER_PROGRAM));
         int minMem = settings.getInt(Def.JAVA_MIN_MEM, 128);
