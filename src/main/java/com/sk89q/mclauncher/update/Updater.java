@@ -327,8 +327,11 @@ public class Updater implements DownloadListener {
         
         for (PackageFile file : fileList) {
             checkRunning();
-            
+
             if (file.isIgnored()) {
+                continue;
+            }
+            if (file.getVerifyType()==null) {
                 continue;
             }
             
