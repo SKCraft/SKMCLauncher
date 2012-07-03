@@ -71,6 +71,7 @@ public class AddonInstallerTask extends Task {
         boolean foundClasses = false;
         String mungePath = null;
         boolean multipleMunge = false;
+        boolean hasMcmodInfo = false;
 
         Pattern classRE = Pattern.compile("^.*\\.class$");
         Pattern modLoaderNameRE = Pattern.compile("^(?:.*/)?mod_([A-Za-z0-9_]+)\\.class$");
@@ -94,12 +95,9 @@ public class AddonInstallerTask extends Task {
                 entriesCount++;
                 
                 String path = entry.getName().replace("\\", "/"); // Normalize
-                // FML's mcmod.info authoritively implies munge path
-                // see https://github.com/cpw/FML/wiki/FML-mod-information-file
-                if (path.equals("mcmod.info")) {
-                    mungePath = null;
-                    break;
-                }
+                // FML's mcmod.info = no munging, see https://github.com/cpw/FML/wiki/FML-mod-information-file
+                if (path.equals("mcmod.info"))
+                    hasMcmodInfo = true;
 
                 if (path.startsWith("/"))
                     continue; // Invalid file!
@@ -174,11 +172,11 @@ public class AddonInstallerTask extends Task {
         }
 
         // Do we munge?
-        boolean needToMunge = !hasRoot && mungePath != null && !multipleMunge;
+        boolean needToMunge = !hasMcmodInfo && !hasRoot && mungePath != null && !multipleMunge;
 
         // If we have multiple munge paths, we best do nothing
         // Maybe we'll try munging anyway in the future
-        if (multipleMunge) {
+        if (multipleMunge && !hasMcmodInfo) {
             try {
                 SwingUtilities.invokeAndWait(new Runnable() {
                     @Override
