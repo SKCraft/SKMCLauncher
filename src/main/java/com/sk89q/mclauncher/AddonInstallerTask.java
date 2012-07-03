@@ -95,6 +95,13 @@ public class AddonInstallerTask extends Task {
                 
                 String path = entry.getName().replace("\\", "/"); // Normalize
                 
+                // FML's mcmod.info authoritively implies no munging
+                // see https://github.com/cpw/FML/wiki/FML-mod-information-file
+                if (path.equals("mcmod.info")) {
+                    mungePath = null;
+                    break;
+                }
+                
                 if (path.startsWith("/"))
                     continue; // Invalid file!
                 
