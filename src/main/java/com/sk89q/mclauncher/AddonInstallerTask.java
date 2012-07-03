@@ -94,7 +94,22 @@ public class AddonInstallerTask extends Task {
                 entriesCount++;
                 
                 String path = entry.getName().replace("\\", "/"); // Normalize
-                
+
+                // FML's mcmod.info authoritively implies munge path
+                if (path.endsWith("mcmod.info")) {
+                    int lastSlash = path.lastIndexOf('/');
+                    if (lastSlash == -1) {
+                        System.out.println("Found mcmod.info at root, not munging");
+                        mungePath = null;
+                        break;
+                    }
+                    // TODO: can this happen, or is mcmod.info only at /? 
+                    // https://github.com/cpw/FML/wiki/FML-mod-information-file just says "Inside a mod jar file it should always be named mcmod.info"
+                    mungePath = path.substring(0, lastSlash + 1);
+                    System.out.println("Found mcmod.info at '"+path+"' munging to '"+mungePath+"'");
+                    break;
+                }
+
                 if (path.startsWith("/"))
                     continue; // Invalid file!
                 
