@@ -32,6 +32,9 @@ import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
 import static com.sk89q.mclauncher.util.XMLUtil.*;
+import java.util.ArrayList;
+import java.util.List;
+import org.w3c.dom.Node;
 
 /**
  * Manages a custom update check.
@@ -43,6 +46,8 @@ public class UpdateCheck {
     private URL updateUrl;
     private URL packageUrl;
     private String latestVersion;
+    private List<String> certificateUrls = new ArrayList<String>();
+    private List<String> fileExtensions = new ArrayList<String>();
     
     /**
      * Construct the check.
@@ -80,6 +85,20 @@ public class UpdateCheck {
 
             latestVersion = getString(doc, xpath.compile("/update/latest"));
             packageUrl = new URL(getString(doc, xpath.compile("/update/packageurl")));
+            
+            //Check for certificates and file extensions required by the remote update location
+            Node node = getNode(doc, xpath.compile("/update"));
+            for(int i = 0; i < node.getChildNodes().getLength(); i++) {
+                
+                if(node.getChildNodes().item(i).getNodeName().equals("certificates"))
+                    for(Node n : getNodes(doc, xpath.compile("/update/certificates/certificate")))
+                        certificateUrls.add(getValue(n));
+                
+                if(node.getChildNodes().item(i).getNodeName().equals("fileextensions"))
+                    for(Node n: getNodes(doc, xpath.compile("/update/fileextensions/fileextension")))
+                        fileExtensions.add(getValue(n));
+            }
+            
         } catch (XPathExpressionException e) {
             throw new IOException(e);
         } catch (ParserConfigurationException e) {
@@ -117,6 +136,34 @@ public class UpdateCheck {
      */
     public String getLatestVersion() {
         return latestVersion;
+    }
+
+    /**
+     * @return the certificateUrls
+     */
+    public List<String> getCertificateUrls() {
+        return certificateUrls;
+    }
+
+    /**
+     * @param certificateUrls the certificateUrls to set
+     */
+    public void setCertificateUrls(List<String> certificateUrls) {
+        this.certificateUrls = certificateUrls;
+    }
+
+    /**
+     * @return the fileExtensions
+     */
+    public List<String> getFileExtensions() {
+        return fileExtensions;
+    }
+
+    /**
+     * @param fileExtensions the fileExtensions to set
+     */
+    public void setFileExtensions(List<String> fileExtensions) {
+        this.fileExtensions = fileExtensions;
     }
     
 }

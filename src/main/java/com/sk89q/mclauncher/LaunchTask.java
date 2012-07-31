@@ -47,14 +47,14 @@ import com.sk89q.mclauncher.config.Configuration;
 import com.sk89q.mclauncher.config.Def;
 import com.sk89q.mclauncher.config.LauncherOptions;
 import com.sk89q.mclauncher.launch.GameLauncher;
-import com.sk89q.mclauncher.update.CancelledUpdateException;
-import com.sk89q.mclauncher.update.UpdateCache;
-import com.sk89q.mclauncher.update.UpdateCheck;
-import com.sk89q.mclauncher.update.UpdateException;
-import com.sk89q.mclauncher.update.Updater;
+import com.sk89q.mclauncher.security.X509KeyRing;
+import com.sk89q.mclauncher.security.X509KeyStore;
+import com.sk89q.mclauncher.update.*;
 import com.sk89q.mclauncher.util.ConsoleFrame;
 import com.sk89q.mclauncher.util.SettingsList;
 import com.sk89q.mclauncher.util.Util;
+import java.io.*;
+import java.security.cert.CertificateException;
 
 /**
  * Used for launching the game.
@@ -65,6 +65,8 @@ public class LaunchTask extends Task {
     
     private static final Logger logger = Logger.getLogger(LaunchTask.class.getCanonicalName());
     
+    private static UpdateTrustManager trustManager;
+    
     private volatile boolean running = true;
     
     private JFrame frame;
@@ -74,6 +76,7 @@ public class LaunchTask extends Task {
     private LoginSession session;
     private Configuration configuration;
     private File rootDir;
+    private CertificateDownloader certDownloader;
     private boolean playOffline = false;
     private boolean skipUpdateCheck = false;
     private boolean forceUpdate = false;
@@ -100,6 +103,13 @@ public class LaunchTask extends Task {
         this.username = username;
         this.password = password;
         this.activeJar = jar;
+    }
+    
+    /**
+     * @return the trustManager
+     */
+    public static UpdateTrustManager getTrustManager() {
+        return trustManager;
     }
     
     /**
@@ -428,6 +438,8 @@ public class LaunchTask extends Task {
      * @throws ExecutionException on error while executing
      */
     public void checkForUpdates() throws ExecutionException {
+        UpdateCheck check = null;
+        
         // Check account
         if (!session.isValid() && !this.playOffline) {
             throw new ExecutionException("Please login first to download Minecraft.");
@@ -472,7 +484,7 @@ public class LaunchTask extends Task {
             fireStatusChange("Checking for updates...");
             
             // Custom update URL, so we have to check this URL
-            UpdateCheck check = new UpdateCheck(updateUrl);
+            check = new UpdateCheck(updateUrl);
             try {
                 check.checkUpdateServer();
             } catch (final IOException e) {
@@ -534,6 +546,10 @@ public class LaunchTask extends Task {
         
         // Proceed with the update
         if (notInstalled || forceUpdate || (updateRequired && wantUpdate)) {
+            
+            if(check !=null)
+                checkTrust(check);
+            
             // We have a custom package definition URL that we have to fetch!
             if (packageDefUrl != null) {
                 fireStatusChange("Downloading package definition for update...");
@@ -629,6 +645,77 @@ public class LaunchTask extends Task {
         } catch (InterruptedException e) {
         } catch (InvocationTargetException e) {
         }
+    }
+    
+    /**
+     * Checks File Extensions and Certificates as read by an UpdateCheck.
+     * The user will need to accept these File Extensions and Certificates for the update to complete.
+     * 
+     * @param check The UpdateCheck that contains a list of Certificates and File Extensions required for the update.
+     * @throws ExecutionException
+     */
+    public void checkTrust(UpdateCheck check) throws ExecutionException {
+        fireStatusChange("Checking Update Trust Requirements...");
+        
+        //Initialize the Trust Manager, which stores file extensions and
+        //hashes of certificates that the user trusts
+        try {
+            trustManager = new UpdateTrustManager(configuration.getMinecraftDir());
+        } catch (IOException e) {
+            throw new ExecutionException("Could not parse local trust.xml file. (" +
+                    e.getMessage() + ") The update cannot be performed.", e);
+        }
+        
+        //Initialize the Certificate Downloader, which downloads and hashes certificates
+        certDownloader = new CertificateDownloader(check.getCertificateUrls(), configuration.getMinecraftDir());
+        for (ProgressListener listener : getProgressListenerList())
+            certDownloader.addProgressListener(listener);
+        
+        try {
+            certDownloader.download();
+        } catch(UpdateException e) {
+            throw new ExecutionException("Downloading certificates failed. ( " + e.getMessage() + " )", e);
+        }
+        
+        //If necessary, display UI prompting the user to trust new file extensions        
+        if(!trustManager.containsAllFileExtensions(check.getFileExtensions())) {
+            String message = "This update will include files of the following extensions: \n";
+            for(String s : check.getFileExtensions())
+                message += "   -" + s + "\n";
+            message += "Do you trust these types of files?";
+            if (JOptionPane.showConfirmDialog(getComponent(), message, "Unknown File Extensions", JOptionPane.YES_NO_OPTION) != 0) {
+                    throw new CancelledExecutionException();
+            }
+        }
+        trustManager.setLocalFileExtensions(check.getFileExtensions());
+        
+        //If necessary, display UI prompting the user to trust new certificates
+        if(!trustManager.containsAllCertificates(certDownloader.getCertificateHashes())) {
+            String message = "Executable Java code in this update is signed by the following certificates: \n";
+            for(File f : certDownloader.getFiles())
+                message += "   -" + f.getName() + "\n";
+            message += "Do you trust these certificates?";
+            if (JOptionPane.showConfirmDialog(getComponent(), message, "Unknown Certificates", JOptionPane.YES_NO_OPTION) != 0)
+                throw new CancelledExecutionException();
+        }
+        trustManager.setLocalCertificateHashes(certDownloader.getCertificateHashes());
+        
+        //Save the trusted extensions and certificates to trust.xml
+        if (!trustManager.save())
+            throw new ExecutionException("Failed to save user-accepted certificates and file extensions in trust.xml.");
+        
+        //The user has trusted the recenty downloaded certificates, 
+        //so add them to the keystore for validation of the JARs and ZIPs
+        //that will be downloaded in this update
+        X509KeyStore keystore = Launcher.getInstance().getKeyRing().getKeyStore(X509KeyRing.Ring.UPDATE);
+        for(File f : certDownloader.getFiles())
+            try {
+                keystore.addRootCertificates(new FileInputStream(f));
+            } catch(CertificateException e) {
+                throw new ExecutionException("Failed to load downloaded certificate. The file is likely invalid.", e);
+            } catch(IOException e) {
+                throw new ExecutionException("Failed to load downloaded certificate. The file is likely invalid.", e);
+            }
     }
 
     /**
