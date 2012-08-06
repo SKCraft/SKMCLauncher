@@ -67,6 +67,7 @@ public class Launcher {
     private static String noticesText;
 
     private static volatile ConsoleFrame consoleFrame;
+    private static LauncherFrame frame;
     private LauncherOptions options;
     private X509KeyRing keyRing;
     private static Launcher instance;
@@ -145,6 +146,15 @@ public class Launcher {
      */
     public LauncherOptions getOptions() {
         return options;
+    }
+    
+    /**
+     * Get the launcher frame.
+     * 
+     * @return frame
+     */
+    public LauncherFrame getLauncherFrame() {
+        return frame;
     }
     
     /**
@@ -504,7 +514,7 @@ public class Launcher {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                LauncherFrame frame = new LauncherFrame();
+                frame = new LauncherFrame();
                 frame.setVisible(true);
                 
                 if (username != null) {

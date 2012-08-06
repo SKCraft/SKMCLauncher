@@ -115,25 +115,20 @@ public class PackageDefinition {
                                 target.toString(), rootDir.toString()));
                     }
                     
-                    // Add the file as long as it's not trust.xml in the root directory.
-                    // trust.xml is a record of user-trusted files and certificates.  It
-                    // should only be written by the UpdateTrustManager.  If it were modified
-                    // by an update, that would be a major security flaw.
-                    if(!(dest.getAbsolutePath().equals(rootDir.getAbsolutePath()) && filename.equals("trust.xml"))) {
-                        if (nodeName == "file") {
-                            packageFile = new SingleFile(url, temp, target, size);
-                        } else if (nodeName == "archive") {
-                            packageFile = new ArchiveFile(url, temp, target, size);
-                        } else {
-                            throw new IOException("Unknown file type '" + nodeName + "'. Launcher update may be required.");
-                        }
-                    
-                        packageFile.setVerifyType(hashType);
-
-                        files.add(packageFile);
-
-                        totalEstimatedSize += size;
+                    // Add the file
+                    if (nodeName == "file") {
+                        packageFile = new SingleFile(url, temp, target, size);
+                    } else if (nodeName == "archive") {
+                        packageFile = new ArchiveFile(url, temp, target, size);
+                    } else {
+                        throw new IOException("Unknown file type '" + nodeName + "'. Launcher update may be required.");
                     }
+
+                    packageFile.setVerifyType(hashType);
+
+                    files.add(packageFile);
+
+                    totalEstimatedSize += size;
                 }
             }
             

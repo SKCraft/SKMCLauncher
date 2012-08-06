@@ -65,8 +65,6 @@ public class LaunchTask extends Task {
     
     private static final Logger logger = Logger.getLogger(LaunchTask.class.getCanonicalName());
     
-    private static UpdateTrustManager trustManager;
-    
     private volatile boolean running = true;
     
     private JFrame frame;
@@ -103,13 +101,6 @@ public class LaunchTask extends Task {
         this.username = username;
         this.password = password;
         this.activeJar = jar;
-    }
-    
-    /**
-     * @return the trustManager
-     */
-    public static UpdateTrustManager getTrustManager() {
-        return trustManager;
     }
     
     /**
@@ -657,15 +648,6 @@ public class LaunchTask extends Task {
     public void checkTrust(UpdateCheck check) throws ExecutionException {
         fireStatusChange("Checking Update Trust Requirements...");
         
-        //Initialize the Trust Manager, which stores file extensions and
-        //hashes of certificates that the user trusts
-        try {
-            trustManager = new UpdateTrustManager(configuration.getMinecraftDir());
-        } catch (IOException e) {
-            throw new ExecutionException("Could not parse local trust.xml file. (" +
-                    e.getMessage() + ") The update cannot be performed.", e);
-        }
-        
         //Initialize the Certificate Downloader, which downloads and hashes certificates
         certDownloader = new CertificateDownloader(check.getCertificateUrls(), configuration.getMinecraftDir());
         for (ProgressListener listener : getProgressListenerList())
@@ -678,19 +660,18 @@ public class LaunchTask extends Task {
         }
         
         //If necessary, display UI prompting the user to trust new file extensions        
-        if(!trustManager.containsAllFileExtensions(check.getFileExtensions())) {
+        if(!configuration.containsAllFileExtensions(check.getFileExtensions())) {
             String message = "This update will include files of the following extensions: \n";
             for(String s : check.getFileExtensions())
                 message += "   -" + s + "\n";
             message += "Do you trust these types of files?";
-            if (JOptionPane.showConfirmDialog(getComponent(), message, "Unknown File Extensions", JOptionPane.YES_NO_OPTION) != 0) {
+            if (JOptionPane.showConfirmDialog(getComponent(), message, "Unknown File Extensions", JOptionPane.YES_NO_OPTION) != 0)
                     throw new CancelledExecutionException();
-            }
         }
-        trustManager.setLocalFileExtensions(check.getFileExtensions());
+        configuration.setLocalFileExtensions(check.getFileExtensions());
         
         //If necessary, display UI prompting the user to trust new certificates
-        if(!trustManager.containsAllCertificates(certDownloader.getCertificateHashes())) {
+        if(!configuration.containsAllCertificates(certDownloader.getCertificateHashes())) {
             String message = "Executable Java code in this update is signed by the following certificates: \n";
             for(File f : certDownloader.getFiles())
                 message += "   -" + f.getName() + "\n";
@@ -698,11 +679,11 @@ public class LaunchTask extends Task {
             if (JOptionPane.showConfirmDialog(getComponent(), message, "Unknown Certificates", JOptionPane.YES_NO_OPTION) != 0)
                 throw new CancelledExecutionException();
         }
-        trustManager.setLocalCertificateHashes(certDownloader.getCertificateHashes());
+        configuration.setLocalCertificateHashes(certDownloader.getCertificateHashes());
         
-        //Save the trusted extensions and certificates to trust.xml
-        if (!trustManager.save())
-            throw new ExecutionException("Failed to save user-accepted certificates and file extensions in trust.xml.");
+        //Save the trusted extensions and certificates to the configuration
+        if (!Launcher.getInstance().getOptions().save())
+            throw new ExecutionException("Failed to save user-accepted certificates and file extensions.");
         
         //The user has trusted the recenty downloaded certificates, 
         //so add them to the keystore for validation of the JARs and ZIPs
