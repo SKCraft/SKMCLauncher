@@ -465,9 +465,7 @@ public class LauncherFrame extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 boolean selected = ((JCheckBox) e.getSource()).isSelected();
-                if (!options.getSettings().getBool(Def.CHANGE_OFFLINE_NAME, false)) {
-                    userText.setEnabled(!selected);
-                }
+                userText.setEnabled(options.getSettings().getBool(Def.CHANGE_OFFLINE_NAME, false));
                 passText.setEnabled(!selected);
                 rememberPass.setEnabled(!selected);
             }
@@ -795,7 +793,8 @@ public class LauncherFrame extends JFrame {
             return;
         }
 
-        if (passText.getText().trim().length() == 0) {
+        if (passText.getText().trim().length() == 0 && 
+                !options.getSettings().getBool(Def.ENABLE_PLAY_OFFLINE, false)) {
             JOptionPane.showMessageDialog(this, "A password must be entered.",
                     "No password", JOptionPane.ERROR_MESSAGE);
             return;
