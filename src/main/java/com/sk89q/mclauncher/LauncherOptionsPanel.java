@@ -18,10 +18,9 @@
 
 package com.sk89q.mclauncher;
 
-import javax.swing.JCheckBox;
-
 import com.sk89q.mclauncher.config.Def;
 import com.sk89q.mclauncher.util.SettingsList;
+import javax.swing.JCheckBox;
 
 public class LauncherOptionsPanel extends OptionsPanel {
 
@@ -37,7 +36,9 @@ public class LauncherOptionsPanel extends OptionsPanel {
         addField(Def.LAUNCHER_NO_NEWS, new JCheckBox("Don't load the news"));
         addField(Def.LAUNCHER_ALWAYS_MORE_OPTIONS, new JCheckBox("Start with all options shown"));
         addField(Def.LAUNCHER_REOPEN, new JCheckBox("Show the launcher on Minecraft close"));
-
+        addField(Def.ENABLE_PLAY_OFFLINE, new JCheckBox("Enable offline playing"));
+        addField(Def.CHANGE_OFFLINE_NAME, new JCheckBox("Allow changing offline name"));
+        
         createFieldGroup("Console");
         /*addField(Def.LOCAL_CONSOLE, new JCheckBox("Open console in launcher process"))
         .setToolTipText("Unchecked, the console opens in the same process as Minecraft, which can crash");*/

@@ -43,6 +43,8 @@ public class Def {
     public static final String JAVA_WRAPPER_PROGRAM = "java.wrapper-program";
     public static final String JAVA_CONSOLE = "java.console";
     public static final String LWJGL_DEBUG = "lwjgl.debug";
+    public static final String ENABLE_PLAY_OFFLINE = "launcher.playoffline";
+    public static final String CHANGE_OFFLINE_NAME = "launcher.allowchangeofflinename";
     
     private Def() {
     }

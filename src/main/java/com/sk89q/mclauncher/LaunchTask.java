@@ -184,8 +184,13 @@ public class LaunchTask extends Task {
             throw new ExecutionException("The path to the launcher could not be discovered.", e);
         }
         
+        String username;
         // Read some settings
-        String username = playOffline ? "Player" : this.username;
+        if (settings.getBool(Def.ENABLE_PLAY_OFFLINE, false)){
+            username = this.username;
+        } else {
+            username = playOffline ? "Player" : this.username;
+        }
         String runtimePath = Util.nullEmpty(settings.get(Def.JAVA_RUNTIME));
         String wrapperPath = Util.nullEmpty(settings.get(Def.JAVA_WRAPPER_PROGRAM));
         int minMem = settings.getInt(Def.JAVA_MIN_MEM, 128);

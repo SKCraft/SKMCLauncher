@@ -75,7 +75,6 @@ import com.sk89q.mclauncher.util.UIUtil;
 public class LauncherFrame extends JFrame {
 
     private static final long serialVersionUID = 4122023031876609883L;
-    private static final boolean CHECK_LOGIN_BEFORE_OFFLINE = true;
     private JLabel configurationLabel;
     private JButton switchConfigBtn;
     private JComboBox jarCombo;
@@ -466,7 +465,9 @@ public class LauncherFrame extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 boolean selected = ((JCheckBox) e.getSource()).isSelected();
-                userText.setEnabled(!selected);
+                if (!options.getSettings().getBool(Def.CHANGE_OFFLINE_NAME, false)) {
+                    userText.setEnabled(!selected);
+                }
                 passText.setEnabled(!selected);
                 rememberPass.setEnabled(!selected);
             }
@@ -564,7 +565,7 @@ public class LauncherFrame extends JFrame {
                 jarLabel.setVisible(true);
                 jarCombo.setVisible(true);
                 forceUpdateCheck.setVisible(true);
-                playOfflineCheck.setVisible(!CHECK_LOGIN_BEFORE_OFFLINE);
+                playOfflineCheck.setVisible(options.getSettings().getBool(Def.ENABLE_PLAY_OFFLINE, false));
                 showConsoleCheck.setVisible(true);
                 // registerAccount.setVisible(true);
             }
