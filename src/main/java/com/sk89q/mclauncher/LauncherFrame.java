@@ -66,6 +66,8 @@ import com.sk89q.mclauncher.config.Def;
 import com.sk89q.mclauncher.config.LauncherOptions;
 import com.sk89q.mclauncher.config.ServerHotListManager;
 import com.sk89q.mclauncher.util.UIUtil;
+import java.io.FileNotFoundException;
+import java.util.Map;
 
 /**
  * Main launcher GUI frame.
@@ -164,6 +166,16 @@ public class LauncherFrame extends JFrame {
         configurationLabel.setText("Configuration: " + configuration.getName());
         populateJarEntries();
         setLastJar();
+        
+        try {
+            for (Map.Entry<String, String> entry : configuration.getMPServers().entrySet()) {
+                options.getServers().register(entry.getKey(), entry.getValue(), false);
+            }
+        } catch (FileNotFoundException ex) {
+            ex.printStackTrace();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
     }
 
     /**
