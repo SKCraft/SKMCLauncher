@@ -66,6 +66,8 @@ import com.sk89q.mclauncher.config.Def;
 import com.sk89q.mclauncher.config.LauncherOptions;
 import com.sk89q.mclauncher.config.ServerHotListManager;
 import com.sk89q.mclauncher.util.UIUtil;
+import java.io.FileNotFoundException;
+import java.util.Map;
 
 /**
  * Main launcher GUI frame.
@@ -75,7 +77,6 @@ import com.sk89q.mclauncher.util.UIUtil;
 public class LauncherFrame extends JFrame {
 
     private static final long serialVersionUID = 4122023031876609883L;
-    private static final boolean CHECK_LOGIN_BEFORE_OFFLINE = true;
     private JLabel configurationLabel;
     private JButton switchConfigBtn;
     private JComboBox jarCombo;
@@ -165,6 +166,16 @@ public class LauncherFrame extends JFrame {
         configurationLabel.setText("Configuration: " + configuration.getName());
         populateJarEntries();
         setLastJar();
+        
+        try {
+            for (Map.Entry<String, String> entry : configuration.getMPServers().entrySet()) {
+                options.getServers().register(entry.getKey(), entry.getValue(), false);
+            }
+        } catch (FileNotFoundException ex) {
+            ex.printStackTrace();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
     }
 
     /**
@@ -466,7 +477,7 @@ public class LauncherFrame extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 boolean selected = ((JCheckBox) e.getSource()).isSelected();
-                userText.setEnabled(!selected);
+                userText.setEnabled(options.getSettings().getBool(Def.CHANGE_OFFLINE_NAME, false));
                 passText.setEnabled(!selected);
                 rememberPass.setEnabled(!selected);
             }
@@ -564,7 +575,7 @@ public class LauncherFrame extends JFrame {
                 jarLabel.setVisible(true);
                 jarCombo.setVisible(true);
                 forceUpdateCheck.setVisible(true);
-                playOfflineCheck.setVisible(!CHECK_LOGIN_BEFORE_OFFLINE);
+                playOfflineCheck.setVisible(options.getSettings().getBool(Def.ENABLE_PLAY_OFFLINE, false));
                 showConsoleCheck.setVisible(true);
                 // registerAccount.setVisible(true);
             }
@@ -794,7 +805,8 @@ public class LauncherFrame extends JFrame {
             return;
         }
 
-        if (passText.getText().trim().length() == 0) {
+        if (passText.getText().trim().length() == 0 && 
+                !options.getSettings().getBool(Def.ENABLE_PLAY_OFFLINE, false)) {
             JOptionPane.showMessageDialog(this, "A password must be entered.",
                     "No password", JOptionPane.ERROR_MESSAGE);
             return;

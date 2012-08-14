@@ -26,6 +26,14 @@ import java.util.List;
 import com.sk89q.mclauncher.Launcher;
 import com.sk89q.mclauncher.addons.AddonsProfile;
 import com.sk89q.mclauncher.util.SettingsList;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import org.jnbt.ListTag;
+import org.jnbt.NBTInputStream;
+import org.jnbt.Tag;
 
 /**
  * Represents a configuration for the game.
@@ -76,6 +84,25 @@ public class Configuration {
         setName(name);
         setCustomBasePath(customBasePath);
         setUpdateUrl(updateUrl);
+    }
+    
+    public Map<String, String> getMPServers() throws FileNotFoundException, IOException {
+        String fname = getMinecraftDir().getPath()
+                .concat(File.separator).concat("servers.dat");
+        
+        NBTInputStream n = new NBTInputStream(new FileInputStream(fname));
+        Tag s = n.readTag();ListTag t = ((Map<String, ListTag>) s.getValue()).get("servers");
+        Map<String, String> retn = new HashMap<String, String>();
+        
+        for (Tag x : t.getValue()) {
+            Map<String, Tag> y = (Map<String, Tag>)x.getValue();
+            String name = (String) y.get("name").getValue();
+            String ip = (String) y.get("ip").getValue();
+            
+            retn.put(name, ip);
+        }
+        
+        return retn;
     }
 
     /**

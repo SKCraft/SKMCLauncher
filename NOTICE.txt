@@ -4,6 +4,7 @@ This launcher includes code from Julien Ponge to process LZMA compressed files, 
 
 This launcher includes code from the LZMA SDK by Igor Pavlov, released to the public domain. <http://www.7-zip.org/sdk.html> 
 
+This launcher includes code from the JNBT project by Graham Edgecombe, licensed under the BSD license.
 -------- 
 
 This software includes code to process base64 data by Mikael Grev, MiG InfoCom AB, released under the following license: 
