@@ -347,7 +347,6 @@ public class ConfigurationDialog extends JDialog {
 
             if (pathStr != null) {
                 f = new File(pathStr);
-                System.out.print(f.isAbsolute());
                 if (!f.isDirectory()) {
                     UIUtil.showError(this, "Invalid path", "The path that you entered does not exist or is not a directory.");
                     return false;
