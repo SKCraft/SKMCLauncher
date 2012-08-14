@@ -1,17 +1,17 @@
 <launch4jConfig>
   <dontWrapJar>false</dontWrapJar>
   <headerType>gui</headerType>
-  <jar>target/SKMCLauncher.jar</jar>
-  <outfile>target/SKMCLauncher.exe</outfile>
+  <jar>target\SKMCLauncher.jar</jar>
+  <outfile>target\SKMCLauncher.exe</outfile>
   <errTitle></errTitle>
   <cmdLine></cmdLine>
-  <chdir></chdir>
+  <chdir>.</chdir>
   <priority>normal</priority>
   <downloadUrl>http://java.com/download</downloadUrl>
   <supportUrl></supportUrl>
   <customProcName>true</customProcName>
   <stayAlive>false</stayAlive>
-  <manifest></manifest>
+  <manifest>launch4j.manifest.xml</manifest>
   <icon>icon.ico</icon>
   <jre>
     <path></path>
