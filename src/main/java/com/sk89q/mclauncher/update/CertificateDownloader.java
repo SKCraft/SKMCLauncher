@@ -66,6 +66,7 @@ public class CertificateDownloader {
             if(!certificateDir.mkdirs())
                 throw new UpdateException("Couldn't create certificates directory.");
         
+        int certnum = 1;
         for(String s : certificateUrls) {
             URL certURL;
             try {
@@ -74,7 +75,7 @@ public class CertificateDownloader {
                 throw new UpdateException("Remote update XML contained malformed certificate URLs.", e);
             }
             
-            File certFile = new File(certificateDir, certURL.getFile());
+            File certFile = new File(certificateDir.toString(), "cer" + certnum + ".cer");
             
             BufferedOutputStream out;
             try {
@@ -109,6 +110,7 @@ public class CertificateDownloader {
                     out.write(data, 0, len);
                 
                 out.close();
+                certnum++;
             } catch (IOException e) {
                 throw new UpdateException("Failed to download certificates.", e);
             } finally {

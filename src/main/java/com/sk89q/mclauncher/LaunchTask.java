@@ -673,8 +673,8 @@ public class LaunchTask extends Task {
         //If necessary, display UI prompting the user to trust new certificates
         if(!configuration.containsAllCertificates(certDownloader.getCertificateHashes())) {
             String message = "Executable Java code in this update is signed by the following certificates: \n";
-            for(File f : certDownloader.getFiles())
-                message += "   -" + f.getName() + "\n";
+            for(String s : check.getCertificateUrls())
+                message += "   -" + s + "\n";
             message += "Do you trust these certificates?";
             if (JOptionPane.showConfirmDialog(getComponent(), message, "Unknown Certificates", JOptionPane.YES_NO_OPTION) != 0)
                 throw new CancelledExecutionException();
