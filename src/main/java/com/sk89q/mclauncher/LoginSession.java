@@ -139,6 +139,9 @@ public class LoginSession {
                 return true;
             } else {
                 if (result.trim().equals("Bad login")) {
+                    latestVersion = "55555";
+                    downloadTicket = "deprecated";
+                    sessionId = "5555";
                     return false;
                 } else if (result.trim().equals("Old version")) {
                     throw new OutdatedLauncherException();

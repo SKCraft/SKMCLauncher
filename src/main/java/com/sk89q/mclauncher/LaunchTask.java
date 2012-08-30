@@ -146,8 +146,9 @@ public class LaunchTask extends Task {
         rootDir = configuration.getMinecraftDir();
 
         session = new LoginSession(username);
-        
-        if (!playOffline) {
+
+        // if user entered null password, then don't attempt to auth
+        if (!playOffline && !password.equals("") ) {
             login();
         }
         
@@ -185,7 +186,8 @@ public class LaunchTask extends Task {
         }
         
         // Read some settings
-        String username = playOffline ? "Player" : this.username;
+        //String username = playOffline ? "Player" : this.username;
+        String username = this.username;
         String runtimePath = Util.nullEmpty(settings.get(Def.JAVA_RUNTIME));
         String wrapperPath = Util.nullEmpty(settings.get(Def.JAVA_WRAPPER_PROGRAM));
         int minMem = settings.getInt(Def.JAVA_MIN_MEM, 128);
@@ -381,7 +383,7 @@ public class LaunchTask extends Task {
             if (!session.login(password)) {
                 throw new ExecutionException("You've entered an invalid username/password combination.");
             }
-            
+
             username = session.getUsername();
         } catch (SSLHandshakeException e) {
             throw new ExecutionException("Verification of the identity of the authentication server failed. You may need to update the launcher, or someone has attmpted to steal your credentials.");
@@ -428,11 +430,6 @@ public class LaunchTask extends Task {
      * @throws ExecutionException on error while executing
      */
     public void checkForUpdates() throws ExecutionException {
-        // Check account
-        if (!session.isValid() && !this.playOffline) {
-            throw new ExecutionException("Please login first to download Minecraft.");
-        }
-        
         File cacheFile = new File(rootDir, "update_cache.xml");
         UpdateCache cache = new UpdateCache(cacheFile);
         
@@ -447,6 +444,11 @@ public class LaunchTask extends Task {
         
         URL updateUrl = configuration.getUpdateUrl();
         URL packageDefUrl = null;
+
+        // Check account
+        if (!session.isValid() && !this.playOffline && updateUrl==null) {
+            throw new ExecutionException("Please authenticate with official Minecraft servers first.");
+        }
         
         // Try to import the last version from the official launcher
         if (updateUrl == null && !cacheFile.exists()) {
