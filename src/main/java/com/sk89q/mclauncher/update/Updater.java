@@ -332,7 +332,15 @@ public class Updater implements DownloadListener {
                 continue;
             }
             if (file.getVerifyType()==null) {
-                continue;
+                long estSize = file.getTotalEstimatedSize();
+                if( estSize != -1L && estSize != file.getFile().length() ) {
+                    logger.log(Level.WARNING, "Failed to deploy due to filesize mismatch" + file);
+                    throw new UpdateException("Could not install to " +
+                            file.getFile().getAbsolutePath() + ": filesize did not match.");
+                }
+                else {
+                    continue;
+                }
             }
             
             fireAdjustedValueChange(currentIndex / fileList.size());

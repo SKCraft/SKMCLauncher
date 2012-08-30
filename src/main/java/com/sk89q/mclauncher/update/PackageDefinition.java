@@ -103,7 +103,7 @@ public class PackageDefinition {
                     // Parse path
                     String urlName = getValue(fileNode);
                     String filename = defaultValue(getAttrOrNull(fileNode, "filename"), urlName);
-                    long size = Long.parseLong(defaultValue(getAttrOrNull(fileNode, "size"), "1000"));
+                    long size = Long.parseLong(defaultValue(getAttrOrNull(fileNode, "size"), "-1"));
     
                     URL url = new URL(baseURL.toString() + filename);
                     File target = new File(dest, filename);
