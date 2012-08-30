@@ -83,7 +83,12 @@ public class ArchiveFile extends PackageFile {
                 
                 JarEntry entry;
                 while ((entry = zip.getNextJarEntry()) != null) {
-                    if (entry.isDirectory() || isMetaInf(entry.getName())) {
+                    if (isMetaInf(entry.getName())) {
+                        continue;
+                    }
+                    if (entry.isDirectory()) {
+                        File target = new File(getFile().getParentFile(), entry.getName());
+                        target.mkdirs();
                         continue;
                     }
                     

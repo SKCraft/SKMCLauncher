@@ -75,7 +75,7 @@ import com.sk89q.mclauncher.util.UIUtil;
 public class LauncherFrame extends JFrame {
 
     private static final long serialVersionUID = 4122023031876609883L;
-    private static final boolean CHECK_LOGIN_BEFORE_OFFLINE = true;
+    private static final boolean CHECK_LOGIN_BEFORE_OFFLINE = false;
     private JLabel configurationLabel;
     private JButton switchConfigBtn;
     private JComboBox jarCombo;
@@ -791,12 +791,6 @@ public class LauncherFrame extends JFrame {
         if (selectedName == null) {
             JOptionPane.showMessageDialog(this, "A username must be entered.",
                     "No username", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        if (passText.getText().trim().length() == 0) {
-            JOptionPane.showMessageDialog(this, "A password must be entered.",
-                    "No password", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
