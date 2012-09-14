@@ -378,10 +378,9 @@ public class LauncherFrame extends JFrame {
         configurationsPanel.setBorder(BorderFactory.createEmptyBorder(PAD, PAD, PAD, PAD));
         configurationList = new JList(options.getConfigurations());
         configurationList.setCellRenderer(new ConfigurationCellRenderer());
-        configurationList.setPreferredSize(new Dimension(100, 20));
         configurationList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        JScrollPane configurationListScroll = new JScrollPane(configurationList);
-        configurationsPanel.add(configurationListScroll, BorderLayout.CENTER);
+        JScrollPane configScroll = new JScrollPane(configurationList);
+        configurationsPanel.add(configScroll, BorderLayout.CENTER);
         leftPanel.add(configurationsPanel, BorderLayout.CENTER);
 
         // Add listener
