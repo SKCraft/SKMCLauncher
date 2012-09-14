@@ -134,8 +134,6 @@ public class Launcher {
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Failed to install register built-in certificates", e);
         }
-        
-        verifyState();
     }
 
     /**
@@ -180,20 +178,6 @@ public class Launcher {
         Cipher cipher = Cipher.getInstance("PBEWithMD5AndDES");
         cipher.init(mode, key, paramSpec);
         return cipher;
-    }
-    
-    /**
-     * Verifies signatures.
-     */
-    public void verifyState() {
-        if (!Launcher.class.getResource("Launcher.class").toString().startsWith("file:")) {
-            Certificate[] certs = Launcher.class.getProtectionDomain().getCodeSource()
-                    .getCertificates();
-            
-            if (certs == null || certs.length == 0) {
-                System.exit(15);
-            }
-        }
     }
     
     /**
