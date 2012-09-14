@@ -18,10 +18,16 @@
 
 package com.sk89q.mclauncher.config;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
+
+import javax.imageio.ImageIO;
 
 import com.sk89q.mclauncher.Launcher;
 import com.sk89q.mclauncher.addons.AddonsProfile;
@@ -33,6 +39,9 @@ import com.sk89q.mclauncher.util.SettingsList;
  * @author sk89q
  */
 public class Configuration {
+    
+    private static final Logger logger = Logger.getLogger(Configuration.class.getCanonicalName());
+    
     private String id;
     private File customBasePath;
     private String appDir;
@@ -41,6 +50,7 @@ public class Configuration {
     private String lastActiveJar;
     private SettingsList settings = new SettingsList();
     private boolean builtIn = false;
+    private BufferedImage cachedIcon;
     
     /**
      * Construct a configuration.
@@ -305,6 +315,35 @@ public class Configuration {
      */
     public AddonsProfile getAddonsProfile(String activeJar) {
         return new AddonsProfile(new File(getMinecraftDir(), "addons/" + activeJar));
+    }
+
+    /**
+     * Get the icon for the profile. May return null.
+     * 
+     * @return icon or null
+     */
+    public BufferedImage getIcon() {
+        return cachedIcon;
+    }
+    
+    /**
+     * Try to load an icon from the JAR.
+     * 
+     * @param path path
+     * @return this object
+     */
+    public Configuration loadIcon(String path) {
+        InputStream in = Launcher.class.getResourceAsStream(path);
+        
+        if (in != null) {
+            try {
+                cachedIcon = ImageIO.read(in);
+            } catch (IOException e) {
+                logger.warning("Failed to load icon at " + path);
+            }
+        }
+        
+        return this;
     }
     
 }

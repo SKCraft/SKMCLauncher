@@ -26,8 +26,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.ListModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.EventListenerList;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
@@ -37,7 +40,7 @@ import javax.swing.table.TableModel;
  * 
  * @author sk89q
  */
-public class ConfigurationsManager implements Iterable<Configuration>, TableModel  {
+public class ConfigurationsManager implements Iterable<Configuration>, TableModel, ListModel  {
     
     private Map<String, Configuration> configurations = new HashMap<String, Configuration>();
     private List<Configuration> configurationsList = new ArrayList<Configuration>();
@@ -83,8 +86,12 @@ public class ConfigurationsManager implements Iterable<Configuration>, TableMode
         if (index == -1) {
             configurationsList.add(configuration);
             fireTableChanged(new TableModelEvent(this, configurationsList.size() - 1));
+            fireListChanged(new ListDataEvent(this, ListDataEvent.INTERVAL_ADDED, 
+                    configurationsList.size() - 1, configurationsList.size() - 1));
         } else {
             fireTableChanged(new TableModelEvent(this, index));
+            fireListChanged(new ListDataEvent(this, ListDataEvent.CONTENTS_CHANGED, 
+                    0, configurationsList.size() - 1));
         }
     }
     
@@ -102,6 +109,8 @@ public class ConfigurationsManager implements Iterable<Configuration>, TableMode
         configurations.remove(configuration.getId());
         configurationsList.remove(index);
         fireTableChanged(new TableModelEvent(this));
+        fireListChanged(new ListDataEvent(this, ListDataEvent.CONTENTS_CHANGED, 
+                0, configurationsList.size() - 1));
         return true;
     }
     
@@ -117,6 +126,7 @@ public class ConfigurationsManager implements Iterable<Configuration>, TableMode
             return false;
         }
         fireTableChanged(new TableModelEvent(this, index));
+        fireListChanged(new ListDataEvent(this, ListDataEvent.CONTENTS_CHANGED, index, index));
         return true;
     }
     
@@ -271,10 +281,46 @@ public class ConfigurationsManager implements Iterable<Configuration>, TableMode
             @Override
             public void run() {
                 for (int i = listeners.length - 2; i >= 0; i -= 2) {
-                    ((TableModelListener) listeners[i + 1]).tableChanged(event);
+                    if (listeners[i] == TableModelListener.class) {
+                        ((TableModelListener) listeners[i + 1]).tableChanged(event);
+                    }
                 }
             }
         });
+    }
+    
+    private void fireListChanged(final ListDataEvent event) {
+        final Object[] listeners = listenerList.getListenerList();
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                for (int i = listeners.length - 2; i >= 0; i -= 2) {
+                    if (listeners[i] == ListDataListener.class) {
+                        ((ListDataListener) listeners[i + 1]).contentsChanged(event);
+                    }
+                }
+            }
+        });
+    }
+
+    @Override
+    public int getSize() {
+        return configurations.size();
+    }
+
+    @Override
+    public Object getElementAt(int index) {
+        return configurationsList.get(index);
+    }
+
+    @Override
+    public void addListDataListener(ListDataListener l) {
+        listenerList.add(ListDataListener.class, l);
+    }
+
+    @Override
+    public void removeListDataListener(ListDataListener l) {
+        listenerList.remove(ListDataListener.class, l);
     }
 
 }
