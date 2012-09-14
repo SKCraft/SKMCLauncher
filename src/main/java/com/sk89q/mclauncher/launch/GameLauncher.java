@@ -106,7 +106,11 @@ public class GameLauncher  {
             throw new LaunchException("APPDATA was supposed to be set to '" + expected + "', but it was '" +
                     appData + "'");
         }
-
+        
+        // set minecraft.applet.WrapperClass to support newer FML builds
+        // FML seems to restart the whole game which causes some problems in custom launchers like this one
+        System.setProperty("minecraft.applet.WrapperClass", "com.sk89q.mclauncher.launch.GameAppletContainer");
+        
         logger.info("Base directory: " + baseDir.getAbsolutePath());
         logger.info("What Minecraft will use: " + actualDir.getAbsolutePath());
     }
