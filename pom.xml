@@ -35,7 +35,7 @@
           <include>sk89q.cer</include>
           <include>update.xml</include>
           <include>defaults.xml</include>
-          <include>icon.png</include>
+          <include>*.png</include>
         </includes>
       </resource>
       <resource>
