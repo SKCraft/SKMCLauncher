@@ -20,6 +20,7 @@ package com.sk89q.mclauncher;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -45,6 +46,7 @@ import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
+import javax.swing.JList;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -53,12 +55,16 @@ import javax.swing.JPopupMenu;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.ListModel;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.CompoundBorder;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.text.JTextComponent;
 
 import com.sk89q.mclauncher.config.Configuration;
@@ -75,9 +81,9 @@ import com.sk89q.mclauncher.util.UIUtil;
 public class LauncherFrame extends JFrame {
 
     private static final long serialVersionUID = 4122023031876609883L;
+    private static final int PAD = 12;
     private static final boolean CHECK_LOGIN_BEFORE_OFFLINE = true;
-    private JLabel configurationLabel;
-    private JButton switchConfigBtn;
+    private JList configurationList;
     private JComboBox jarCombo;
     private JComboBox userText;
     private JTextField passText;
@@ -90,7 +96,6 @@ public class LauncherFrame extends JFrame {
     private LinkButton expandBtn;
     private JButton playBtn;
     private LauncherOptions options;
-    private Configuration configuration;
     private TaskWorker worker = new TaskWorker();
 
     /**
@@ -98,7 +103,7 @@ public class LauncherFrame extends JFrame {
      */
     public LauncherFrame() {
         setTitle("SK's Minecraft Launcher");
-        setSize(300, 500);
+        setSize(620, 500);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
@@ -157,12 +162,20 @@ public class LauncherFrame extends JFrame {
             UIUtil.showError(
                     this,
                     "Misconfigured configuration",
-                    "The selected configuration points to a missing directory. "
-                            + "The launcher will fallback to the default configuration.");
+                    "The last selected configuration is broken. Switching to the default...");
             configuration = options.getConfigurations().getDefault();
         }
-        this.configuration = configuration;
-        configurationLabel.setText("Configuration: " + configuration.getName());
+        
+        ListModel model = configurationList.getModel();
+        if (configurationList.getSelectedValue() != configuration) {
+            for (int i = 0; i < model.getSize(); i++) {
+                if (model.getElementAt(i) == configuration) {
+                    configurationList.setSelectedIndex(i);
+                    break;
+                }
+            }
+        }
+        
         populateJarEntries();
         setLastJar();
     }
@@ -173,6 +186,14 @@ public class LauncherFrame extends JFrame {
      * @return workspace
      */
     public Configuration getWorkspace() {
+        Configuration configuration = (Configuration) configurationList.getSelectedValue();
+        
+        // Switch to default if the current one is broken
+        if (configuration == null || !configuration.getBaseDir().isDirectory()) {
+            configuration = options.getConfigurations().getDefault();
+            setConfiguration(configuration);
+        }
+        
         return configuration;
     }
 
@@ -275,8 +296,7 @@ public class LauncherFrame extends JFrame {
      * @return dialog
      */
     private OptionsDialog openOptions(int index) {
-        OptionsDialog dialog = new OptionsDialog(this, configuration, options,
-                index);
+        OptionsDialog dialog = new OptionsDialog(this, getWorkspace(), options, index);
         dialog.setVisible(true);
         return dialog;
     }
@@ -287,8 +307,7 @@ public class LauncherFrame extends JFrame {
      * @return dialog
      */
     private AddonManagerDialog openAddons() {
-        AddonManagerDialog dialog = new AddonManagerDialog(this, configuration,
-                getActiveJar());
+        AddonManagerDialog dialog = new AddonManagerDialog(this, getWorkspace(), getActiveJar());
         dialog.setVisible(true);
         return dialog;
     }
@@ -304,7 +323,7 @@ public class LauncherFrame extends JFrame {
         if (options.getSettings().getBool(Def.LAUNCHER_NO_NEWS, false)) {
             JPanel newsPanel = new JPanel();
             newsPanel.setBorder(new CompoundBorder(BorderFactory
-                    .createEmptyBorder(10, 10, 10, 10), new CompoundBorder(
+                    .createEmptyBorder(PAD, 0, PAD, PAD), new CompoundBorder(
                     BorderFactory.createEtchedBorder(), BorderFactory
                             .createEmptyBorder(4, 4, 4, 4))));
             newsPanel.setLayout(new BoxLayout(newsPanel, BoxLayout.Y_AXIS));
@@ -314,7 +333,7 @@ public class LauncherFrame extends JFrame {
             JLayeredPane newsPanel = new JLayeredPane();
             newsPanel.setLayout(new NewsLayoutManager());
             newsPanel
-                    .setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+                    .setBorder(BorderFactory.createEmptyBorder(PAD, 0, PAD, PAD));
             JEditorPane newsView = new JEditorPane();
             newsView.setEditable(false);
             newsView.addHyperlinkListener(new HyperlinkListener() {
@@ -333,6 +352,10 @@ public class LauncherFrame extends JFrame {
             add(newsPanel, BorderLayout.CENTER);
             NewsFetcher.update(newsView, newsProgress);
         }
+        
+        JPanel leftPanel = new JPanel();
+        leftPanel.setLayout(new BorderLayout(0, 0));
+        add(leftPanel, BorderLayout.LINE_START);
 
         JPanel buttonsPanel = new JPanel();
         buttonsPanel.setLayout(new GridLayout(1, 3, 3, 0));
@@ -344,29 +367,22 @@ public class LauncherFrame extends JFrame {
         buttonsPanel.add(optionsBtn);
 
         JPanel root = new JPanel();
-        root.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+        root.setBorder(BorderFactory.createEmptyBorder(0, PAD, PAD, PAD));
         root.setLayout(new BoxLayout(root, BoxLayout.Y_AXIS));
         root.add(createLoginPanel());
         root.add(buttonsPanel);
-        add(root, BorderLayout.SOUTH);
+        leftPanel.add(root, BorderLayout.SOUTH);
 
-        configurationLabel = new JLabel();
-        switchConfigBtn = new JButton("Switch...");
-        switchConfigBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                popupConfigurationsMenu(switchConfigBtn);
-            }
-        });
-
-        JPanel top = new JPanel();
-        top.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
-        top.setLayout(new BoxLayout(top, BoxLayout.X_AXIS));
-        top.add(switchConfigBtn);
-        top.add(Box.createHorizontalStrut(5));
-        top.add(configurationLabel);
-        top.add(Box.createHorizontalGlue());
-        add(top, BorderLayout.NORTH);
+        JPanel configurationsPanel = new JPanel();
+        configurationsPanel.setLayout(new BorderLayout(0, 0));
+        configurationsPanel.setBorder(BorderFactory.createEmptyBorder(PAD, PAD, PAD, PAD));
+        configurationList = new JList(options.getConfigurations());
+        configurationList.setCellRenderer(new ConfigurationCellRenderer());
+        configurationList.setPreferredSize(new Dimension(100, 20));
+        configurationList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        JScrollPane configurationListScroll = new JScrollPane(configurationList);
+        configurationsPanel.add(configurationListScroll, BorderLayout.CENTER);
+        leftPanel.add(configurationsPanel, BorderLayout.CENTER);
 
         // Add listener
         playBtn.addActionListener(new ActionListener() {
@@ -391,6 +407,13 @@ public class LauncherFrame extends JFrame {
                 if (e.isPopupTrigger()) {
                     popupServerHotListMenu(e.getComponent(), e.getX(), e.getY());
                 }
+            }
+        });
+        
+        configurationList.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                setConfiguration((Configuration) ((JList) e.getSource()).getSelectedValue());
             }
         });
 
@@ -630,41 +653,6 @@ public class LauncherFrame extends JFrame {
     }
 
     /**
-     * Open the configurations menu.
-     * 
-     * @param component
-     *            component to open from
-     */
-    private void popupConfigurationsMenu(Component component) {
-        JPopupMenu popup = new JPopupMenu();
-        JMenuItem menuItem;
-
-        menuItem = new JMenuItem("Manage configurations...");
-        menuItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                openOptions(2);
-            }
-        });
-        popup.add(menuItem);
-
-        popup.addSeparator();
-
-        for (final Configuration config : options.getConfigurations()) {
-            menuItem = new JMenuItem("Switch to " + config.getName());
-            menuItem.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    setConfiguration(config);
-                }
-            });
-            popup.add(menuItem);
-        }
-
-        popup.show(component, 0, component.getHeight());
-    }
-
-    /**
      * Open the server hot list menu.
      * 
      * @param component
@@ -705,7 +693,7 @@ public class LauncherFrame extends JFrame {
 
         jarCombo.addItem(new DefaultVersion());
 
-        for (String jar : configuration.getJars()) {
+        for (String jar : getWorkspace().getJars()) {
             jarCombo.addItem(jar);
         }
     }
@@ -714,7 +702,7 @@ public class LauncherFrame extends JFrame {
      * Set the JAR field to the last JAR used.
      */
     private void setLastJar() {
-        String lastJar = configuration.getLastActiveJar();
+        String lastJar = getWorkspace().getLastActiveJar();
         if (lastJar != null) {
             jarCombo.setSelectedItem(lastJar);
         }
@@ -816,18 +804,17 @@ public class LauncherFrame extends JFrame {
                 options.setLastUsername(null);
             }
         }
-        options.setLastConfigName(configuration.getId());
+        options.setLastConfigName(getWorkspace().getId());
         options.save();
 
         // Save options
-        configuration.setLastActiveJar(jar);
+        getWorkspace().setLastActiveJar(jar);
         options.save();
 
         // Want to update the GUI
         populateIdentities();
 
-        LaunchTask task = new LaunchTask(this, configuration, username,
-                password, jar);
+        LaunchTask task = new LaunchTask(this, getWorkspace(), username, password, jar);
         task.setForceUpdate(forceUpdateCheck.isSelected());
         task.setPlayOffline(playOfflineCheck.isSelected() || (test && options.getSettings().getBool(Def.FAST_TEST, false)));
         task.setShowConsole(showConsoleCheck.isSelected());

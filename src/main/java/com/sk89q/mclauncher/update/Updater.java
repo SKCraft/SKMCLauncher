@@ -51,7 +51,9 @@ import com.sk89q.mclauncher.TitleChangeEvent;
 import com.sk89q.mclauncher.ValueChangeEvent;
 import com.sk89q.mclauncher.security.X509KeyRing.Ring;
 import com.sk89q.mclauncher.update.PackageFile.MessageDigestAlgorithm;
-import com.sk89q.mclauncher.util.HTTPDownloader;
+import com.sk89q.mclauncher.util.Downloader;
+import com.sk89q.mclauncher.util.SocketDownloader;
+import com.sk89q.mclauncher.util.URLConnectionDownloader;
 import com.sk89q.mclauncher.util.Util;
 
 /**
@@ -75,7 +77,7 @@ public class Updater implements DownloadListener {
     private double subprogressOffset = 0;
     private double subprogressSize = 1;
     private volatile boolean running = true;
-    private HTTPDownloader downloader;
+    private Downloader downloader;
     private List<PackageFile> fileList;
     private int currentIndex = 0;
     private long totalEstimatedSize = 0;
@@ -229,6 +231,7 @@ public class Updater implements DownloadListener {
 
             OutputStream out;
             boolean isVerifying = false;
+            boolean firstTry = true;
             MessageDigest m = null;
             URL url = parameterizeURL(file.getURL());
             String cacheId = getRelative(rootDir, file.getFile());
@@ -261,7 +264,16 @@ public class Updater implements DownloadListener {
 
                 // Attempt downloading
                 try {
-                    downloader = new HTTPDownloader(url, out);
+                    if (url.getProtocol().equalsIgnoreCase("http") && firstTry) {
+                        logger.info("Using SocketDownloader for URL " + url.toString());
+                        downloader = new SocketDownloader(url, out);
+                    } else {
+                        logger.info("Using URLConnectionDownloader for URL " + url.toString());
+                        downloader = new URLConnectionDownloader(url, out);
+                    }
+                    
+                    firstTry = false;
+                    
                     if (isVerifying) {
                         downloader.setMessageDigest(m);
                         downloader.setEtagCheck(cache.getCachedHash(cacheId));
@@ -507,7 +519,7 @@ public class Updater implements DownloadListener {
      */
     @Override
     public void downloadProgress(DownloadProgressEvent event) {
-        long total = ((HTTPDownloader) event.getSource()).getTotalLength();
+        long total = ((Downloader) event.getSource()).getTotalLength();
         PackageFile download = fileList.get(currentIndex);
         
         // If length is known
@@ -629,7 +641,7 @@ public class Updater implements DownloadListener {
      */
     public void cancel() {
         running = false;
-        HTTPDownloader downloader = this.downloader;
+        Downloader downloader = this.downloader;
         if (downloader != null) {
             downloader.cancel();
         }
