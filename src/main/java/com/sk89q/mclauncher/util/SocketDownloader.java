@@ -105,7 +105,7 @@ public class SocketDownloader extends AbstractDownloader {
             conn.setSoTimeout(getTimeout());
             
             BufferedWriter out = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream()));
-            MixedDataBufferedInputStream in = new MixedDataBufferedInputStream(conn.getInputStream());
+            MixedDataBufferedInputStream in = new MixedDataBufferedInputStream(conn.getInputStream(), HTTP_LINE_BUFFER_SIZE);
             
             out.write("GET ");
             out.write(new URI(getUrl().getPath()).toASCIIString());
@@ -189,7 +189,6 @@ public class SocketDownloader extends AbstractDownloader {
                 int len = 0;
                 while ((len = in.read(data, 0, READ_BUFFER_SIZE)) >= 0 && isRunning()) {
                     getOutput().write(data, 0, len);
-                    getOutput().flush();
                     if (getDigest() != null) {
                         getDigest().update(data, 0, len);
                     }

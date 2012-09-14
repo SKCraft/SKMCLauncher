@@ -7,14 +7,19 @@ import java.util.Arrays;
 
 public class MixedDataBufferedInputStream extends BufferedInputStream {
     
-    private int LINE_BUFFER_SIZE = 8192;
+    private int lineBufferSize = 8192;
 
     public MixedDataBufferedInputStream(InputStream in) {
         super(in);
     }
+
+    public MixedDataBufferedInputStream(InputStream in, int lineBufferSize) {
+        super(in);
+        this.lineBufferSize = lineBufferSize;
+    }
     
     public String readLine() throws IOException {
-        byte[] buf = new byte[LINE_BUFFER_SIZE];
+        byte[] buf = new byte[lineBufferSize];
         int pos = 0;
         boolean foundCR = false;
         while (true) {

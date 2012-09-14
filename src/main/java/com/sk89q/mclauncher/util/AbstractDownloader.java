@@ -12,7 +12,7 @@ import com.sk89q.mclauncher.DownloadProgressEvent;
 
 public abstract class AbstractDownloader implements Downloader {
 
-    private int timeout = 10000;
+    private int timeout = 300000;
     private OutputStream output;
     private URL url;
     private volatile boolean running = true;
