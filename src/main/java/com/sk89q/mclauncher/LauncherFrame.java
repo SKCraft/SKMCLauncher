@@ -33,6 +33,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.FileNotFoundException;
+import java.util.Map;
 import java.util.Set;
 
 import javax.imageio.ImageIO;
@@ -179,6 +181,16 @@ public class LauncherFrame extends JFrame {
         
         populateJarEntries();
         setLastJar();
+
+        try {
+            for (Map.Entry<String, String> entry : configuration.getMPServers().entrySet()) {
+                options.getServers().register(entry.getKey(), entry.getValue(), false);
+            }
+        } catch (FileNotFoundException ex) {
+            ex.printStackTrace();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
     }
 
     /**

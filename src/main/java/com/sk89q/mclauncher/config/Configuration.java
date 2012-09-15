@@ -20,12 +20,16 @@ package com.sk89q.mclauncher.config;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
 import java.util.logging.Logger;
+import java.util.Map;
 
 import javax.imageio.ImageIO;
 
@@ -33,6 +37,12 @@ import com.sk89q.mclauncher.Launcher;
 import com.sk89q.mclauncher.MinecraftJar;
 import com.sk89q.mclauncher.addons.AddonsProfile;
 import com.sk89q.mclauncher.util.SettingsList;
+
+import org.spout.nbt.CompoundMap;
+import org.spout.nbt.CompoundTag;
+import org.spout.nbt.ListTag;
+import org.spout.nbt.Tag;
+import org.spout.nbt.stream.NBTInputStream;
 
 /**
  * Represents a configuration for the game.
@@ -346,6 +356,27 @@ public class Configuration {
         }
         
         return this;
+    }
+
+    public Map<String, String> getMPServers() throws FileNotFoundException, IOException {
+        File file = new File(getMinecraftDir(), "servers.dat");
+        Map<String, String> retn = new HashMap<String, String>();
+
+        if (file.exists()) {
+            NBTInputStream nbt = new NBTInputStream(new FileInputStream(file), false);
+            Tag tag = nbt.readTag();
+            ListTag servers = (ListTag) ((CompoundMap) tag.getValue()).get("servers");
+
+
+            for (Object val : servers.getValue()) {
+                CompoundMap server = ((CompoundTag) val).getValue();
+                String name = (String) server.get("name").getValue();
+                String ip = (String) server.get("ip").getValue();
+
+                retn.put(name, ip);
+            }
+        }
+        return retn;
     }
     
 }
