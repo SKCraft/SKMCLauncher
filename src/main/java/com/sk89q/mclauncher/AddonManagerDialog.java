@@ -121,7 +121,7 @@ public class AddonManagerDialog extends JDialog {
                 Object selected = ((JComboBox) e.getSource()).getSelectedItem();
                 if (selected == null)
                     return;
-                String jar = selected.toString();
+                String jar = ((MinecraftJar) selected).getName();
                 if (lastSelectedJar == null || lastSelectedJar != jar) {
                     lastSelectedJar = jar;
                     loadAddonsProfile();
@@ -150,7 +150,7 @@ public class AddonManagerDialog extends JDialog {
         if (o == null) {
             return "minecraft.jar";
         }
-        return (String) o;
+        return ((MinecraftJar) o).getName();
     }
 
     /**
@@ -532,7 +532,7 @@ public class AddonManagerDialog extends JDialog {
      * Popular the active JAR combo box with entries.
      */
     private void populateJarList() {
-        for (String jar : configuration.getJars()) {
+        for (MinecraftJar jar : configuration.getJars()) {
             jarCombo.addItem(jar);
         }
     }

@@ -30,6 +30,7 @@ import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 
 import com.sk89q.mclauncher.Launcher;
+import com.sk89q.mclauncher.MinecraftJar;
 import com.sk89q.mclauncher.addons.AddonsProfile;
 import com.sk89q.mclauncher.util.SettingsList;
 
@@ -287,10 +288,11 @@ public class Configuration {
      * 
      * @return list of jars
      */
-    public List<String> getJars() {
-        List<String> jars = new ArrayList<String>();
-        jars.add("minecraft.jar");
-        File[] files = new File(getMinecraftDir(), "bin").listFiles();
+    public List<MinecraftJar> getJars() {
+        File base = new File(getMinecraftDir(), "bin");
+        List<MinecraftJar> jars = new ArrayList<MinecraftJar>();
+        jars.add(new MinecraftJar(new File(base, "minecraft.jar")));
+        File[] files = base.listFiles();
         if (files == null) {
             return jars;
         }
@@ -301,7 +303,7 @@ public class Configuration {
                     && !name.equalsIgnoreCase("lwjgl.jar")
                     && !name.equalsIgnoreCase("lwjgl_util.jar")
                     && !name.equalsIgnoreCase("minecraft.jar")) {
-                jars.add(name);
+                jars.add(new MinecraftJar(f));
             }
         }
         return jars;

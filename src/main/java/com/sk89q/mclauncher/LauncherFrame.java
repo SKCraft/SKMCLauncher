@@ -39,6 +39,7 @@ import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -229,7 +230,7 @@ public class LauncherFrame extends JFrame {
         if (o instanceof DefaultVersion) {
             return "minecraft.jar";
         }
-        return (String) o;
+        return ((MinecraftJar) o).getName();
     }
 
     /**
@@ -692,7 +693,7 @@ public class LauncherFrame extends JFrame {
 
         jarCombo.addItem(new DefaultVersion());
 
-        for (String jar : getWorkspace().getJars()) {
+        for (MinecraftJar jar : getWorkspace().getJars()) {
             jarCombo.addItem(jar);
         }
     }
@@ -703,7 +704,14 @@ public class LauncherFrame extends JFrame {
     private void setLastJar() {
         String lastJar = getWorkspace().getLastActiveJar();
         if (lastJar != null) {
-            jarCombo.setSelectedItem(lastJar);
+            // TODO: This is a horrible hack
+            ComboBoxModel model = jarCombo.getModel();
+            for (int i = 0; i < model.getSize(); i++) {
+                Object item = model.getElementAt(i);
+                if (item instanceof MinecraftJar && ((MinecraftJar) item).getName().equals(lastJar)) {
+                    model.setSelectedItem(item);
+                }
+            }
         }
     }
 
@@ -790,8 +798,8 @@ public class LauncherFrame extends JFrame {
         String username = selectedName.toString();
         String password = passText.getText();
         boolean remember = rememberPass.isSelected();
-        String jar = jarCombo.getSelectedItem() instanceof String ? (String) jarCombo
-                .getSelectedItem() : null;
+        String jar = jarCombo.getSelectedItem() instanceof MinecraftJar ? ((MinecraftJar) jarCombo
+                .getSelectedItem()).getName() : null;
 
         // Save the identity
         if (!playOfflineCheck.isSelected()) {
