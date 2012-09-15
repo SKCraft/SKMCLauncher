@@ -254,15 +254,14 @@ public class Util {
             if (entry != null) {
                 BufferedReader br = new BufferedReader(new InputStreamReader(jar.getInputStream(entry)));
                 String line;
-                StringBuilder all = new StringBuilder();
                 while ((line = br.readLine()) != null) {
-                    all.append(line);
+                    Matcher matcher = magic.matcher(line);
+                    if (matcher.find()) {
+                        version = matcher.group().substring(prefix.length());
+                        continue;
+                    }
                 }
                 br.close();
-                Matcher matcher = magic.matcher(all);
-                if (matcher.find()) {
-                    version = matcher.group().substring(prefix.length());
-                }
             }
         } catch (Exception ex) {
             ex.printStackTrace();
