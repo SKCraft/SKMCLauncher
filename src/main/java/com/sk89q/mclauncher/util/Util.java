@@ -258,7 +258,7 @@ public class Util {
                     Matcher matcher = magic.matcher(line);
                     if (matcher.find()) {
                         version = matcher.group().substring(prefix.length());
-                        continue;
+                        break;
                     }
                 }
                 br.close();
