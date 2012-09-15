@@ -82,7 +82,7 @@
           <execution>
             <id>sign</id>
             <goals>
-              <goal>sign</goal>
+              <!--<goal>sign</goal>--> <!-- Enable this is you wish to sign the final jar -->
             </goals>
           </execution>
         </executions>
