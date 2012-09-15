@@ -124,13 +124,13 @@ public class ConfigurationDialog extends JDialog {
             nameText.setText(configuration.getName());
             if (configuration.isBuiltIn()) {
                 customPathCheck.setSelected(true);
-                pathText.setText(configuration.getBaseDir().getAbsolutePath());
+                pathText.setText(configuration.getBaseDir().getPath());
             } else {
                 boolean usingDefault = configuration.isUsingDefaultPath();
                 customPathCheck.setSelected(!usingDefault);
                 if (!usingDefault) {
                     File f = configuration.getBaseDir();
-                    pathText.setText(f != null ? f.getAbsolutePath() : "");
+                    pathText.setText(f != null ? f.getPath() : "");
                 }
             }
             URL updateUrl = configuration.getUpdateUrl();
@@ -400,7 +400,7 @@ public class ConfigurationDialog extends JDialog {
         int returnVal = chooser.showOpenDialog(this);
         
         if (returnVal == JFileChooser.APPROVE_OPTION) {
-            pathText.setText(chooser.getSelectedFile().getAbsolutePath());
+            pathText.setText(chooser.getSelectedFile().getPath());
         }
     }
 
