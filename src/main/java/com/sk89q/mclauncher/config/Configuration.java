@@ -79,6 +79,7 @@ public class Configuration {
         setName(name);
         setAppDir(appDir);
         setUpdateUrl(updateUrl);
+        findCustomIconFile();
     }
     
     /**
@@ -97,6 +98,7 @@ public class Configuration {
         setName(name);
         setCustomBasePath(customBasePath);
         setUpdateUrl(updateUrl);
+        findCustomIconFile();
     }
 
     /**
@@ -356,6 +358,19 @@ public class Configuration {
         }
         
         return this;
+    }
+    
+    public void findCustomIconFile() {
+        // guess filename
+        File iconPath = new File(getMinecraftDir(), "package_icon.png");
+        
+        if (iconPath.exists()) {
+            try {
+                cachedIcon = ImageIO.read(iconPath);
+            } catch (IOException e) {
+                logger.warning("Failed to load icon at " + iconPath.toString());
+            }
+        }
     }
 
     public Map<String, String> getMPServers() throws FileNotFoundException, IOException {
