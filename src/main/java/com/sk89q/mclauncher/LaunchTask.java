@@ -144,7 +144,8 @@ public class LaunchTask extends Task {
     @Override
     public void execute() throws ExecutionException {
         rootDir = configuration.getMinecraftDir();
-
+        rootDir.mkdirs();
+        
         session = new LoginSession(username);
         
         if (!playOffline) {
