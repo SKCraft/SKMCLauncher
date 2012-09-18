@@ -54,6 +54,7 @@ import com.sk89q.mclauncher.update.UpdateException;
 import com.sk89q.mclauncher.update.Updater;
 import com.sk89q.mclauncher.util.ConsoleFrame;
 import com.sk89q.mclauncher.util.SettingsList;
+import com.sk89q.mclauncher.util.UIUtil;
 import com.sk89q.mclauncher.util.Util;
 
 /**
@@ -80,6 +81,7 @@ public class LaunchTask extends Task {
     private boolean wantUpdate = false;
     private boolean notInstalled = false;
     private volatile Updater updater;
+    private boolean demo = false;
 
     private boolean showConsole = false;
     private String autoConnect;
@@ -127,6 +129,15 @@ public class LaunchTask extends Task {
      */
     public void setShowConsole(boolean showConsole) {
         this.showConsole = showConsole;
+    }
+    
+    /**
+     * Run Minecraft in demo mode.
+     * 
+     * @param demo true for demo mode, false for normal mode if a premium account.
+     */
+    public void setDemo(boolean demo) {
+        this.demo = demo;
     }
 
     /**
@@ -318,6 +329,9 @@ public class LaunchTask extends Task {
         out.println("@username=" + username);
         out.println("@mppass=" + username);
         out.println("@sessionid=" + (session.isValid() ? session.getSessionId() : ""));
+        if (demo) {
+            out.println("@demo=true");
+        }
         if (settings.getBool(Def.WINDOW_FULLSCREEN, false)) {
             out.println("@fullscreen=true");
         }
@@ -389,7 +403,14 @@ public class LaunchTask extends Task {
         } catch (OutdatedLauncherException e) {
             throw new ExecutionException("Your launcher has to be updated.");
         } catch (LoginException e) {
-            throw new ExecutionException("A login error has occurred: " + e.getMessage());
+            if (e.getMessage().equals("User not premium")) {
+                if (!demo) {
+                    UIUtil.showError(frame, "Not Premium", "You aren't logging in to a premium account.\nMinecraft will run in demo mode.");
+                }
+                demo = true;
+            } else {
+                throw new ExecutionException("A login error has occurred: " + e.getMessage());
+            }
         } catch (final IOException e) {
             e.printStackTrace();
             try {
@@ -430,7 +451,7 @@ public class LaunchTask extends Task {
      */
     public void checkForUpdates() throws ExecutionException {
         // Check account
-        if (!session.isValid() && !this.playOffline) {
+        if (!demo && !session.isValid() && !this.playOffline) {
             throw new ExecutionException("Please login first to download Minecraft.");
         }
         
