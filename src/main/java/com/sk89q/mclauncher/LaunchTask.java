@@ -114,6 +114,15 @@ public class LaunchTask extends Task {
     }
 
     /**
+     * Set update check state.
+     * 
+     * @param check true to check for updates
+     */
+    public void setCheckUpdate(boolean check) {
+        this.skipUpdateCheck = !check;
+    }
+    
+    /**
      * Set update force state.
      * 
      * @param forceUpdate true to force update
@@ -537,7 +546,7 @@ public class LaunchTask extends Task {
         }
         
         // Ask the user if s/he wants to update
-        if (!forceUpdate && updateRequired && !notInstalled) {
+        if (!skipUpdateCheck && !forceUpdate && updateRequired && !notInstalled) {
             try {
                 SwingUtilities.invokeAndWait(new Runnable() {
                     @Override
