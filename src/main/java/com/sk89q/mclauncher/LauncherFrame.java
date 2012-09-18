@@ -107,7 +107,7 @@ public class LauncherFrame extends JFrame {
     public LauncherFrame() {
         setTitle("SK's Minecraft Launcher");
         setSize(620, 500);
-        setLocationRelativeTo(null);
+        
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
         try {
@@ -127,6 +127,8 @@ public class LauncherFrame extends JFrame {
         options = Launcher.getInstance().getOptions();
 
         buildUI();
+        
+        setLocationRelativeTo(null);
 
         // Setup
         setConfiguration(options.getStartupConfiguration());
@@ -355,43 +357,50 @@ public class LauncherFrame extends JFrame {
         final LauncherFrame self = this;
 
         setLayout(new BorderLayout(0, 0));
-
-        if (options.getSettings().getBool(Def.LAUNCHER_NO_NEWS, false)) {
-            final JLayeredPane newsPanel = new JLayeredPane();
-            
-            newsPanel.setBorder(new CompoundBorder(BorderFactory
-                    .createEmptyBorder(PAD, 0, PAD, PAD), new CompoundBorder(
-                    BorderFactory.createEtchedBorder(), BorderFactory
-                            .createEmptyBorder(4, 4, 4, 4))));
-            newsPanel.setLayout(new BoxLayout(newsPanel, BoxLayout.Y_AXIS));
-            
-            final JButton showNews = new JButton("Show news");
-            showNews.setAlignmentX(Component.CENTER_ALIGNMENT);
-            showNews.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    showNews.setVisible(false);
-                    showNews(newsPanel);
-                }
-            });
-            
-            // Center the button vertically.
-            newsPanel.add(new Box.Filler(new Dimension(0,0), 
-                    new Dimension(0,0), new Dimension(1000,1000)));
-            newsPanel.add(showNews);
-            newsPanel.add(new Box.Filler(new Dimension(0,0), 
-                    new Dimension(0,0), new Dimension(1000,1000)));
-            
-            add(newsPanel, BorderLayout.CENTER);
-        } else {
-            JLayeredPane newsPanel = new JLayeredPane();
-            showNews(newsPanel);
-            add(newsPanel, BorderLayout.CENTER);
+        boolean hidenews = options.getSettings().getBool(Def.LAUNCHER_HIDE_NEWS, false);
+        
+        if (!hidenews) {
+            if (options.getSettings().getBool(Def.LAUNCHER_NO_NEWS, false)) {
+                final JLayeredPane newsPanel = new JLayeredPane();
+                
+                newsPanel.setBorder(new CompoundBorder(BorderFactory
+                        .createEmptyBorder(PAD, 0, PAD, PAD), new CompoundBorder(
+                        BorderFactory.createEtchedBorder(), BorderFactory
+                                .createEmptyBorder(4, 4, 4, 4))));
+                newsPanel.setLayout(new BoxLayout(newsPanel, BoxLayout.Y_AXIS));
+                
+                final JButton showNews = new JButton("Show news");
+                showNews.setAlignmentX(Component.CENTER_ALIGNMENT);
+                showNews.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        showNews.setVisible(false);
+                        showNews(newsPanel);
+                    }
+                });
+                
+                // Center the button vertically.
+                newsPanel.add(new Box.Filler(new Dimension(0,0), 
+                        new Dimension(0,0), new Dimension(1000,1000)));
+                newsPanel.add(showNews);
+                newsPanel.add(new Box.Filler(new Dimension(0,0), 
+                        new Dimension(0,0), new Dimension(1000,1000)));
+                
+                add(newsPanel, BorderLayout.CENTER);
+            } else {
+                JLayeredPane newsPanel = new JLayeredPane();
+                showNews(newsPanel);
+                add(newsPanel, BorderLayout.CENTER);
+            }
         }
         
         JPanel leftPanel = new JPanel();
-        leftPanel.setLayout(new BorderLayout(0, 0));
-        add(leftPanel, BorderLayout.LINE_START);
+        leftPanel.setLayout(new BorderLayout());
+        if (!hidenews) {
+            add(leftPanel, BorderLayout.LINE_START);
+        } else {
+            add(leftPanel, BorderLayout.CENTER);
+        }
 
         JPanel buttonsPanel = new JPanel();
         buttonsPanel.setLayout(new GridLayout(1, 3, 3, 0));
@@ -465,6 +474,10 @@ public class LauncherFrame extends JFrame {
                 openAddons();
             }
         });
+        
+        if (hidenews) {
+            setSize(300, 500);
+        }
     }
 
     /**
