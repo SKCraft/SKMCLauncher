@@ -82,6 +82,7 @@ public class LaunchTask extends Task {
     private boolean notInstalled = false;
     private volatile Updater updater;
     private boolean demo = false;
+    private boolean allowOfflineName = false;
 
     private boolean showConsole = false;
     private String autoConnect;
@@ -157,6 +158,15 @@ public class LaunchTask extends Task {
     public void setAutoConnect(String autoConnect) {
         this.autoConnect = autoConnect;
     }
+    
+    /**
+     * Set the ability to use the player's username while playing offline.
+     * 
+     * @param autoConnect address (addr:port, addr) or null
+     */
+    public void setAllowOfflineName(boolean allow) {
+        this.allowOfflineName = allow;
+    }
 
     /**
      * Execute the launch task.
@@ -206,7 +216,7 @@ public class LaunchTask extends Task {
         }
         
         // Read some settings
-        String username = playOffline ? "Player" : this.username;
+        String username = !allowOfflineName && playOffline ? "Player" : this.username;
         String runtimePath = Util.nullEmpty(settings.get(Def.JAVA_RUNTIME));
         String wrapperPath = Util.nullEmpty(settings.get(Def.JAVA_WRAPPER_PROGRAM));
         int minMem = settings.getInt(Def.JAVA_MIN_MEM, 128);
