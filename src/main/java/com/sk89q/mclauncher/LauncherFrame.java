@@ -87,7 +87,7 @@ public class LauncherFrame extends JFrame {
 
     private static final long serialVersionUID = 4122023031876609883L;
     private static final int PAD = 12;
-    private static final boolean CHECK_LOGIN_BEFORE_OFFLINE = true;
+    private boolean allowOfflineName = false;
     private JList configurationList;
     private JComboBox jarCombo;
     private JComboBox userText;
@@ -354,6 +354,8 @@ public class LauncherFrame extends JFrame {
 
         setLayout(new BorderLayout(0, 0));
         boolean hidenews = options.getSettings().getBool(Def.LAUNCHER_HIDE_NEWS, false);
+        allowOfflineName = options.getSettings().getBool(
+                Def.LAUNCHER_ALLOW_OFFLINE_NAME, false);
         
         if (!hidenews) {
             if (options.getSettings().getBool(Def.LAUNCHER_NO_NEWS, false)) {
@@ -541,7 +543,11 @@ public class LauncherFrame extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 boolean selected = ((JCheckBoxMenuItem) e.getSource()).isSelected();
-                userText.setEnabled(!selected);
+                if (!allowOfflineName) {
+                    userText.setEnabled(!selected);
+                }
+                performUpdateCheckCheck.setEnabled(!selected);
+                forceUpdateCheck.setEnabled(!selected);
                 passText.setEnabled(!selected);
                 rememberPass.setEnabled(!selected);
             }
@@ -826,7 +832,7 @@ public class LauncherFrame extends JFrame {
             return;
         }
 
-        if (passText.getText().trim().length() == 0) {
+        if (!playOfflineCheck.isSelected() && passText.getText().trim().length() == 0) {
             JOptionPane.showMessageDialog(this, "A password must be entered.",
                     "No password", JOptionPane.ERROR_MESSAGE);
             return;
@@ -863,6 +869,7 @@ public class LauncherFrame extends JFrame {
         task.setForceUpdate(forceUpdateCheck.isSelected());
         task.setPlayOffline(playOfflineCheck.isSelected() || (test && options.getSettings().getBool(Def.FAST_TEST, false)));
         task.setShowConsole(showConsoleCheck.isSelected());
+        task.setAllowOfflineName(allowOfflineName);
         task.setDemo(playDemoCheck.isSelected());
         
         if (autoConnect != null) {
