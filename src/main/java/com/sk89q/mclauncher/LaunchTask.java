@@ -636,6 +636,24 @@ public class LaunchTask extends Task {
      */
     private void update(File rootDir, UpdateCache cache, InputStream packageStream,
             boolean forced, String username, String ticket) throws ExecutionException {
+        if (Launcher.getInstance().getOptions().getSettings().getBool(
+                Def.BACKUP_MINEJAR, true)) {
+            File source = new File(rootDir, "bin/minecraft.jar");
+            File dest = new File(rootDir, "bin/minecraft-" + 
+                    Util.getMCVersion(source) + ".jar");
+
+            if (source.exists() && !dest.exists()) {
+                fireTitleChange("Backing up...");
+                fireStatusChange("Backing up minecraft.jar...");
+
+                try {
+                    Util.copyFile(source, dest);
+                } catch (IOException ex) {
+                    logger.severe(Util.getStackTrace(ex));
+                }
+            }
+        }
+        
         fireTitleChange("Updating Minecraft...");
         
         updater = new Updater(packageStream, rootDir, cache);

@@ -12,6 +12,7 @@
     <setting key="launcher.newsless">false</setting>
     <setting key="launcher.hidenews">false</setting>
     <setting key="launcher.reopen">false</setting>
+    <setting key="updates.backupminejar">true</setting>
     <setting key="lwjgl.debug">false</setting>
     <setting key="window.fullscreen">false</setting>
     <setting key="window.height">480</setting>
