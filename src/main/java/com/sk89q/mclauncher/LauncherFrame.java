@@ -350,8 +350,6 @@ public class LauncherFrame extends JFrame {
      * Build the UI.
      */
     private void buildUI() {
-        final LauncherFrame self = this;
-
         setLayout(new BorderLayout(0, 0));
         boolean hidenews = options.getSettings().getBool(Def.LAUNCHER_HIDE_NEWS, false);
         allowOfflineName = options.getSettings().getBool(
@@ -817,8 +815,8 @@ public class LauncherFrame extends JFrame {
     /**
      * Launch the game.
      * 
-     * @param autoConnect
-     *            address to try auto-connecting to
+     * @param autoConnect address to try auto-connecting to
+     * @param test set test mode
      */
     public void launch(String autoConnect, boolean test) {
         if (worker.isAlive())

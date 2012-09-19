@@ -162,7 +162,7 @@ public class LaunchTask extends Task {
     /**
      * Set the ability to use the player's username while playing offline.
      * 
-     * @param autoConnect address (addr:port, addr) or null
+     * @param allow address (addr:port, addr) or null
      */
     public void setAllowOfflineName(boolean allow) {
         this.allowOfflineName = allow;

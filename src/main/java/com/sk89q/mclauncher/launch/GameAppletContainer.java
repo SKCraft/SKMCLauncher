@@ -100,17 +100,17 @@ class GameAppletContainer extends Applet implements AppletStub {
     /**
      * Allows to replace the wrapped applet in runtime.
      * 
-     * @return void
+     * @param applet new applet
      */
     public void replace(Applet applet) {
-        // stop old applet
+        // Stop old applet
         applet.stop();
         applet.destroy();
 
-        // assign replacement
+        // Assign replacement
         this.applet = applet;
 
-        // start new one
+        // Start new one
         this.start();
    }
 

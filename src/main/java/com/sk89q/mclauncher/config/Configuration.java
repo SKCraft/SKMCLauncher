@@ -365,7 +365,7 @@ public class Configuration {
         if (file.exists()) {
             NBTInputStream nbt = new NBTInputStream(new FileInputStream(file), false);
             Tag tag = nbt.readTag();
-            ListTag servers = (ListTag) ((CompoundMap) tag.getValue()).get("servers");
+            ListTag<?> servers = (ListTag<?>) ((CompoundMap) tag.getValue()).get("servers");
 
 
             for (Object val : servers.getValue()) {

@@ -1,7 +1,6 @@
 package com.sk89q.mclauncher.util;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.security.MessageDigest;
 
 import com.sk89q.mclauncher.DownloadListener;
