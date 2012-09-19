@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<package version="1.1">
+  <name>LWJGL</name>
+  <filegroup source="http://s3.amazonaws.com/MinecraftDownload/" dest="bin" verify="md5">
+    <file size="738345">lwjgl.jar</file>
+    <file size="227833">jinput.jar</file>
+    <file size="138318">lwjgl_util.jar</file>
+  </filegroup>
+  <filegroup source="http://s3.amazonaws.com/MinecraftDownload/" dest="bin/natives" verify="md5">
+    <archive size="491232" platform="windows">windows_natives.jar.lzma</archive>
+    <archive size="551247" platform="linux">linux_natives.jar.lzma</archive>
+    <archive size="262436" platform="mac_os_x">macosx_natives.jar.lzma</archive>
+    <archive size="272470" platform="solaris">solaris_natives.jar.lzma</archive>
+  </filegroup>
+  <filegroup source="http://dl.dropbox.com/u/8661684/LWJGL/" dest="bin" verify="md5">
+      <file size="933867" platform="linux_java7">lwjgl.jar</file>
+      <file size="214859" platform="linux_java7">jinput.jar</file>
+      <file size="173273" platform="linux_java7">lwjgl_util.jar</file>
+  </filegroup>
+  <filegroup source="http://dl.dropbox.com/u/8661684/LWJGL/linux/" dest="bin/natives" verify="md5">
+      <file size="374744" platform="linux_java7">lwjgl.so</file>
+      <file size="433072" platform="linux_java7">lwjgl64.so</file>
+      <file size="327769" platform="linux_java7">libopenal.so</file>
+      <file size="362034" platform="linux_java7">libopenal64.so</file>
+      <file size="13824" platform="linux_java7">libjinput-linux.so</file>
+      <file size="14512" platform="linux_java7">libjinput-linux64.so</file>
+  </filegroup>
+</package>

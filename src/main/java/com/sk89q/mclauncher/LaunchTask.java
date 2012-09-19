@@ -595,7 +595,7 @@ public class LaunchTask extends Task {
                         throw new IOException("Did not get expected 200 code");
                     }
                     
-                    update(rootDir, cache, conn.getInputStream(), forceUpdate, username, ticket);
+                    update(rootDir, cache, conn.getInputStream(), forceUpdate, username, ticket, true);
                 } catch (IOException e) {
                     e.printStackTrace();
                     throw new ExecutionException("Could not fetch the update package definition file (" +
@@ -606,8 +606,10 @@ public class LaunchTask extends Task {
                 }
             } else {
                 // For vanilla, we bundle the package
-                update(rootDir, cache, Launcher.class.getResourceAsStream("/resources/update.xml"),
-                        forceUpdate, username, ticket);
+                update(rootDir, cache, Launcher.class.getResourceAsStream("/resources/minecraft.xml"),
+                        forceUpdate, username, ticket, false);
+                update(rootDir, cache, Launcher.class.getResourceAsStream("/resources/lwjgl.xml"),
+                        forceUpdate, username, ticket, true);
             }
             
             // Check for cancel
@@ -635,7 +637,7 @@ public class LaunchTask extends Task {
      * @throws ExecutionException thrown on any error
      */
     private void update(File rootDir, UpdateCache cache, InputStream packageStream,
-            boolean forced, String username, String ticket) throws ExecutionException {
+            boolean forced, String username, String ticket, boolean last) throws ExecutionException {
         fireTitleChange("Updating Minecraft...");
         
         updater = new Updater(packageStream, rootDir, cache);
@@ -657,18 +659,20 @@ public class LaunchTask extends Task {
         }
         
         // Remind the user to disable mods
-        try {
-            SwingUtilities.invokeAndWait(new Runnable() {
-                @Override
-                public void run() {
-                    JOptionPane.showMessageDialog(getComponent(),
-                            "Your game has been updated. If you encounter problems, " +
-                            "try disabling any mods (if any) that you have installed.",
-                            "Update completed", JOptionPane.INFORMATION_MESSAGE);
-                }
-            });
-        } catch (InterruptedException e) {
-        } catch (InvocationTargetException e) {
+        if (last) {
+            try {
+                SwingUtilities.invokeAndWait(new Runnable() {
+                    @Override
+                    public void run() {
+                        JOptionPane.showMessageDialog(getComponent(),
+                                "Your game has been updated. If you encounter problems, " +
+                                "try disabling any mods (if any) that you have installed.",
+                                "Update completed", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                });
+            } catch (InterruptedException e) {
+            } catch (InvocationTargetException e) {
+            }
         }
     }
 
