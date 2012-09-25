@@ -19,7 +19,6 @@
 package com.sk89q.mclauncher.update;
 
 import java.io.*;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.MessageDigest;
@@ -30,6 +29,8 @@ import javax.swing.event.EventListenerList;
 
 import com.sk89q.mclauncher.ProgressListener;
 import com.sk89q.mclauncher.StatusChangeEvent;
+import com.sk89q.mclauncher.util.HTTPDownloader;
+import com.sk89q.mclauncher.util.Util;
 
 /**
  * Downloads Certificates as specified by a custom update location.
@@ -41,7 +42,6 @@ public class CertificateDownloader {
     private Map<String, File> certificateFiles = new HashMap<String, File>();
     private File rootDir;
     private File certificateDir;
-    private int counter = 1;
     
     /**
      * Construct the Certificate Downloader.
@@ -85,40 +85,18 @@ public class CertificateDownloader {
                         certFile.getAbsolutePath() + ".", e);
             }
             
-            fireStatusChange("Downloading Certificates... " + counter + "/" +certificateUrls.size());
+            fireStatusChange("Downloading Certificates... " + certnum + "/" +certificateUrls.size());
             
-            HttpURLConnection conn = null;
+            HTTPDownloader downloader = new HTTPDownloader(certURL, out);
+            
             try {
-                conn = (HttpURLConnection)certURL.openConnection();
-                conn.setRequestMethod("GET");
-                conn.setUseCaches(false);
-                conn.setDoInput(true);
-                conn.setDoOutput(false);
-                conn.setReadTimeout(5000);
-                
-                conn.connect();
-                
-                if (conn.getResponseCode() != 200) {
-                    throw new IOException("Did not get expected 200 code");
-                }
-                
-                BufferedInputStream buffInput = new BufferedInputStream(conn.getInputStream());
-    
-                byte[] data = new byte[1024];
-                int len = 0;
-                while ((len = buffInput.read(data, 0, 1024)) >= 0)
-                    out.write(data, 0, len);
-                
-                out.close();
-                certnum++;
-            } catch (IOException e) {
+                downloader.download();
+            } catch(IOException e) {
                 throw new UpdateException("Failed to download certificates.", e);
             } finally {
-                if (conn != null) 
-                    conn.disconnect();
-                conn = null;
+                downloader = null;
+                Util.close(out);
             }
-            counter++;
             
             String hash;
             try {
@@ -128,6 +106,7 @@ public class CertificateDownloader {
             }
             
             certificateFiles.put(hash, certFile);
+            certnum++;
         }
     }
     
