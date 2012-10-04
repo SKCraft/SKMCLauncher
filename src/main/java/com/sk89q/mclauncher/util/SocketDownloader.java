@@ -111,7 +111,7 @@ public class SocketDownloader extends AbstractDownloader {
             out.write(new URI(getUrl().getPath()).toASCIIString());
             out.write(" HTTP/1.0\r\n");
             out.write("Host: " + getUrl().getHost() + "\r\n");
-            out.write("User-Agent: SKMCLauncher/" + Launcher.VERSION);
+            out.write("User-Agent: SKMCLauncher/" + Launcher.VERSION + "\r\n");
             out.write("Accept: */*\r\n");
             if (getEtagCheck() != null) {
                 // Should encode/munge this...
