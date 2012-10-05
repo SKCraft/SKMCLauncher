@@ -138,6 +138,53 @@
               <minimizeJar>true</minimizeJar>
           </configuration>
       </plugin>
+      <plugin>
+				<groupId>com.akathist.maven.plugins.launch4j</groupId>
+				<artifactId>launch4j-maven-plugin</artifactId>
+				<version>1.5.1</version>
+				<configuration>
+					<dontWrapJar>false</dontWrapJar>
+					<headerType>gui</headerType>
+					<jar>target/SKMCLauncher.jar</jar>
+					<outfile>target/SKMCLauncher.exe</outfile>
+					<errTitle></errTitle>
+					<cmdLine></cmdLine>
+					<chdir></chdir>
+					<priority>normal</priority>
+					<downloadUrl>http://java.com/download</downloadUrl>
+					<supportUrl></supportUrl>
+					<customProcName>true</customProcName>
+					<stayAlive>false</stayAlive>
+					<manifest>launch4j.manifest.xml</manifest>
+					<icon>icon.ico</icon>
+					<jre>
+						<path></path>
+						<minVersion>1.6.0</minVersion>
+						<maxVersion></maxVersion>
+						<jdkPreference>preferJre</jdkPreference>
+					</jre>
+					<versionInfo>
+						<fileVersion>3.1.0.0</fileVersion>
+						<txtFileVersion>SK&apos;s Minecraft Launcher</txtFileVersion>
+						<fileDescription>Launcher for Minecraft</fileDescription>
+						<copyright>Albert Pham &lt;http://www.sk89q.com&gt;</copyright>
+						<productVersion>3.1.0.0</productVersion>
+						<txtProductVersion>SK&apos;s Minecraft Launcher</txtProductVersion>
+						<productName>SK&apos;s Minecraft Launcher</productName>
+						<companyName></companyName>
+						<internalName>SK&apos;s Minecraft Launcher</internalName>
+						<originalFilename>SKMCLauncher.exe</originalFilename>
+					</versionInfo>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>launch4j</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
     </plugins>
   </build>
 </project>
