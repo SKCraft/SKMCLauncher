@@ -75,8 +75,6 @@ import com.sk89q.mclauncher.config.Def;
 import com.sk89q.mclauncher.config.LauncherOptions;
 import com.sk89q.mclauncher.config.ServerHotListManager;
 import com.sk89q.mclauncher.util.UIUtil;
-import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JSeparator;
 
 /**
  * Main launcher GUI frame.
@@ -93,14 +91,12 @@ public class LauncherFrame extends JFrame {
     private JComboBox userText;
     private JTextField passText;
     private JCheckBox rememberPass;
-    private JCheckBoxMenuItem performUpdateCheckCheck = new JCheckBoxMenuItem("Check for updates");
-    private JCheckBoxMenuItem forceUpdateCheck = new JCheckBoxMenuItem("Force an update");
-    private JCheckBoxMenuItem playOfflineCheck = new JCheckBoxMenuItem("Play offline");
-    private JCheckBoxMenuItem playDemoCheck = new JCheckBoxMenuItem("Play in demo mode");
-    private JCheckBoxMenuItem showConsoleCheck = new JCheckBoxMenuItem("Show debug console");
+    private JCheckBox forceUpdateCheck;
+    private JCheckBox playOfflineCheck;
+    private JCheckBox showConsoleCheck;
     private JCheckBox autoConnectCheck;
     private String autoConnect;
-    private JLabel expandBtn;
+    private LinkButton expandBtn;
     private JButton playBtn;
     private LauncherOptions options;
     private TaskWorker worker = new TaskWorker();
@@ -138,6 +134,11 @@ public class LauncherFrame extends JFrame {
         setConfiguration(options.getStartupConfiguration());
         populateIdentities();
         setLastUsername();
+
+        if (options.getSettings().getBool(Def.LAUNCHER_ALWAYS_MORE_OPTIONS,
+                false)) {
+            expandBtn.doClick();
+        }
 
         // Focus initial item
         SwingUtilities.invokeLater(new Runnable() {
@@ -287,6 +288,9 @@ public class LauncherFrame extends JFrame {
      * @param show true to show the console
      */
     public void setShowConsole(boolean show) {
+        if (show) {
+            expandBtn.doClick();
+        }
         showConsoleCheck.setSelected(show);
     }
 
@@ -350,6 +354,8 @@ public class LauncherFrame extends JFrame {
      * Build the UI.
      */
     private void buildUI() {
+        final LauncherFrame self = this;
+
         setLayout(new BorderLayout(0, 0));
         boolean hidenews = options.getSettings().getBool(Def.LAUNCHER_HIDE_NEWS, false);
         allowOfflineName = options.getSettings().getBool(
@@ -397,8 +403,6 @@ public class LauncherFrame extends JFrame {
         } else {
             add(leftPanel, BorderLayout.CENTER);
         }
-        
-        performUpdateCheckCheck.setSelected(true);
 
         JPanel buttonsPanel = new JPanel();
         buttonsPanel.setLayout(new GridLayout(1, 3, 3, 0));
@@ -420,17 +424,6 @@ public class LauncherFrame extends JFrame {
         configurationsPanel.setLayout(new BorderLayout(0, 0));
         configurationsPanel.setBorder(BorderFactory.createEmptyBorder(PAD, PAD, PAD, PAD));
         configurationList = new JList(options.getConfigurations());
-        ListSelectionListener listSelectionListener = new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent listSelectionEvent) {
-                Configuration config = getWorkspace();
-                
-                boolean showconsole = config.getSettings().getBool(Def.JAVA_CONSOLE, false);
-                
-                showConsoleCheck.setSelected(showconsole);
-            }
-        };
-        configurationList.addListSelectionListener(listSelectionListener);
         configurationList.setCellRenderer(new ConfigurationCellRenderer());
         configurationList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         JScrollPane configScroll = new JScrollPane(configurationList);
@@ -536,23 +529,26 @@ public class LauncherFrame extends JFrame {
 
         autoConnectCheck = new JCheckBox("Auto-connect");
         autoConnectCheck.setBorder(null);
-        
+
+        forceUpdateCheck = new JCheckBox("Force a game update");
+        forceUpdateCheck.setBorder(null);
+
+        playOfflineCheck = new JCheckBox("Play in offline mode");
+        playOfflineCheck.setBorder(null);
         playOfflineCheck.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                boolean selected = ((JCheckBoxMenuItem) e.getSource()).isSelected();
-                if (!allowOfflineName) {
-                    userText.setEnabled(!selected);
-                }
-                performUpdateCheckCheck.setEnabled(!selected);
-                forceUpdateCheck.setEnabled(!selected);
+                boolean selected = ((JCheckBox) e.getSource()).isSelected();
+                userText.setEnabled(!selected);
                 passText.setEnabled(!selected);
                 rememberPass.setEnabled(!selected);
             }
         });
 
-        expandBtn = new JLabel("Right click Launch for more options");
-        expandBtn.setEnabled(false);
+        showConsoleCheck = new JCheckBox("Launch with console");
+        showConsoleCheck.setBorder(null);
+
+        expandBtn = new LinkButton("More options...");
         final JPanel expandContainer = new JPanel();
         expandContainer.setLayout(new BoxLayout(expandContainer,
                 BoxLayout.X_AXIS));
@@ -568,9 +564,17 @@ public class LauncherFrame extends JFrame {
         panel.add(passText, fieldC);
         panel.add(rememberPass, checkboxC);
         panel.add(autoConnectCheck, checkboxC);
+        panel.add(forceUpdateCheck, checkboxC);
+        panel.add(playOfflineCheck, checkboxC);
+        panel.add(showConsoleCheck, checkboxC);
         panel.add(expandContainer, checkboxC);
 
         autoConnectCheck.setVisible(false);
+        jarLabel.setVisible(false);
+        jarCombo.setVisible(false);
+        forceUpdateCheck.setVisible(false);
+        playOfflineCheck.setVisible(false);
+        showConsoleCheck.setVisible(false);
 
         userText.addActionListener(new ActionListener() {
             @Override
@@ -623,6 +627,19 @@ public class LauncherFrame extends JFrame {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                     launch();
                 }
+            }
+        });
+
+        expandBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                expandContainer.setVisible(false);
+                jarLabel.setVisible(true);
+                jarCombo.setVisible(true);
+                forceUpdateCheck.setVisible(true);
+                playOfflineCheck.setVisible(allowOfflineName);
+                showConsoleCheck.setVisible(true);
+                // registerAccount.setVisible(true);
             }
         });
 
@@ -697,14 +714,6 @@ public class LauncherFrame extends JFrame {
 
         JPopupMenu popup = new JPopupMenu();
         JMenuItem menuItem;
-        
-        popup.add(playOfflineCheck);
-        popup.add(playDemoCheck);
-        popup.add(performUpdateCheckCheck);
-        popup.add(forceUpdateCheck);
-        popup.add(showConsoleCheck);
-        
-        popup.add(new JSeparator());
 
         for (final String name : names) {
             menuItem = new JMenuItem("Connect to " + name);
@@ -863,13 +872,9 @@ public class LauncherFrame extends JFrame {
         populateIdentities();
 
         LaunchTask task = new LaunchTask(this, getWorkspace(), username, password, jar);
-        task.setCheckUpdate(performUpdateCheckCheck.isSelected());
         task.setForceUpdate(forceUpdateCheck.isSelected());
         task.setPlayOffline(playOfflineCheck.isSelected() || (test && options.getSettings().getBool(Def.FAST_TEST, false)));
         task.setShowConsole(showConsoleCheck.isSelected());
-        task.setAllowOfflineName(allowOfflineName);
-        task.setDemo(playDemoCheck.isSelected());
-        
         if (autoConnect != null) {
             task.setAutoConnect(autoConnect);
         } else if (autoConnectCheck.isSelected() && this.autoConnect != null) {
