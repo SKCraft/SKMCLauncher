@@ -9,6 +9,7 @@
     <setting key="java.min-memory">128</setting>
     <setting key="java.runtime"/>
     <setting key="java.wrapper-program"/>
+    <setting key="launcher.always-more-options">false</setting>
     <setting key="launcher.newsless">false</setting>
     <setting key="launcher.hidenews">false</setting>
     <setting key="launcher.reopen">false</setting>
