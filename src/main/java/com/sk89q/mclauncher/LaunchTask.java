@@ -639,10 +639,10 @@ public class LaunchTask extends Task {
     }
     
     /**
-     * Checks File Extensions and Certificates as read by an UpdateCheck.
-     * The user will need to accept these File Extensions and Certificates for the update to complete.
+     * Checks Certificates as read by an UpdateCheck.
+     * The user will need to accept these Certificates for the update to complete.
      * 
-     * @param check The UpdateCheck that contains a list of Certificates and File Extensions required for the update.
+     * @param check The UpdateCheck that contains a list of Certificates required for the update.
      * @throws ExecutionException
      */
     public void checkTrust(UpdateCheck check) throws ExecutionException {
@@ -659,17 +659,6 @@ public class LaunchTask extends Task {
             throw new ExecutionException("Downloading certificates failed. ( " + e.getMessage() + " )", e);
         }
         
-        //If necessary, display UI prompting the user to trust new file extensions        
-        if(!configuration.containsAllFileExtensions(check.getFileExtensions())) {
-            String message = "This update will include files of the following extensions: \n";
-            for(String s : check.getFileExtensions())
-                message += "   -" + s + "\n";
-            message += "Do you trust these types of files?";
-            if (JOptionPane.showConfirmDialog(getComponent(), message, "Unknown File Extensions", JOptionPane.YES_NO_OPTION) != 0)
-                    throw new CancelledExecutionException();
-        }
-        configuration.setLocalFileExtensions(check.getFileExtensions());
-        
         //If necessary, display UI prompting the user to trust new certificates
         if(!configuration.containsAllCertificates(certDownloader.getCertificateHashes())) {
             String message = "Executable Java code in this update is signed by the following certificates: \n";
@@ -681,9 +670,9 @@ public class LaunchTask extends Task {
         }
         configuration.setLocalCertificateHashes(certDownloader.getCertificateHashes());
         
-        //Save the trusted extensions and certificates to the configuration
+        //Save the trusted certificates to the configuration
         if (!Launcher.getInstance().getOptions().save())
-            throw new ExecutionException("Failed to save user-accepted certificates and file extensions.");
+            throw new ExecutionException("Failed to save user-accepted certificates.");
         
         //The user has trusted the recenty downloaded certificates, 
         //so add them to the keystore for validation of the JARs and ZIPs

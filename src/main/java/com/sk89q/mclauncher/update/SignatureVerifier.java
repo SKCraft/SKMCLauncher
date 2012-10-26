@@ -18,9 +18,6 @@
 
 package com.sk89q.mclauncher.update;
 
-import com.sk89q.mclauncher.LaunchTask;
-import com.sk89q.mclauncher.Launcher;
-import com.sk89q.mclauncher.config.Configuration;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.cert.CertPathBuilderException;
@@ -77,12 +74,9 @@ public class SignatureVerifier {
      * @throws IOException on I/O error
      */
     public void verify(InputStream in, String ext) throws SecurityException, IOException {
-        Configuration config = Launcher.getInstance().getLauncherFrame().getConfiguration();
-        
         try {
             if (ext.equalsIgnoreCase("jar") || ext.equalsIgnoreCase("zip")) {
                 verifyJar(in);
-            } else if(config.getLocalFileExtensions().contains(ext.toLowerCase())) {
             } else {
                 throw new SecurityException("Not sure how to verify the signature for '" + ext + "'");
             }

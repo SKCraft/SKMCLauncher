@@ -43,7 +43,6 @@ public class Configuration {
     private SettingsList settings = new SettingsList();
     private boolean builtIn = false;
     private Collection<String> localCertificateHashes = new ArrayList<String>();
-    private Collection<String> localFileExtensions = new ArrayList<String>();    
     
     /**
      * Construct a configuration.
@@ -321,19 +320,7 @@ public class Configuration {
         
         return true;
     }
-    
-    /**
-     * Returns true if all the passed in File Extensions are contained within the Configuration's
-     * internal collection of already-trusted File Extensions, false otherwise.
-     */
-    public boolean containsAllFileExtensions(Collection<String> remoteFileExtensions) {
-        for(String s : remoteFileExtensions)
-            if(!localFileExtensions.contains(s.toLowerCase()))
-                return false;
-        
-        return true;
-    }    
-    
+
     /**
      * Gets a collection of Hashes of Certificates the user has trusted.
      * 
@@ -351,22 +338,4 @@ public class Configuration {
     public void setLocalCertificateHashes(Collection<String> localCertificateHashes) {
         this.localCertificateHashes = localCertificateHashes;
     }
-
-    /**
-     * Gets a collection of File Extensions the user has trusted.
-     * 
-     * @return the File Extensions
-     */
-    public Collection<String> getLocalFileExtensions() {
-        return localFileExtensions;
-    }
-
-    /**
-     * Sets a collection of File Extensions the user has trusted.
-     * 
-     * @param the File Extensions
-     */
-    public void setLocalFileExtensions(Collection<String> localFileExtensions) {
-        this.localFileExtensions = localFileExtensions;
-    }    
 }

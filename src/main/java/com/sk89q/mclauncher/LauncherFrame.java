@@ -194,15 +194,6 @@ public class LauncherFrame extends JFrame {
     public String getInputPassword() {
         return passText.getText();
     }
-    
-    /**
-     * Get the configuration.
-     * 
-     * @return the configuration
-     */
-    public Configuration getConfiguration() {
-        return configuration;
-    }
 
     /**
      * Get the currently active JAR.
