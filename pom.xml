@@ -17,6 +17,20 @@
     <signerPassword />
     <signerAlias />
   </properties>
+  <repositories>
+      <!-- Provides us with Simple NBT -->
+      <repository>
+          <id>spout-repo</id>
+          <url>http://repo.spout.org</url>
+      </repository>
+  </repositories>
+  <dependencies>
+      <dependency>
+          <groupId>org.spout</groupId>
+          <artifactId>simplenbt</artifactId>
+          <version>1.0.4-SNAPSHOT</version>
+      </dependency>
+  </dependencies>
   <build>
     <sourceDirectory>${basedir}/src/main/java/</sourceDirectory>
     <scriptSourceDirectory>${basedir}/src/main/scripts</scriptSourceDirectory>
@@ -35,7 +49,7 @@
           <include>sk89q.cer</include>
           <include>update.xml</include>
           <include>defaults.xml</include>
-          <include>icon.png</include>
+          <include>*.png</include>
         </includes>
       </resource>
       <resource>
@@ -82,7 +96,7 @@
           <execution>
             <id>sign</id>
             <goals>
-              <goal>sign</goal>
+              <!--<goal>sign</goal>--> <!-- Enable this is you wish to sign the final jar -->
             </goals>
           </execution>
         </executions>
@@ -107,6 +121,45 @@
           <goals>assembly:assembly</goals>
           <tagNameFormat>release-@{project.version}</tagNameFormat>
         </configuration>
+      </plugin>
+      <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-shade-plugin</artifactId>
+          <version>2.0</version>
+          <executions>
+              <execution>
+                  <phase>package</phase>
+                  <goals>
+                      <goal>shade</goal>
+                  </goals>
+              </execution>
+          </executions>
+          <configuration>
+              <minimizeJar>true</minimizeJar>
+          </configuration>
+      </plugin>
+      <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>osxappbundle-maven-plugin</artifactId>
+          <version>1.0-alpha-2</version>
+          <configuration>
+              <bundleName>${project.build.finalName}</bundleName>
+              <version>${project.version}</version>
+              <internetEnable>true</internetEnable>
+              <mainClass>com.sk89q.mclauncher.Launcher</mainClass>
+              <javaApplicationStub>${basedir}/src/main/resources/JavaApplicationStub</javaApplicationStub>
+              <jvmVersion>1.6+</jvmVersion>
+              <zipFile>${project.build.directory}/${project.build.finalName}.zip</zipFile>
+              <iconFile>icon.icns</iconFile>
+          </configuration>
+          <executions>
+              <execution>
+                  <phase>package</phase>
+                  <goals>
+                      <goal>bundle</goal>
+                  </goals>
+              </execution>
+          </executions>
       </plugin>
     </plugins>
   </build>

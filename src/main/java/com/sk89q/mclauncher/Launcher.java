@@ -29,7 +29,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Random;
@@ -134,8 +133,6 @@ public class Launcher {
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Failed to install register built-in certificates", e);
         }
-        
-        verifyState();
     }
 
     /**
@@ -180,20 +177,6 @@ public class Launcher {
         Cipher cipher = Cipher.getInstance("PBEWithMD5AndDES");
         cipher.init(mode, key, paramSpec);
         return cipher;
-    }
-    
-    /**
-     * Verifies signatures.
-     */
-    public void verifyState() {
-        if (!Launcher.class.getResource("Launcher.class").toString().startsWith("file:")) {
-            Certificate[] certs = Launcher.class.getProtectionDomain().getCodeSource()
-                    .getCertificates();
-            
-            if (certs == null || certs.length == 0) {
-                System.exit(15);
-            }
-        }
     }
     
     /**

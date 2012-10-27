@@ -26,10 +26,10 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 import javax.swing.event.EventListenerList;
-
+import com.sk89q.mclauncher.util.URLConnectionDownloader;
 import com.sk89q.mclauncher.ProgressListener;
 import com.sk89q.mclauncher.StatusChangeEvent;
-import com.sk89q.mclauncher.util.HTTPDownloader;
+
 import com.sk89q.mclauncher.util.Util;
 
 /**
@@ -87,7 +87,7 @@ public class CertificateDownloader {
             
             fireStatusChange("Downloading Certificates... " + certnum + "/" +certificateUrls.size());
             
-            HTTPDownloader downloader = new HTTPDownloader(certURL, out);
+            URLConnectionDownloader downloader = new URLConnectionDownloader(certURL, out);
             
             try {
                 downloader.download();

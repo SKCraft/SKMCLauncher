@@ -52,6 +52,7 @@ import com.sk89q.mclauncher.security.X509KeyStore;
 import com.sk89q.mclauncher.update.*;
 import com.sk89q.mclauncher.util.ConsoleFrame;
 import com.sk89q.mclauncher.util.SettingsList;
+import com.sk89q.mclauncher.util.UIUtil;
 import com.sk89q.mclauncher.util.Util;
 import java.io.*;
 import java.security.cert.CertificateException;
@@ -81,6 +82,8 @@ public class LaunchTask extends Task {
     private boolean wantUpdate = false;
     private boolean notInstalled = false;
     private volatile Updater updater;
+    private boolean demo = false;
+    private boolean allowOfflineName = false;
 
     private boolean showConsole = false;
     private String autoConnect;
@@ -129,6 +132,15 @@ public class LaunchTask extends Task {
     public void setShowConsole(boolean showConsole) {
         this.showConsole = showConsole;
     }
+    
+    /**
+     * Run Minecraft in demo mode.
+     * 
+     * @param demo true for demo mode, false for normal mode if a premium account.
+     */
+    public void setDemo(boolean demo) {
+        this.demo = demo;
+    }
 
     /**
      * Set the auto connect server address.
@@ -138,6 +150,15 @@ public class LaunchTask extends Task {
     public void setAutoConnect(String autoConnect) {
         this.autoConnect = autoConnect;
     }
+    
+    /**
+     * Set the ability to use the player's username while playing offline.
+     * 
+     * @param allow address (addr:port, addr) or null
+     */
+    public void setAllowOfflineName(boolean allow) {
+        this.allowOfflineName = allow;
+    }
 
     /**
      * Execute the launch task.
@@ -145,7 +166,8 @@ public class LaunchTask extends Task {
     @Override
     public void execute() throws ExecutionException {
         rootDir = configuration.getMinecraftDir();
-
+        rootDir.mkdirs();
+        
         session = new LoginSession(username);
         
         if (!playOffline) {
@@ -186,7 +208,7 @@ public class LaunchTask extends Task {
         }
         
         // Read some settings
-        String username = playOffline ? "Player" : this.username;
+        String username = !allowOfflineName && playOffline ? "Player" : this.username;
         String runtimePath = Util.nullEmpty(settings.get(Def.JAVA_RUNTIME));
         String wrapperPath = Util.nullEmpty(settings.get(Def.JAVA_WRAPPER_PROGRAM));
         int minMem = settings.getInt(Def.JAVA_MIN_MEM, 128);
@@ -318,6 +340,9 @@ public class LaunchTask extends Task {
         out.println("@username=" + username);
         out.println("@mppass=" + username);
         out.println("@sessionid=" + (session.isValid() ? session.getSessionId() : ""));
+        if (demo) {
+            out.println("@demo=true");
+        }
         if (settings.getBool(Def.WINDOW_FULLSCREEN, false)) {
             out.println("@fullscreen=true");
         }
@@ -389,7 +414,14 @@ public class LaunchTask extends Task {
         } catch (OutdatedLauncherException e) {
             throw new ExecutionException("Your launcher has to be updated.");
         } catch (LoginException e) {
-            throw new ExecutionException("A login error has occurred: " + e.getMessage());
+            if (e.getMessage().equals("User not premium")) {
+                if (!demo) {
+                    UIUtil.showError(frame, "Not Premium", "You aren't logging in to a premium account.\nMinecraft will run in demo mode.");
+                }
+                demo = true;
+            } else {
+                throw new ExecutionException("A login error has occurred: " + e.getMessage());
+            }
         } catch (final IOException e) {
             e.printStackTrace();
             try {
@@ -432,7 +464,7 @@ public class LaunchTask extends Task {
         UpdateCheck check = null;
         
         // Check account
-        if (!session.isValid() && !this.playOffline) {
+        if (!demo && !session.isValid() && !this.playOffline) {
             throw new ExecutionException("Please login first to download Minecraft.");
         }
         
@@ -639,8 +671,8 @@ public class LaunchTask extends Task {
     }
     
     /**
-     * Checks Certificates as read by an UpdateCheck.
-     * The user will need to accept these Certificates for the update to complete.
+     * Downloads and checks Certificates as listed in an UpdateCheck.
+     * The user will need to accept these Certificates for the update to complete if they have not already.
      * 
      * @param check The UpdateCheck that contains a list of Certificates required for the update.
      * @throws ExecutionException

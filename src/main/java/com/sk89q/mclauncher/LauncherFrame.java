@@ -20,6 +20,7 @@ package com.sk89q.mclauncher;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -32,12 +33,15 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.FileNotFoundException;
+import java.util.Map;
 import java.util.Set;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -45,6 +49,7 @@ import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
+import javax.swing.JList;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -53,12 +58,16 @@ import javax.swing.JPopupMenu;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.ListModel;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.CompoundBorder;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.text.JTextComponent;
 
 import com.sk89q.mclauncher.config.Configuration;
@@ -75,9 +84,9 @@ import com.sk89q.mclauncher.util.UIUtil;
 public class LauncherFrame extends JFrame {
 
     private static final long serialVersionUID = 4122023031876609883L;
-    private static final boolean CHECK_LOGIN_BEFORE_OFFLINE = true;
-    private JLabel configurationLabel;
-    private JButton switchConfigBtn;
+    private static final int PAD = 12;
+    private boolean allowOfflineName = false;
+    private JList configurationList;
     private JComboBox jarCombo;
     private JComboBox userText;
     private JTextField passText;
@@ -90,7 +99,6 @@ public class LauncherFrame extends JFrame {
     private LinkButton expandBtn;
     private JButton playBtn;
     private LauncherOptions options;
-    private Configuration configuration;
     private TaskWorker worker = new TaskWorker();
 
     /**
@@ -98,8 +106,8 @@ public class LauncherFrame extends JFrame {
      */
     public LauncherFrame() {
         setTitle("SK's Minecraft Launcher");
-        setSize(300, 500);
-        setLocationRelativeTo(null);
+        setSize(620, 500);
+        
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
         try {
@@ -119,6 +127,8 @@ public class LauncherFrame extends JFrame {
         options = Launcher.getInstance().getOptions();
 
         buildUI();
+        
+        setLocationRelativeTo(null);
 
         // Setup
         setConfiguration(options.getStartupConfiguration());
@@ -157,14 +167,32 @@ public class LauncherFrame extends JFrame {
             UIUtil.showError(
                     this,
                     "Misconfigured configuration",
-                    "The selected configuration points to a missing directory. "
-                            + "The launcher will fallback to the default configuration.");
+                    "The last selected configuration is broken. Switching to the default...");
             configuration = options.getConfigurations().getDefault();
         }
-        this.configuration = configuration;
-        configurationLabel.setText("Configuration: " + configuration.getName());
+        
+        ListModel model = configurationList.getModel();
+        if (configurationList.getSelectedValue() != configuration) {
+            for (int i = 0; i < model.getSize(); i++) {
+                if (model.getElementAt(i) == configuration) {
+                    configurationList.setSelectedIndex(i);
+                    break;
+                }
+            }
+        }
+        
         populateJarEntries();
         setLastJar();
+
+        try {
+            for (Map.Entry<String, String> entry : configuration.getMPServers().entrySet()) {
+                options.getServers().register(entry.getKey(), entry.getValue(), false);
+            }
+        } catch (FileNotFoundException ex) {
+            ex.printStackTrace();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
     }
 
     /**
@@ -173,6 +201,14 @@ public class LauncherFrame extends JFrame {
      * @return workspace
      */
     public Configuration getWorkspace() {
+        Configuration configuration = (Configuration) configurationList.getSelectedValue();
+        
+        // Switch to default if the current one is broken
+        if (configuration == null || !configuration.getBaseDir().isDirectory()) {
+            configuration = options.getConfigurations().getDefault();
+            setConfiguration(configuration);
+        }
+        
         return configuration;
     }
 
@@ -208,7 +244,7 @@ public class LauncherFrame extends JFrame {
         if (o instanceof DefaultVersion) {
             return "minecraft.jar";
         }
-        return (String) o;
+        return ((MinecraftJar) o).getName();
     }
 
     /**
@@ -275,8 +311,7 @@ public class LauncherFrame extends JFrame {
      * @return dialog
      */
     private OptionsDialog openOptions(int index) {
-        OptionsDialog dialog = new OptionsDialog(this, configuration, options,
-                index);
+        OptionsDialog dialog = new OptionsDialog(this, getWorkspace(), options, index);
         dialog.setVisible(true);
         return dialog;
     }
@@ -287,10 +322,32 @@ public class LauncherFrame extends JFrame {
      * @return dialog
      */
     private AddonManagerDialog openAddons() {
-        AddonManagerDialog dialog = new AddonManagerDialog(this, configuration,
-                getActiveJar());
+        AddonManagerDialog dialog = new AddonManagerDialog(this, getWorkspace(), getActiveJar());
         dialog.setVisible(true);
         return dialog;
+    }
+    
+    private void showNews(JLayeredPane newsPanel) {
+        final LauncherFrame self = this;
+        newsPanel.setLayout(new NewsLayoutManager());
+        newsPanel
+            .setBorder(BorderFactory.createEmptyBorder(PAD, 0, PAD, PAD));
+        JEditorPane newsView = new JEditorPane();
+        newsView.setEditable(false);
+        newsView.addHyperlinkListener(new HyperlinkListener() {
+            @Override
+            public void hyperlinkUpdate(HyperlinkEvent e) {
+                if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+                    UIUtil.openURL(e.getURL(), self);
+                }
+            }
+        });
+        JScrollPane newsScroll = new JScrollPane(newsView);
+        newsPanel.add(newsScroll, new Integer(1));
+        JProgressBar newsProgress = new JProgressBar();
+        newsProgress.setIndeterminate(true);
+        newsPanel.add(newsProgress, new Integer(2));
+        NewsFetcher.update(newsView, newsProgress);
     }
 
     /**
@@ -300,38 +357,51 @@ public class LauncherFrame extends JFrame {
         final LauncherFrame self = this;
 
         setLayout(new BorderLayout(0, 0));
-
-        if (options.getSettings().getBool(Def.LAUNCHER_NO_NEWS, false)) {
-            JPanel newsPanel = new JPanel();
-            newsPanel.setBorder(new CompoundBorder(BorderFactory
-                    .createEmptyBorder(10, 10, 10, 10), new CompoundBorder(
-                    BorderFactory.createEtchedBorder(), BorderFactory
-                            .createEmptyBorder(4, 4, 4, 4))));
-            newsPanel.setLayout(new BoxLayout(newsPanel, BoxLayout.Y_AXIS));
-            newsPanel.add(new JLabel("Re-enable news in Options."));
-            add(newsPanel, BorderLayout.CENTER);
-        } else {
-            JLayeredPane newsPanel = new JLayeredPane();
-            newsPanel.setLayout(new NewsLayoutManager());
-            newsPanel
-                    .setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-            JEditorPane newsView = new JEditorPane();
-            newsView.setEditable(false);
-            newsView.addHyperlinkListener(new HyperlinkListener() {
-                @Override
-                public void hyperlinkUpdate(HyperlinkEvent e) {
-                    if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-                        UIUtil.openURL(e.getURL(), self);
+        boolean hidenews = options.getSettings().getBool(Def.LAUNCHER_HIDE_NEWS, false);
+        allowOfflineName = options.getSettings().getBool(
+                Def.LAUNCHER_ALLOW_OFFLINE_NAME, false);
+        
+        if (!hidenews) {
+            if (options.getSettings().getBool(Def.LAUNCHER_NO_NEWS, false)) {
+                final JLayeredPane newsPanel = new JLayeredPane();
+                
+                newsPanel.setBorder(new CompoundBorder(BorderFactory
+                        .createEmptyBorder(PAD, 0, PAD, PAD), new CompoundBorder(
+                        BorderFactory.createEtchedBorder(), BorderFactory
+                                .createEmptyBorder(4, 4, 4, 4))));
+                newsPanel.setLayout(new BoxLayout(newsPanel, BoxLayout.Y_AXIS));
+                
+                final JButton showNews = new JButton("Show news");
+                showNews.setAlignmentX(Component.CENTER_ALIGNMENT);
+                showNews.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        showNews.setVisible(false);
+                        showNews(newsPanel);
                     }
-                }
-            });
-            JScrollPane newsScroll = new JScrollPane(newsView);
-            newsPanel.add(newsScroll, new Integer(1));
-            JProgressBar newsProgress = new JProgressBar();
-            newsProgress.setIndeterminate(true);
-            newsPanel.add(newsProgress, new Integer(2));
-            add(newsPanel, BorderLayout.CENTER);
-            NewsFetcher.update(newsView, newsProgress);
+                });
+                
+                // Center the button vertically.
+                newsPanel.add(new Box.Filler(new Dimension(0,0), 
+                        new Dimension(0,0), new Dimension(1000,1000)));
+                newsPanel.add(showNews);
+                newsPanel.add(new Box.Filler(new Dimension(0,0), 
+                        new Dimension(0,0), new Dimension(1000,1000)));
+                
+                add(newsPanel, BorderLayout.CENTER);
+            } else {
+                JLayeredPane newsPanel = new JLayeredPane();
+                showNews(newsPanel);
+                add(newsPanel, BorderLayout.CENTER);
+            }
+        }
+        
+        JPanel leftPanel = new JPanel();
+        leftPanel.setLayout(new BorderLayout());
+        if (!hidenews) {
+            add(leftPanel, BorderLayout.LINE_START);
+        } else {
+            add(leftPanel, BorderLayout.CENTER);
         }
 
         JPanel buttonsPanel = new JPanel();
@@ -344,29 +414,21 @@ public class LauncherFrame extends JFrame {
         buttonsPanel.add(optionsBtn);
 
         JPanel root = new JPanel();
-        root.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+        root.setBorder(BorderFactory.createEmptyBorder(0, PAD, PAD, PAD));
         root.setLayout(new BoxLayout(root, BoxLayout.Y_AXIS));
         root.add(createLoginPanel());
         root.add(buttonsPanel);
-        add(root, BorderLayout.SOUTH);
+        leftPanel.add(root, BorderLayout.SOUTH);
 
-        configurationLabel = new JLabel();
-        switchConfigBtn = new JButton("Switch...");
-        switchConfigBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                popupConfigurationsMenu(switchConfigBtn);
-            }
-        });
-
-        JPanel top = new JPanel();
-        top.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
-        top.setLayout(new BoxLayout(top, BoxLayout.X_AXIS));
-        top.add(switchConfigBtn);
-        top.add(Box.createHorizontalStrut(5));
-        top.add(configurationLabel);
-        top.add(Box.createHorizontalGlue());
-        add(top, BorderLayout.NORTH);
+        JPanel configurationsPanel = new JPanel();
+        configurationsPanel.setLayout(new BorderLayout(0, 0));
+        configurationsPanel.setBorder(BorderFactory.createEmptyBorder(PAD, PAD, PAD, PAD));
+        configurationList = new JList(options.getConfigurations());
+        configurationList.setCellRenderer(new ConfigurationCellRenderer());
+        configurationList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        JScrollPane configScroll = new JScrollPane(configurationList);
+        configurationsPanel.add(configScroll, BorderLayout.CENTER);
+        leftPanel.add(configurationsPanel, BorderLayout.CENTER);
 
         // Add listener
         playBtn.addActionListener(new ActionListener() {
@@ -393,6 +455,13 @@ public class LauncherFrame extends JFrame {
                 }
             }
         });
+        
+        configurationList.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                setConfiguration((Configuration) ((JList) e.getSource()).getSelectedValue());
+            }
+        });
 
         optionsBtn.addActionListener(new ActionListener() {
             @Override
@@ -407,6 +476,10 @@ public class LauncherFrame extends JFrame {
                 openAddons();
             }
         });
+        
+        if (hidenews) {
+            setSize(300, 500);
+        }
     }
 
     /**
@@ -564,7 +637,7 @@ public class LauncherFrame extends JFrame {
                 jarLabel.setVisible(true);
                 jarCombo.setVisible(true);
                 forceUpdateCheck.setVisible(true);
-                playOfflineCheck.setVisible(!CHECK_LOGIN_BEFORE_OFFLINE);
+                playOfflineCheck.setVisible(allowOfflineName);
                 showConsoleCheck.setVisible(true);
                 // registerAccount.setVisible(true);
             }
@@ -630,41 +703,6 @@ public class LauncherFrame extends JFrame {
     }
 
     /**
-     * Open the configurations menu.
-     * 
-     * @param component
-     *            component to open from
-     */
-    private void popupConfigurationsMenu(Component component) {
-        JPopupMenu popup = new JPopupMenu();
-        JMenuItem menuItem;
-
-        menuItem = new JMenuItem("Manage configurations...");
-        menuItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                openOptions(2);
-            }
-        });
-        popup.add(menuItem);
-
-        popup.addSeparator();
-
-        for (final Configuration config : options.getConfigurations()) {
-            menuItem = new JMenuItem("Switch to " + config.getName());
-            menuItem.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    setConfiguration(config);
-                }
-            });
-            popup.add(menuItem);
-        }
-
-        popup.show(component, 0, component.getHeight());
-    }
-
-    /**
      * Open the server hot list menu.
      * 
      * @param component
@@ -705,7 +743,7 @@ public class LauncherFrame extends JFrame {
 
         jarCombo.addItem(new DefaultVersion());
 
-        for (String jar : configuration.getJars()) {
+        for (MinecraftJar jar : getWorkspace().getJars()) {
             jarCombo.addItem(jar);
         }
     }
@@ -714,9 +752,16 @@ public class LauncherFrame extends JFrame {
      * Set the JAR field to the last JAR used.
      */
     private void setLastJar() {
-        String lastJar = configuration.getLastActiveJar();
+        String lastJar = getWorkspace().getLastActiveJar();
         if (lastJar != null) {
-            jarCombo.setSelectedItem(lastJar);
+            // TODO: This is a horrible hack
+            ComboBoxModel model = jarCombo.getModel();
+            for (int i = 0; i < model.getSize(); i++) {
+                Object item = model.getElementAt(i);
+                if (item instanceof MinecraftJar && ((MinecraftJar) item).getName().equals(lastJar)) {
+                    model.setSelectedItem(item);
+                }
+            }
         }
     }
 
@@ -779,8 +824,8 @@ public class LauncherFrame extends JFrame {
     /**
      * Launch the game.
      * 
-     * @param autoConnect
-     *            address to try auto-connecting to
+     * @param autoConnect address to try auto-connecting to
+     * @param test set test mode
      */
     public void launch(String autoConnect, boolean test) {
         if (worker.isAlive())
@@ -794,7 +839,7 @@ public class LauncherFrame extends JFrame {
             return;
         }
 
-        if (passText.getText().trim().length() == 0) {
+        if (!playOfflineCheck.isSelected() && passText.getText().trim().length() == 0) {
             JOptionPane.showMessageDialog(this, "A password must be entered.",
                     "No password", JOptionPane.ERROR_MESSAGE);
             return;
@@ -803,8 +848,8 @@ public class LauncherFrame extends JFrame {
         String username = selectedName.toString();
         String password = passText.getText();
         boolean remember = rememberPass.isSelected();
-        String jar = jarCombo.getSelectedItem() instanceof String ? (String) jarCombo
-                .getSelectedItem() : null;
+        String jar = jarCombo.getSelectedItem() instanceof MinecraftJar ? ((MinecraftJar) jarCombo
+                .getSelectedItem()).getName() : null;
 
         // Save the identity
         if (!playOfflineCheck.isSelected()) {
@@ -816,18 +861,17 @@ public class LauncherFrame extends JFrame {
                 options.setLastUsername(null);
             }
         }
-        options.setLastConfigName(configuration.getId());
+        options.setLastConfigName(getWorkspace().getId());
         options.save();
 
         // Save options
-        configuration.setLastActiveJar(jar);
+        getWorkspace().setLastActiveJar(jar);
         options.save();
 
         // Want to update the GUI
         populateIdentities();
 
-        LaunchTask task = new LaunchTask(this, configuration, username,
-                password, jar);
+        LaunchTask task = new LaunchTask(this, getWorkspace(), username, password, jar);
         task.setForceUpdate(forceUpdateCheck.isSelected());
         task.setPlayOffline(playOfflineCheck.isSelected() || (test && options.getSettings().getBool(Def.FAST_TEST, false)));
         task.setShowConsole(showConsoleCheck.isSelected());

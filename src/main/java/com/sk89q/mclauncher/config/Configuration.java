@@ -18,15 +18,32 @@
 
 package com.sk89q.mclauncher.config;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.logging.Logger;
+import java.util.Map;
+
+import javax.imageio.ImageIO;
 
 import com.sk89q.mclauncher.Launcher;
+import com.sk89q.mclauncher.MinecraftJar;
 import com.sk89q.mclauncher.addons.AddonsProfile;
 import com.sk89q.mclauncher.util.SettingsList;
+
+import org.spout.nbt.CompoundMap;
+import org.spout.nbt.CompoundTag;
+import org.spout.nbt.ListTag;
+import org.spout.nbt.Tag;
+import org.spout.nbt.stream.NBTInputStream;
 
 /**
  * Represents a configuration for the game.
@@ -34,6 +51,9 @@ import com.sk89q.mclauncher.util.SettingsList;
  * @author sk89q
  */
 public class Configuration {
+    
+    private static final Logger logger = Logger.getLogger(Configuration.class.getCanonicalName());
+    
     private String id;
     private File customBasePath;
     private String appDir;
@@ -43,6 +63,8 @@ public class Configuration {
     private SettingsList settings = new SettingsList();
     private boolean builtIn = false;
     private Collection<String> localCertificateHashes = new ArrayList<String>();
+
+    private BufferedImage cachedIcon;
     
     /**
      * Construct a configuration.
@@ -279,10 +301,11 @@ public class Configuration {
      * 
      * @return list of jars
      */
-    public List<String> getJars() {
-        List<String> jars = new ArrayList<String>();
-        jars.add("minecraft.jar");
-        File[] files = new File(getMinecraftDir(), "bin").listFiles();
+    public List<MinecraftJar> getJars() {
+        File base = new File(getMinecraftDir(), "bin");
+        List<MinecraftJar> jars = new ArrayList<MinecraftJar>();
+        jars.add(new MinecraftJar(new File(base, "minecraft.jar")));
+        File[] files = base.listFiles();
         if (files == null) {
             return jars;
         }
@@ -293,7 +316,7 @@ public class Configuration {
                     && !name.equalsIgnoreCase("lwjgl.jar")
                     && !name.equalsIgnoreCase("lwjgl_util.jar")
                     && !name.equalsIgnoreCase("minecraft.jar")) {
-                jars.add(name);
+                jars.add(new MinecraftJar(f));
             }
         }
         return jars;
@@ -307,6 +330,56 @@ public class Configuration {
      */
     public AddonsProfile getAddonsProfile(String activeJar) {
         return new AddonsProfile(new File(getMinecraftDir(), "addons/" + activeJar));
+    }
+
+    /**
+     * Get the icon for the profile. May return null.
+     * 
+     * @return icon or null
+     */
+    public BufferedImage getIcon() {
+        return cachedIcon;
+    }
+    
+    /**
+     * Try to load an icon from the JAR.
+     * 
+     * @param path path
+     * @return this object
+     */
+    public Configuration loadIcon(String path) {
+        InputStream in = Launcher.class.getResourceAsStream(path);
+        
+        if (in != null) {
+            try {
+                cachedIcon = ImageIO.read(in);
+            } catch (IOException e) {
+                logger.warning("Failed to load icon at " + path);
+            }
+        }
+        
+        return this;
+    }
+
+    public Map<String, String> getMPServers() throws FileNotFoundException, IOException {
+        File file = new File(getMinecraftDir(), "servers.dat");
+        Map<String, String> retn = new HashMap<String, String>();
+
+        if (file.exists()) {
+            NBTInputStream nbt = new NBTInputStream(new FileInputStream(file), false);
+            Tag tag = nbt.readTag();
+            ListTag<?> servers = (ListTag<?>) ((CompoundMap) tag.getValue()).get("servers");
+
+
+            for (Object val : servers.getValue()) {
+                CompoundMap server = ((CompoundTag) val).getValue();
+                String name = (String) server.get("name").getValue();
+                String ip = (String) server.get("ip").getValue();
+
+                retn.put(name, ip);
+            }
+        }
+        return retn;
     }
     
     /**

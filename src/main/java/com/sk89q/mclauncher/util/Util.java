@@ -20,16 +20,22 @@ package com.sk89q.mclauncher.util;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.jar.JarFile;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
 
 /**
  * Various utility methods.
@@ -230,6 +236,37 @@ public class Util {
             f = parent;
         }
         return f;
+    }
+
+    /**
+     * Given a file, attempts to extract the Minecraft version from it.
+     *
+     * @param file to parse
+     * @return the version
+     */
+    public static String getMCVersion(File file) {
+        String prefix = "Minecraft Minecraft ";
+        Pattern magic = Pattern.compile("(" + prefix + "(\\w|\\.)+(?=\01\00))");
+        String version = "Unknown";
+        try {
+            JarFile jar = new JarFile(file);
+            ZipEntry entry = jar.getEntry("net/minecraft/client/Minecraft.class");
+            if (entry != null) {
+                BufferedReader br = new BufferedReader(new InputStreamReader(jar.getInputStream(entry)));
+                String line;
+                while ((line = br.readLine()) != null) {
+                    Matcher matcher = magic.matcher(line);
+                    if (matcher.find()) {
+                        version = matcher.group().substring(prefix.length());
+                        break;
+                    }
+                }
+                br.close();
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return version;
     }
 
 }

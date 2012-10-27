@@ -429,7 +429,7 @@ public class LauncherOptions {
                 configurationNode.addNode("id").addValue(config.getId());
                 configurationNode.addNode("name").addValue(config.getName());
                 configurationNode.addNode("appDir").addValue(config.getAppDir());
-                configurationNode.addNode("basePath").addValue(f != null ? f.getAbsolutePath() : null);
+                configurationNode.addNode("basePath").addValue(f != null ? f.getPath() : null);
                 configurationNode.addNode("updateURL").addValue(config.getUpdateUrl() != null ?
                         config.getUpdateUrl().toString() : null);
                 configurationNode.addNode("lastJar").addValue(config.getLastActiveJar());
