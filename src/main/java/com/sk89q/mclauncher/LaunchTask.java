@@ -409,7 +409,7 @@ public class LaunchTask extends Task {
             
             username = session.getUsername();
         } catch (SSLHandshakeException e) {
-            throw new ExecutionException("Verification of the identity of the authentication server failed. You may need to update the launcher, or someone has attmpted to steal your credentials.");
+            throw new ExecutionException("Uh oh, couldn't confirm that the the login server connected to was owned by Mojang. You probably need to update your launcher.");
         } catch (OutdatedLauncherException e) {
             throw new ExecutionException("Your launcher has to be updated.");
         } catch (LoginException e) {
