@@ -75,10 +75,10 @@ public class OptionsDialog extends JDialog {
         super(owner, "Launcher Options", true);
 
         this.options = options;
-        setResizable(false);
+        setResizable(true);
         buildUI();
         pack();
-        setSize(400, 500);
+        setSize(400, 540);
         setLocationRelativeTo(owner);
         
         tabs.setSelectedIndex(initialTab);
