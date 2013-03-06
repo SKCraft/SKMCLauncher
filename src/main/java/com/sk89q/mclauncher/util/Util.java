@@ -246,7 +246,7 @@ public class Util {
      */
     public static String getMCVersion(File file) {
         String prefix = "Minecraft Minecraft ";
-        Pattern magic = Pattern.compile("(" + prefix + "(\\w|\\.)+(?=\01\00))");
+        Pattern magic = Pattern.compile("(" + prefix + "(\\w|\\.|\\s)+(?=\01\00))");
         String version = "Unknown";
         try {
             JarFile jar = new JarFile(file);
