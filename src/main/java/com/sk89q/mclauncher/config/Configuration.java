@@ -304,10 +304,10 @@ public class Configuration {
         List<MinecraftJar> jars = new ArrayList<MinecraftJar>();
         jars.add(new MinecraftJar(new File(base, "minecraft.jar")));
         File[] files = base.listFiles();
-        Arrays.sort(files);
         if (files == null) {
             return jars;
         }
+        Arrays.sort(files);
         for (File f : files) {
             String name = f.getName();
             
