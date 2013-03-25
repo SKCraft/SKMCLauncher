@@ -338,6 +338,9 @@ public class LauncherOptions {
                         config = new Configuration(id, name, appDir, updateUrl);
                     }
                     
+                    for(Node n : getNodes(node, xpath.compile("trust/certificates/certificate")))
+                        config.getLocalCertificateHashes().add(getValue(n).toLowerCase());
+                    
                     Node settingsNode = XMLUtil.getNode(node, settingsExpr);
                     SettingsList settings = new SettingsList();
                     if (settingsNode != null) {
@@ -430,6 +433,14 @@ public class LauncherOptions {
                 configurationNode.addNode("updateURL").addValue(config.getUpdateUrl() != null ?
                         config.getUpdateUrl().toString() : null);
                 configurationNode.addNode("lastJar").addValue(config.getLastActiveJar());
+                
+                SimpleNode trustNode = configurationNode.addNode("trust");
+                SimpleNode certificates = trustNode.addNode("certificates");
+                for(String s : config.getLocalCertificateHashes()) {
+                    SimpleNode certificate = certificates.addNode("certificate");
+                    certificate.addValue(s.toLowerCase());
+                }
+                
                 config.getSettings().write(configurationNode.addNode("settings").getNode());
             }
             

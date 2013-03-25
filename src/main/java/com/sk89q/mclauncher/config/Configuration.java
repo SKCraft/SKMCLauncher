@@ -28,6 +28,7 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.logging.Logger;
 import java.util.Map;
@@ -62,6 +63,8 @@ public class Configuration {
     private String lastActiveJar;
     private SettingsList settings = new SettingsList();
     private boolean builtIn = false;
+    private Collection<String> localCertificateHashes = new ArrayList<String>();
+
     private BufferedImage cachedIcon;
     
     /**
@@ -381,4 +384,33 @@ public class Configuration {
         return retn;
     }
     
+    /**
+     * Returns true if all the passed in Certificates are contained within the Configuration's
+     * internal collection of already-trusted Certificates, false otherwise.
+     */
+    public boolean containsAllCertificates(Collection<String> remoteCertificates) {
+        for(String s : remoteCertificates)
+            if(!localCertificateHashes.contains(s.toLowerCase()))
+                return false;
+        
+        return true;
+    }
+
+    /**
+     * Gets a collection of Hashes of Certificates the user has trusted.
+     * 
+     * @return the Certificate Hashes
+     */
+    public Collection<String> getLocalCertificateHashes() {
+        return localCertificateHashes;
+    }
+
+    /**
+     * Sets a collection of Hashes of Certificates the user has trusted.
+     * 
+     * @param the Certificate Hashes
+     */
+    public void setLocalCertificateHashes(Collection<String> localCertificateHashes) {
+        this.localCertificateHashes = localCertificateHashes;
+    }
 }

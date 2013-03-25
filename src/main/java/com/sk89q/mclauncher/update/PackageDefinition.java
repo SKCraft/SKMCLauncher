@@ -123,11 +123,11 @@ public class PackageDefinition {
                     } else {
                         throw new IOException("Unknown file type '" + nodeName + "'. Launcher update may be required.");
                     }
-                    
+
                     packageFile.setVerifyType(hashType);
-                    
+
                     files.add(packageFile);
-                    
+
                     totalEstimatedSize += size;
                 }
             }

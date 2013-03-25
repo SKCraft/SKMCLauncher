@@ -48,15 +48,15 @@ import com.sk89q.mclauncher.config.Constants;
 import com.sk89q.mclauncher.config.Def;
 import com.sk89q.mclauncher.config.LauncherOptions;
 import com.sk89q.mclauncher.launch.GameLauncher;
-import com.sk89q.mclauncher.update.CancelledUpdateException;
-import com.sk89q.mclauncher.update.UpdateCache;
-import com.sk89q.mclauncher.update.UpdateCheck;
-import com.sk89q.mclauncher.update.UpdateException;
-import com.sk89q.mclauncher.update.Updater;
+import com.sk89q.mclauncher.security.X509KeyRing;
+import com.sk89q.mclauncher.security.X509KeyStore;
+import com.sk89q.mclauncher.update.*;
 import com.sk89q.mclauncher.util.ConsoleFrame;
 import com.sk89q.mclauncher.util.SettingsList;
 import com.sk89q.mclauncher.util.UIUtil;
 import com.sk89q.mclauncher.util.Util;
+import java.io.*;
+import java.security.cert.CertificateException;
 
 /**
  * Used for launching the game.
@@ -76,6 +76,7 @@ public class LaunchTask extends Task {
     private LoginSession session;
     private Configuration configuration;
     private File rootDir;
+    private CertificateDownloader certDownloader;
     private boolean playOffline = false;
     private boolean skipUpdateCheck = false;
     private boolean forceUpdate = false;
@@ -461,6 +462,8 @@ public class LaunchTask extends Task {
      * @throws ExecutionException on error while executing
      */
     public void checkForUpdates() throws ExecutionException {
+        UpdateCheck check = null;
+        
         // Check account
         if (!demo && !session.isValid() && !this.playOffline) {
             throw new ExecutionException("Please login first to download Minecraft.");
@@ -505,7 +508,7 @@ public class LaunchTask extends Task {
             fireStatusChange("Checking for updates...");
             
             // Custom update URL, so we have to check this URL
-            UpdateCheck check = new UpdateCheck(updateUrl);
+            check = new UpdateCheck(updateUrl);
             try {
                 check.checkUpdateServer();
             } catch (final IOException e) {
@@ -567,6 +570,10 @@ public class LaunchTask extends Task {
         
         // Proceed with the update
         if (notInstalled || forceUpdate || (updateRequired && wantUpdate)) {
+            
+            if(check !=null)
+                checkTrust(check);
+            
             // We have a custom package definition URL that we have to fetch!
             if (packageDefUrl != null) {
                 fireStatusChange("Downloading package definition for update...");
@@ -665,6 +672,56 @@ public class LaunchTask extends Task {
         } catch (InterruptedException e) {
         } catch (InvocationTargetException e) {
         }
+    }
+    
+    /**
+     * Downloads and checks Certificates as listed in an UpdateCheck.
+     * The user will need to accept these Certificates for the update to complete if they have not already.
+     * 
+     * @param check The UpdateCheck that contains a list of Certificates required for the update.
+     * @throws ExecutionException
+     */
+    public void checkTrust(UpdateCheck check) throws ExecutionException {
+        fireStatusChange("Checking Update Trust Requirements...");
+        
+        //Initialize the Certificate Downloader, which downloads and hashes certificates
+        certDownloader = new CertificateDownloader(check.getCertificateUrls(), configuration.getMinecraftDir());
+        for (ProgressListener listener : getProgressListenerList())
+            certDownloader.addProgressListener(listener);
+        
+        try {
+            certDownloader.download();
+        } catch(UpdateException e) {
+            throw new ExecutionException("Downloading certificates failed. ( " + e.getMessage() + " )", e);
+        }
+        
+        //If necessary, display UI prompting the user to trust new certificates
+        if(!configuration.containsAllCertificates(certDownloader.getCertificateHashes())) {
+            String message = "Executable Java code in this update is signed by the following certificates: \n";
+            for(String s : check.getCertificateUrls())
+                message += "   -" + s + "\n";
+            message += "Do you trust these certificates?";
+            if (JOptionPane.showConfirmDialog(getComponent(), message, "Unknown Certificates", JOptionPane.YES_NO_OPTION) != 0)
+                throw new CancelledExecutionException();
+        }
+        configuration.setLocalCertificateHashes(certDownloader.getCertificateHashes());
+        
+        //Save the trusted certificates to the configuration
+        if (!Launcher.getInstance().getOptions().save())
+            throw new ExecutionException("Failed to save user-accepted certificates.");
+        
+        //The user has trusted the recenty downloaded certificates, 
+        //so add them to the keystore for validation of the JARs and ZIPs
+        //that will be downloaded in this update
+        X509KeyStore keystore = Launcher.getInstance().getKeyRing().getKeyStore(X509KeyRing.Ring.UPDATE);
+        for(File f : certDownloader.getFiles())
+            try {
+                keystore.addRootCertificates(new FileInputStream(f));
+            } catch(CertificateException e) {
+                throw new ExecutionException("Failed to load downloaded certificate. The file is likely invalid.", e);
+            } catch(IOException e) {
+                throw new ExecutionException("Failed to load downloaded certificate. The file is likely invalid.", e);
+            }
     }
 
     /**
