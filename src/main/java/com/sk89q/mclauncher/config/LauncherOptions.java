@@ -104,6 +104,8 @@ public class LauncherOptions {
     private void registerBuiltInConfigurations() {
         Constants.register(serverHotList);
         Constants.register(configsManager);
+        ModPack.register(serverHotList);
+        ModPack.register(configsManager);
     }
     
     /**
