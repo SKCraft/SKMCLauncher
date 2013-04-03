@@ -37,9 +37,9 @@ import com.sk89q.mclauncher.util.Util;
 import com.sk89q.mclauncher.util.XMLUtil;
 
 /**
- * Registers built-in items.
+ * Registers built-in modpacks.
  * 
- * @author sk89q
+ * @author freman
  */
 public class ModPack {
 
