@@ -71,7 +71,6 @@ public class GameLauncher  {
     }
     
     public void setParameter(String key, String val) {
-        logger.info("Parameter: " + key + "=" + val);
         parameters.put(key, val);
     }
     
