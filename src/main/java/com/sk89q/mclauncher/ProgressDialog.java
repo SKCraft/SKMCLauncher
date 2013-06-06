@@ -63,7 +63,7 @@ public class ProgressDialog extends JDialog implements ProgressListener {
         buildUI();
         pack();
         setResizable(false);
-        setSize(350, getHeight());
+        setSize(500, getHeight());
         setLocationRelativeTo(owner);
     }
     
