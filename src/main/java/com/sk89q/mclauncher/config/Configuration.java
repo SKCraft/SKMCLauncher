@@ -19,6 +19,7 @@
 package com.sk89q.mclauncher.config;
 
 import java.awt.image.BufferedImage;
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -44,6 +45,7 @@ import com.sk89q.mclauncher.Launcher;
 import com.sk89q.mclauncher.MinecraftJar;
 import com.sk89q.mclauncher.addons.AddonsProfile;
 import com.sk89q.mclauncher.util.SettingsList;
+import com.sk89q.mclauncher.util.Util;
 
 /**
  * Represents a configuration for the game.
@@ -62,6 +64,7 @@ public class Configuration {
     private String lastActiveJar;
     private SettingsList settings = new SettingsList();
     private boolean builtIn = false;
+    private boolean checkedIcon;
     private BufferedImage cachedIcon;
     
     /**
@@ -286,7 +289,7 @@ public class Configuration {
     public File getMinecraftDir() {
         File path;
         if (getCustomBasePath() != null) {
-            return Launcher.toMinecraftDir(Launcher.replacePathTokens(getCustomBasePath()));
+            path = Launcher.toMinecraftDir(Launcher.replacePathTokens(getCustomBasePath()));
         } else if (getAppDir() == null) {
             path = Launcher.getOfficialDataDir();
         } else {
@@ -340,7 +343,43 @@ public class Configuration {
      * @return icon or null
      */
     public BufferedImage getIcon() {
+        if (cachedIcon == null && !checkedIcon) {
+            checkedIcon = true;
+            loadIcon();
+        }
         return cachedIcon;
+    }
+    
+    /**
+     * Try to load an icon from the configuration directory.
+     * 
+     * @param path path
+     * @return this object
+     */
+    private Configuration loadIcon() {
+        File iconPath = new File(getMinecraftDir(), "skmclauncher_icon.png");
+        if (!iconPath.exists()) {
+            return null;
+        }
+        
+        FileInputStream in = null;
+        try {
+            in = new FileInputStream(iconPath);
+            BufferedInputStream bis = new BufferedInputStream(in);
+            BufferedImage icon = ImageIO.read(bis);
+            
+            // Make sure that the dimensions are acceptable
+            // @TODO: Resize / support higher DPI images
+            if (icon.getWidth() == 32 && icon.getHeight() == 32) {
+                cachedIcon = icon;
+            }
+        } catch (IOException e) {
+            logger.warning("Failed to load icon at " + iconPath);
+        } finally {
+            Util.close(in);
+        }
+        
+        return this;
     }
     
     /**
