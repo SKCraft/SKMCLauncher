@@ -33,6 +33,7 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextPane;
@@ -139,7 +140,7 @@ public class ConsoleFrame extends JFrame {
             text.setLineWrap(true);
         }
         
-        textComponent.setFont(UIUtil.getMonospaceFont());
+        textComponent.setFont(new JLabel().getFont());
         textComponent.setEditable(false);
         DefaultCaret caret = (DefaultCaret) textComponent.getCaret();
         caret.setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
