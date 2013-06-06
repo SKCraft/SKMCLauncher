@@ -26,7 +26,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerConfigurationException;
@@ -48,7 +50,8 @@ public class UpdateCache {
     
     private File file;
     private String lastUpdateId;
-    private Map<String, String> hashCache;
+    private Map<String, String> hashCache = new HashMap<String, String>();
+    private Set<String> touched = new HashSet<String>();
     
     public UpdateCache(File file) {
         this.file = file;
@@ -61,6 +64,7 @@ public class UpdateCache {
     
     public void read() throws IOException {
         hashCache = new HashMap<String, String>();
+        touched = new HashSet<String>();
         InputStream in;
         
         try {
@@ -96,6 +100,10 @@ public class UpdateCache {
             }
             
             for (Map.Entry<String, String> entry : hashCache.entrySet()) {
+                if (!touched.contains(entry.getKey())) {
+                    continue; // Delete old entries
+                }
+                
                 root.addNode("entry")
                         .addValue(entry.getKey())
                         .setAttr("hash", entry.getValue());
@@ -119,12 +127,20 @@ public class UpdateCache {
         this.lastUpdateId = lastUpdateId;
     }
 
-    public String getCachedHash(String path) {
+    public String getFileVersion(String path) {
         return hashCache.get(path);
     }
     
-    public void putCachedHash(String path, String hash) {
-        hashCache.put(path, hash);
+    public void getFileVersion(String path, String hash) {
+        if (hash == null) {
+            hashCache.remove(path);
+        } else {
+            hashCache.put(path, hash);
+        }
+    }
+
+    public void touch(String cacheId) {
+        touched.add(cacheId);
     }
     
 }

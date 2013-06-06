@@ -42,6 +42,7 @@ public abstract class PackageFile {
     private String filename;
     private String finalFilename;
     private boolean ignored;
+    private String version;
 
     private transient String[] filterExts;
     private transient File file;
@@ -78,6 +79,15 @@ public abstract class PackageFile {
     @XmlTransient
     public String getFinalFilename() {
         return finalFilename;
+    }
+
+    @XmlAttribute
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
     }
 
     private void parseName() {

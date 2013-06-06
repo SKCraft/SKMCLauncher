@@ -236,7 +236,7 @@ public class Updater implements DownloadListener {
     }
     
     /**
-     * Dwnload the given file.
+     * Download the given file.
      * 
      * @param group the group
      * @param file the file
@@ -246,20 +246,21 @@ public class Updater implements DownloadListener {
         fireDownloadStatusChange("Connecting...");
         
         OutputStream out;
-        boolean isVerifying = false;
-        MessageDigest m = null;
+        MessageDigest digest = null; // Not null if we are verifying the file hash
         URL url = parameterizeURL(group.getURL(file));
-        String cacheId = getRelative(rootDir, file.getFile());
+        String cacheId = getCacheId(file);
+        
+        // We will later have to remove old entries from the cache in order
+        // to prevent a number of problems
+        cache.touch(cacheId);
         
         // Load the MessageDigest
+        // 'digest' may be null after this if the algorithm is not supported
         if (!forced) {
             try {
-                m = group.createMessageDigest();
-                isVerifying = (m != null);
+                digest = group.createMessageDigest();
             } catch (NoSuchAlgorithmException e) {
-                isVerifying = false;
-                m = null;
-                // Guess we're not going to verify files
+                digest = null; // Guess we're not going to verify files
             }
         }
 
@@ -271,7 +272,7 @@ public class Updater implements DownloadListener {
         for (int trial = downloadTries; trial >= -1; trial--) {
             checkRunning();
             
-            // Create temp file to place data
+            // Create temporary file to place data
             try {
                 out = new BufferedOutputStream(new FileOutputStream(file.getTempFile()));
             } catch (IOException e) {
@@ -283,27 +284,52 @@ public class Updater implements DownloadListener {
             try {
                 logger.info("Using URLConnectionDownloader for URL " + url.toString());
                 downloader = new URLConnectionDownloader(url, out);
-                
-                if (isVerifying) {
-                    downloader.setMessageDigest(m);
-                    downloader.setEtagCheck(cache.getCachedHash(cacheId));
-                }
                 downloader.addDownloadListener(this);
                 
-                if (downloader.download()) {
+                boolean shouldDownload = true;
+                
+                // We have our own per-file versioning mechanism where we compare the
+                // given file version (an arbitrary string) with the string we
+                // last stored for this file
+                if (!forced && file.getVersion() != null) {
+                    String lastVersion = cache.getFileVersion(cacheId);
+                    if (lastVersion != null && lastVersion.equals(file.getVersion())) {
+                        shouldDownload = false;
+                    }
+                } else {
+                    // But Mojang has their own digest-based + E-Tag method that
+                    // we also support
+                    if (digest != null) {
+                        downloader.setMessageDigest(digest);
+                        downloader.setEtagCheck(cache.getFileVersion(cacheId));
+                    }
+                }
+                
+                if (shouldDownload && downloader.download()) {
                     checkRunning();
                     
+                    String storedVersion = null;
+                    
                     // Check MD5 hash
-                    if (isVerifying) {
-                        String signature = new BigInteger(1, m.digest()).toString(16);
+                    if (digest != null) {
+                        String signature = new BigInteger(1, digest.digest()).toString(16);
                         if (!matchesDigest(downloader.getEtag(), signature)) {
                             throw new UpdateException(
                                     String.format("Signature for %s did not match; expected %s, got %s",
                                             group.getURL(file), downloader.getEtag(), signature));
                         }
                         
-                        cache.putCachedHash(cacheId, signature);
+                        storedVersion = signature;
                     }
+                    
+                    // Use our own per-file versioning if we have that
+                    if (file.getVersion() != null) {
+                        storedVersion = file.getVersion();
+                    }
+                    
+                    // This may clear the version if we don't have a version to store
+                    // this time
+                    cache.getFileVersion(cacheId, storedVersion);
                 } else { // File already downloaded
                     file.setIgnored(true);
                     
@@ -605,6 +631,16 @@ public class Updater implements DownloadListener {
      */
     private String getRelative(File base, File path) {
         return base.toURI().relativize(path.toURI()).getPath();
+    }
+    
+    /**
+     * Get the ID used to be stored as the key for a file on an {@link UpdateCache}.
+     * 
+     * @param file the file
+     * @return an ID
+     */
+    private String getCacheId(PackageFile file) {
+        return getRelative(rootDir, file.getFile());
     }
     
     /**
