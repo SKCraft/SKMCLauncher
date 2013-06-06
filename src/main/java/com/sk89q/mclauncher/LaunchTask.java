@@ -557,7 +557,7 @@ public class LaunchTask extends Task {
             updateRequired = (cache.getLastUpdateId() == null ||
                     !cache.getLastUpdateId().equals(manifest.getLatestVersion()));
             try {
-                packageDefUrl = manifest.toPackageURL();
+                packageDefUrl = manifest.toPackageURL(check.getUpdateURL());
             } catch (MalformedURLException e) {
                 throw new ExecutionException("Invalid URL: " + manifest.getPackageURL());
             }
@@ -604,7 +604,7 @@ public class LaunchTask extends Task {
                         throw new IOException("Did not get expected 200 code");
                     }
                     
-                    update(rootDir, cache, conn.getInputStream(), 
+                    update(packageDefUrl, rootDir, cache, conn.getInputStream(), 
                             forceUpdate, forceIncrementalUpdate, username, ticket);
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -616,7 +616,8 @@ public class LaunchTask extends Task {
                 }
             } else {
                 // For vanilla, we bundle the package
-                update(rootDir, cache, Launcher.class.getResourceAsStream("/resources/update.xml"),
+                update(packageDefUrl, rootDir, cache,
+                        Launcher.class.getResourceAsStream("/resources/update.xml"),
                         forceUpdate, forceIncrementalUpdate, username, ticket);
             }
             
@@ -639,18 +640,19 @@ public class LaunchTask extends Task {
      * Download the updates listed in the given package .xml file and
      * apply them.
      * 
+     * @param baseUrl the base URL of the update package
      * @param rootDir path to the working directory of minecraft
      * @param packageStream input stream of the package .xml file
      * @param forced true to force re-download
      * @param forcedIncremental true to force an incremental update
      * @throws ExecutionException thrown on any error
      */
-    private void update(File rootDir, UpdateCache cache, InputStream packageStream,
+    private void update(URL baseUrl, File rootDir, UpdateCache cache, InputStream packageStream,
             boolean forced, boolean forcedIncremental,
             String username, String ticket) throws ExecutionException {
         fireTitleChange("Updating Minecraft...");
         
-        updater = new Updater(frame, packageStream, rootDir, cache);
+        updater = new Updater(frame, baseUrl, packageStream, rootDir, cache);
         updater.setReinstall(forced);
         updater.registerParameter("user", username);
         updater.registerParameter("ticket", "deprecated"); // Now deprecated

@@ -32,6 +32,8 @@ import javax.xml.bind.annotation.XmlElements;
 import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.sk89q.mclauncher.util.Util;
+
 @XmlRootElement(name = "filegroup")
 public class FileGroup {
     
@@ -91,9 +93,9 @@ public class FileGroup {
         return totalSize;
     }
 
-    public URL getURL(PackageFile file) {
+    public URL getURL(URL baseUrl, PackageFile file) {
         try {
-            return new URL(getSource() + file.getFilename());
+            return Util.concat(baseUrl, getSource() + file.getFilename());
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }

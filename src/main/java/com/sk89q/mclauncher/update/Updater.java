@@ -68,6 +68,7 @@ public class Updater implements DownloadListener {
     private static final Logger logger = Logger.getLogger(Updater.class.getCanonicalName());
 
     private final JFrame frame;
+    private final URL baseUrl;
     private final InputStream packageStream;
     private final File rootDir;
     private final UpdateCache cache;
@@ -93,12 +94,15 @@ public class Updater implements DownloadListener {
      * Construct the updater.
      * 
      * @param frame the parent frame
+     * @param baseUrl the base URL
      * @param packageStream
      * @param rootDir
      * @param cache update cache
      */
-    public Updater(JFrame frame, InputStream packageStream, File rootDir, UpdateCache cache) {
+    public Updater(JFrame frame, URL baseUrl, InputStream packageStream,
+            File rootDir, UpdateCache cache) {
         this.frame = frame;
+        this.baseUrl = baseUrl;
         this.packageStream = packageStream;
         this.rootDir = rootDir;
         this.cache = cache;
@@ -175,6 +179,17 @@ public class Updater implements DownloadListener {
     }
     
     /**
+     * Get the URL of a file.
+     * 
+     * @param group the group
+     * @param file the file
+     * @return the URL
+     */
+    private URL getURL(FileGroup group, PackageFile file) {
+        return group.getURL(baseUrl, file);
+    }
+    
+    /**
      * Returns whether two digests (in hex) match.
      * 
      * @param s1 digest 1
@@ -234,16 +249,16 @@ public class Updater implements DownloadListener {
                 checkRunning();
                 
                 if (!file.matchesEnvironment()) {
-                    logger.info("Update: " + group.getURL(file) + " does NOT match environment");
+                    logger.info("Update: " + getURL(group, file) + " does NOT match environment");
                     continue;
                 }
                 
                 if (!file.matchesFilter(manifest.getComponents())) {
-                    logger.info("Update: " + group.getURL(file) + " does NOT match filter");
+                    logger.info("Update: " + getURL(group, file) + " does NOT match filter");
                     continue;
                 }
 
-                logger.info("Update: " + group.getURL(file) + " OK");
+                logger.info("Update: " + getURL(group, file) + " OK");
                 
                 downloadFile(group, file);
             }
@@ -262,7 +277,7 @@ public class Updater implements DownloadListener {
         
         OutputStream out;
         MessageDigest digest = null; // Not null if we are verifying the file hash
-        URL url = parameterizeURL(group.getURL(file));
+        URL url = parameterizeURL(getURL(group, file));
         String cacheId = getCacheId(file);
         
         // We will later have to remove old entries from the cache in order
@@ -332,7 +347,7 @@ public class Updater implements DownloadListener {
                         if (!matchesDigest(downloader.getEtag(), signature)) {
                             throw new UpdateException(
                                     String.format("Signature for %s did not match; expected %s, got %s",
-                                            group.getURL(file), downloader.getEtag(), signature));
+                                            getURL(group, file), downloader.getEtag(), signature));
                         }
                         
                         storedVersion = signature;
@@ -365,7 +380,7 @@ public class Updater implements DownloadListener {
                 
                 if (trial == -1) {
                     throw new UpdateException(
-                            "Could not download " + group.getURL(file) + ": " + e.getMessage(), e);
+                            "Could not download " + getURL(group, file) + ": " + e.getMessage(), e);
                 }
             } finally {
                 downloader = null;

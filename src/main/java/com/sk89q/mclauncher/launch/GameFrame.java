@@ -55,6 +55,7 @@ class GameFrame extends JFrame {
         }
         
         wrapper = new JPanel();
+        wrapper.setBackground(Color.BLACK);
         wrapper.setOpaque(false);
         wrapper.setPreferredSize(dim != null ? dim : new Dimension(854, 480));
         wrapper.setLayout(new BorderLayout());

@@ -88,7 +88,7 @@ public class UpdateManifestFetcher {
      * 
      * @return url
      */
-    public URL getUpdateUrl() {
+    public URL getUpdateURL() {
         return updateUrl;
     }
 

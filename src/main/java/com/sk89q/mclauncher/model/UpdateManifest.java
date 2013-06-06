@@ -25,6 +25,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.sk89q.mclauncher.config.Configuration;
+import com.sk89q.mclauncher.util.Util;
 
 @XmlRootElement(name = "update")
 public class UpdateManifest {
@@ -70,8 +71,8 @@ public class UpdateManifest {
         this.packageUrl = packageUrl;
     }
 
-    public URL toPackageURL() throws MalformedURLException {
-        return new URL(getPackageURL());
+    public URL toPackageURL(URL baseUrl) throws MalformedURLException {
+        return Util.concat(baseUrl, getPackageURL());
     }
 
     public boolean isValidForInstall() {

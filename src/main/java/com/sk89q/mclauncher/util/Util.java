@@ -32,6 +32,8 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.jar.JarFile;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -42,7 +44,10 @@ import java.util.zip.ZipEntry;
  * 
  * @author sk89q
  */
-public class Util {
+public final class Util {
+    
+    private static final Pattern absoluteUrlPattern = 
+            Pattern.compile("^[A-Za-z0-9\\-]+://.*$");
     
     private Util() {
     }
@@ -267,6 +272,37 @@ public class Util {
             ex.printStackTrace();
         }
         return version;
+    }
+    
+    /**
+     * Concatenates a base URL (such as http://example/subfolder/) and a relative URL
+     * part such as "/update/files.xml" or "files.xml".
+     * 
+     * @param baseUrl the base URL
+     * @param url the URL to append
+     * @return a URL
+     * @throws MalformedURLException on an URL error
+     */
+    public static URL concat(URL baseUrl, String url) throws MalformedURLException {
+        if (absoluteUrlPattern.matcher(url).matches()) {
+            return new URL(url);
+        }
+        
+        int lastSlash = baseUrl.toExternalForm().lastIndexOf("/");
+        if (lastSlash == -1) {
+            return new URL(url);
+        }
+        
+        int firstSlash = url.indexOf("/");
+        if (firstSlash == 0) {
+            boolean portSet = (baseUrl.getDefaultPort() == baseUrl.getPort() || 
+                    baseUrl.getPort() == -1);
+            String port = portSet ? "" : ":" + baseUrl.getPort();
+            return new URL(baseUrl.getProtocol() + "://" + baseUrl.getHost()
+                    + port + url);
+        } else {
+            return new URL(baseUrl.toExternalForm().substring(0, lastSlash + 1) + url);
+        }
     }
 
 }
