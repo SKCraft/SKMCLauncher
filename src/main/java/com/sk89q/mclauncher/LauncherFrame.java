@@ -599,7 +599,6 @@ public class LauncherFrame extends JFrame {
         jarCombo.setVisible(false);
         forceUpdateCheck.setVisible(false);
         playOfflineCheck.setVisible(false);
-        showConsoleCheck.setVisible(false);
 
         userText.addActionListener(new ActionListener() {
             @Override
@@ -663,7 +662,6 @@ public class LauncherFrame extends JFrame {
                 jarCombo.setVisible(true);
                 forceUpdateCheck.setVisible(true);
                 playOfflineCheck.setVisible(allowOfflineName);
-                showConsoleCheck.setVisible(true);
                 // registerAccount.setVisible(true);
             }
         });
