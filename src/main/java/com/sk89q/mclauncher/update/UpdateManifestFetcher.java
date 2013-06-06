@@ -22,34 +22,31 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
+import javax.xml.bind.JAXBException;
 
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
-
-import static com.sk89q.mclauncher.util.XMLUtil.*;
+import com.sk89q.mclauncher.model.UpdateManifest;
+import com.sk89q.mclauncher.util.XMLUtil;
 
 /**
- * Manages a custom update check.
- * 
- * @author sk89q
+ * Downloads an update manifest.
  */
-public class UpdateCheck {
+public class UpdateManifestFetcher {
+    
+    private static final Logger logger = 
+            Logger.getLogger(UpdateManifestFetcher.class.getCanonicalName());
 
     private URL updateUrl;
-    private URL packageUrl;
-    private String latestVersion;
+    private UpdateManifest manifest;
     
     /**
      * Construct the check.
      * 
      * @param updateUrl URL to check for updates
      */
-    public UpdateCheck(URL updateUrl) {
+    public UpdateManifestFetcher(URL updateUrl) {
         this.updateUrl = updateUrl;
     }
     
@@ -58,7 +55,7 @@ public class UpdateCheck {
      * 
      * @throws IOException on I/O error
      */
-    public void checkUpdateServer() throws IOException {
+    public void downloadManifest() throws IOException {
         HttpURLConnection conn = null;
                 
         try {
@@ -74,18 +71,12 @@ public class UpdateCheck {
             if (conn.getResponseCode() != 200) {
                 throw new IOException("Did not get expected 200 code");
             }
-
-            Document doc = parseXml(new BufferedInputStream(conn.getInputStream()));
-            XPath xpath = XPathFactory.newInstance().newXPath();
-
-            latestVersion = getString(doc, xpath.compile("/update/latest"));
-            packageUrl = new URL(getString(doc, xpath.compile("/update/packageurl")));
-        } catch (XPathExpressionException e) {
-            throw new IOException(e);
-        } catch (ParserConfigurationException e) {
-            throw new IOException(e);
-        } catch (SAXException e) {
-            throw new IOException(e);
+            
+            manifest = XMLUtil.parseJaxb(UpdateManifest.class, 
+                    new BufferedInputStream(conn.getInputStream()));
+        } catch (JAXBException e) {
+            logger.log(Level.WARNING, "Failed to read update manifest", e);
+            throw new IOException("Failed to parse update manifest", e);
         } finally {
             if (conn != null) conn.disconnect();
             conn = null;
@@ -102,21 +93,12 @@ public class UpdateCheck {
     }
 
     /**
-     * Get the package definition URL.
+     * Get the manifest.
      * 
-     * @return url
+     * @return the manifest
      */
-    public URL getPackageDefUrl() {
-        return packageUrl;
-    }
-
-    /**
-     * Get the latest version.
-     * 
-     * @return version
-     */
-    public String getLatestVersion() {
-        return latestVersion;
+    public UpdateManifest getManifest() {
+        return manifest;
     }
     
 }

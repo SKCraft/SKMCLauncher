@@ -75,8 +75,8 @@ public class Configuration {
      */
     public Configuration(String id, String name, String dir, URL updateUrl, 
             boolean isCustom) {
-        if (!id.matches("^[A-Za-z0-9\\-]+{1,64}$")) {
-            throw new IllegalArgumentException("Invalid configuration name");
+        if (!isValidId(id)) {
+            throw new IllegalArgumentException("Invalid configuration ID");
         }
         this.id = id;
         setName(name);
@@ -252,7 +252,7 @@ public class Configuration {
     public File getBaseDir() {
         File path;
         if (getCustomBasePath() != null) {
-            return Launcher.replacePathTokens(getCustomBasePath());
+            path = Launcher.replacePathTokens(getCustomBasePath());
         } else if (getAppDir() == null) {
             path = Launcher.getAppDataDir();
         } else {
@@ -382,6 +382,10 @@ public class Configuration {
             }
         }
         return retn;
+    }
+    
+    public static boolean isValidId(String id) {
+        return id.matches("^[A-Za-z0-9\\-_\\.]+{1,64}$");
     }
     
 }

@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.UnknownHostException;
@@ -47,10 +48,11 @@ import com.sk89q.mclauncher.config.Configuration;
 import com.sk89q.mclauncher.config.Def;
 import com.sk89q.mclauncher.config.LauncherOptions;
 import com.sk89q.mclauncher.launch.GameLauncher;
+import com.sk89q.mclauncher.model.UpdateManifest;
 import com.sk89q.mclauncher.update.CancelledUpdateException;
 import com.sk89q.mclauncher.update.UpdateCache;
-import com.sk89q.mclauncher.update.UpdateCheck;
 import com.sk89q.mclauncher.update.UpdateException;
+import com.sk89q.mclauncher.update.UpdateManifestFetcher;
 import com.sk89q.mclauncher.update.Updater;
 import com.sk89q.mclauncher.util.ConsoleFrame;
 import com.sk89q.mclauncher.util.SettingsList;
@@ -504,9 +506,9 @@ public class LaunchTask extends Task {
             fireStatusChange("Checking for updates...");
             
             // Custom update URL, so we have to check this URL
-            UpdateCheck check = new UpdateCheck(updateUrl);
+            UpdateManifestFetcher check = new UpdateManifestFetcher(updateUrl);
             try {
-                check.checkUpdateServer();
+                check.downloadManifest();
             } catch (final IOException e) {
                 // Uh oh, update check went wrong!
                 try {
@@ -540,10 +542,15 @@ public class LaunchTask extends Task {
                 }
             }
 
+            UpdateManifest manifest = check.getManifest();
             updateRequired = (cache.getLastUpdateId() == null ||
-                    !cache.getLastUpdateId().equals(check.getLatestVersion()));
-            packageDefUrl = check.getPackageDefUrl();
-            latestVersion = check.getLatestVersion();
+                    !cache.getLastUpdateId().equals(manifest.getLatestVersion()));
+            try {
+                packageDefUrl = manifest.toPackageURL();
+            } catch (MalformedURLException e) {
+                throw new ExecutionException("Invalid URL: " + manifest.getPackageURL());
+            }
+            latestVersion = manifest.getLatestVersion();
         }
         
         // Ask the user if s/he wants to update

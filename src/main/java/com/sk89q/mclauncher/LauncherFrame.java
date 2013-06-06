@@ -31,9 +31,9 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.FileNotFoundException;
 import java.util.Map;
 import java.util.Set;
 
@@ -327,6 +327,17 @@ public class LauncherFrame extends JFrame {
         return dialog;
     }
     
+    /**
+     * Open the install-from-URL dialog.
+     * 
+     * @return the dialog
+     */
+    public InstallFromURLDialog openInstallFromURL() {
+        InstallFromURLDialog dialog = new InstallFromURLDialog(this, options);
+        dialog.setVisible(true);
+        return dialog;
+    }
+    
     private void showNews(JLayeredPane newsPanel) {
         final LauncherFrame self = this;
         newsPanel.setLayout(new NewsLayoutManager());
@@ -422,7 +433,7 @@ public class LauncherFrame extends JFrame {
 
         JPanel configurationsPanel = new JPanel();
         configurationsPanel.setLayout(new BorderLayout(0, 0));
-        configurationsPanel.setBorder(BorderFactory.createEmptyBorder(PAD, PAD, PAD, PAD));
+        configurationsPanel.setBorder(BorderFactory.createEmptyBorder(PAD / 2, PAD, PAD, PAD));
         configurationList = new JList(options.getConfigurations());
         configurationList.setCellRenderer(new ConfigurationCellRenderer());
         configurationList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -430,7 +441,21 @@ public class LauncherFrame extends JFrame {
         configurationsPanel.add(configScroll, BorderLayout.CENTER);
         leftPanel.add(configurationsPanel, BorderLayout.CENTER);
 
+        JPanel topPanel = new JPanel();
+        topPanel.setBorder(BorderFactory.createEmptyBorder(PAD, PAD, 0, PAD));
+        topPanel.setLayout(new BorderLayout());
+        JButton installBtn = new JButton("Install from URL...");
+        topPanel.add(installBtn, BorderLayout.CENTER);
+        leftPanel.add(topPanel, BorderLayout.NORTH);
+
         // Add listener
+        installBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                openInstallFromURL();
+            }
+        });
+        
         playBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -821,6 +846,7 @@ public class LauncherFrame extends JFrame {
     public void launch(String autoConnect) {
         launch(autoConnect, false);
     }
+    
     /**
      * Launch the game.
      * 
