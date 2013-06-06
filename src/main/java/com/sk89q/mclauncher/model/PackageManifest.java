@@ -45,7 +45,7 @@ public class PackageManifest {
 
     @XmlAttribute
     public boolean isSupportedVersion() {
-        return getVersion().matches("^1\\.[01]$");
+        return getVersion().matches("^1\\.[012]$");
     }
 
     @XmlElement(name = "component")
