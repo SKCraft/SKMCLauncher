@@ -39,14 +39,17 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.swing.JFrame;
 import javax.swing.event.EventListenerList;
 
 import com.sk89q.mclauncher.DownloadListener;
 import com.sk89q.mclauncher.DownloadProgressEvent;
 import com.sk89q.mclauncher.ProgressListener;
+import com.sk89q.mclauncher.SelectComponentsDialog;
 import com.sk89q.mclauncher.StatusChangeEvent;
 import com.sk89q.mclauncher.TitleChangeEvent;
 import com.sk89q.mclauncher.ValueChangeEvent;
+import com.sk89q.mclauncher.model.Component;
 import com.sk89q.mclauncher.model.FileGroup;
 import com.sk89q.mclauncher.model.PackageFile;
 import com.sk89q.mclauncher.model.PackageManifest;
@@ -64,9 +67,12 @@ public class Updater implements DownloadListener {
     
     private static final Logger logger = Logger.getLogger(Updater.class.getCanonicalName());
 
-    private InputStream packageStream;
-    private File rootDir;
-    private UpdateCache cache;
+    private final JFrame frame;
+    private final InputStream packageStream;
+    private final File rootDir;
+    private final UpdateCache cache;
+    private final EventListenerList listenerList = new EventListenerList();
+    
     private int downloadTries = 5;
     private long retryDelay = 5000;
     private boolean forced = false;
@@ -74,7 +80,6 @@ public class Updater implements DownloadListener {
 
     private PackageManifest manifest;
     
-    private EventListenerList listenerList = new EventListenerList();
     private double subprogressOffset = 0;
     private double subprogressSize = 1;
     private volatile boolean running = true;
@@ -87,16 +92,18 @@ public class Updater implements DownloadListener {
     /**
      * Construct the updater.
      * 
+     * @param frame the parent frame
      * @param packageStream
      * @param rootDir
      * @param cache update cache
      */
-    public Updater(InputStream packageStream, File rootDir, UpdateCache cache) {
+    public Updater(JFrame frame, InputStream packageStream, File rootDir, UpdateCache cache) {
+        this.frame = frame;
         this.packageStream = packageStream;
         this.rootDir = rootDir;
         this.cache = cache;
     }
-
+    
     /**
      * Get the number of download tries.
      * 
@@ -227,8 +234,16 @@ public class Updater implements DownloadListener {
                 checkRunning();
                 
                 if (!file.matchesEnvironment()) {
+                    logger.info("Update: " + group.getURL(file) + " does NOT match environment");
                     continue;
                 }
+                
+                if (!file.matchesFilter(manifest.getComponents())) {
+                    logger.info("Update: " + group.getURL(file) + " does NOT match filter");
+                    continue;
+                }
+
+                logger.info("Update: " + group.getURL(file) + " OK");
                 
                 downloadFile(group, file);
             }
@@ -285,7 +300,6 @@ public class Updater implements DownloadListener {
 
             // Attempt downloading
             try {
-                logger.info("Using URLConnectionDownloader for URL " + url.toString());
                 downloader = new URLConnectionDownloader(url, out);
                 downloader.addDownloadListener(this);
                 
@@ -384,6 +398,10 @@ public class Updater implements DownloadListener {
                     continue;
                 }
                 
+                if (!file.matchesFilter(manifest.getComponents())) {
+                    continue;
+                }
+                
                 if (file.isIgnored()) {
                     continue;
                 }
@@ -443,6 +461,32 @@ public class Updater implements DownloadListener {
     }
     
     /**
+     * Ask to select components, if necessary.
+     */
+    public void askComponents() {
+        boolean needsDialog = false;
+        
+        for (Component component : manifest.getComponents()) {
+            if (!component.isRequired()) {
+                needsDialog = true;
+                cache.recallSelection(component);
+            }
+        }
+        
+        if (needsDialog) {
+            fireStatusChange("Asking for install options...");
+            SelectComponentsDialog dialog = new SelectComponentsDialog(frame, manifest);
+            dialog.setVisible(true);
+        }
+        
+        for (Component component : manifest.getComponents()) {
+            if (!component.isRequired()) {
+                cache.storeSelection(component);
+            }
+        }
+    }
+    
+    /**
      * Perform the update.
      * 
      * @throws UpdateException
@@ -452,6 +496,8 @@ public class Updater implements DownloadListener {
         
         fireStatusChange("Parsing package .xml...");
         parsePackageFile();
+        
+        askComponents();
         
         try {
             fireStatusChange("Downloading files...");

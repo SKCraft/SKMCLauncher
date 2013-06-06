@@ -41,6 +41,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
+import com.sk89q.mclauncher.model.Component;
 import com.sk89q.mclauncher.util.SimpleNode;
 
 /**
@@ -51,6 +52,7 @@ public class UpdateCache {
     private File file;
     private String lastUpdateId;
     private Map<String, String> hashCache = new HashMap<String, String>();
+    private Map<String, Boolean> componentSelection = new HashMap<String, Boolean>();
     private Set<String> touched = new HashSet<String>();
     
     public UpdateCache(File file) {
@@ -80,6 +82,15 @@ public class UpdateCache {
                 hashCache.put(path, hash);
             }
             
+            // Read all the <component> elements
+            for (Node node : getNodes(doc, xpath.compile("/cache/component"))) {
+                String id = getAttrOrNull(node, "id");
+                String selected = getAttrOrNull(node, "selected");
+                if (id != null && selected != null) {
+                    componentSelection.put(id, selected.equalsIgnoreCase("true"));
+                }
+            }
+            
             lastUpdateId = getStringOrNull(doc, xpath.compile("/cache/current/text()"));
         } catch (XPathExpressionException e) {
             throw new RuntimeException(e);
@@ -107,6 +118,13 @@ public class UpdateCache {
                 root.addNode("entry")
                         .addValue(entry.getKey())
                         .setAttr("hash", entry.getValue());
+            }
+            
+            for (Map.Entry<String, Boolean> entry : componentSelection.entrySet()) {
+                root.addNode("component")
+                        .addValue(entry.getKey())
+                        .setAttr("id", entry.getKey())
+                        .setAttr("selected", entry.getValue() ? "true" : "false");
             }
 
             writeXml(doc, file);
@@ -141,6 +159,17 @@ public class UpdateCache {
 
     public void touch(String cacheId) {
         touched.add(cacheId);
+    }
+    
+    public void storeSelection(Component component) {
+        componentSelection.put(component.getId(), component.isSelected());
+    }
+    
+    public void recallSelection(Component component) {
+        Boolean value = componentSelection.get(component.getId());
+        if (value != null) {
+            component.setSelected(value);
+        }
     }
     
 }

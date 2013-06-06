@@ -30,7 +30,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class PackageManifest {
 
     private String version;
-    
+
+    private List<Component> components = new ArrayList<Component>();
     private List<FileGroup> fileGroups = new ArrayList<FileGroup>();
 
     @XmlAttribute
@@ -45,6 +46,15 @@ public class PackageManifest {
     @XmlAttribute
     public boolean isSupportedVersion() {
         return getVersion().matches("^1\\.[01]$");
+    }
+
+    @XmlElement(name = "component")
+    public List<Component> getComponents() {
+        return components;
+    }
+
+    public void setComponents(List<Component> components) {
+        this.components = components;
     }
 
     @XmlElement(name = "filegroup")

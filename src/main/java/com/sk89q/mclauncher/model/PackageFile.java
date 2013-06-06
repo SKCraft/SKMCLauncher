@@ -24,6 +24,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlAttribute;
@@ -44,6 +45,7 @@ public abstract class PackageFile {
     
     private long size;
     private Platform platform;
+    private String componentFilter;
     private String filename;
     private String finalFilename;
     private String version;
@@ -72,6 +74,57 @@ public abstract class PackageFile {
         this.platform = platform;
     }
     
+    @XmlAttribute(name = "component")
+    public String getComponentFilter() {
+        return componentFilter;
+    }
+
+    public void setComponentFilter(String componentFilter) {
+        this.componentFilter = componentFilter;
+    }
+
+    public boolean matchesFilter(Collection<Component> components) {
+        String filter = getComponentFilter();
+        if (filter == null) {
+            return true;
+        }
+        
+        boolean matches = false;
+        
+        String[] parts = filter.split(",");
+        for (String part : parts) {
+            part = part.trim();
+            if (part.length() == 0) {
+                continue;
+            }
+            
+            boolean negate = false;
+            if (part.charAt(0) == '!') {
+                negate = true;
+                part = part.substring(1);
+                if (part.length() == 0) {
+                    continue;
+                }
+            }
+            
+            boolean selected = false;
+            for (Component component : components) {
+                if (component.getId().equalsIgnoreCase(part)) {
+                    selected = component.isSelected();
+                    break;
+                }
+            }
+            
+            if (selected == !negate) {
+                matches = true;
+            } else {
+                return false;
+            }
+        }
+        
+        return matches;
+    }
+
     @XmlValue
     public String getFilename() {
         return filename;

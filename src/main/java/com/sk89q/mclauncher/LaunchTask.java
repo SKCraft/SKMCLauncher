@@ -80,6 +80,7 @@ public class LaunchTask extends Task {
     private boolean playOffline = false;
     private boolean skipUpdateCheck = false;
     private boolean forceUpdate = false;
+    private boolean forceIncrementalUpdate = false;
     private boolean wantUpdate = false;
     private boolean notInstalled = false;
     private volatile Updater updater;
@@ -123,6 +124,16 @@ public class LaunchTask extends Task {
      */
     public void setForceUpdate(boolean forceUpdate) {
         this.forceUpdate = forceUpdate;
+    }
+
+    /**
+     * Set update force state.
+     * 
+     * @param forceIncrementalUpdate true to force update
+     */
+    public void setForceIncrementalUpdate(boolean forceIncrementalUpdate) {
+        this.forceIncrementalUpdate = forceIncrementalUpdate;
+        
     }
     
     /**
@@ -554,7 +565,7 @@ public class LaunchTask extends Task {
         }
         
         // Ask the user if s/he wants to update
-        if (!forceUpdate && updateRequired && !notInstalled) {
+        if (!forceUpdate && !forceIncrementalUpdate && updateRequired && !notInstalled) {
             try {
                 SwingUtilities.invokeAndWait(new Runnable() {
                     @Override
@@ -572,7 +583,7 @@ public class LaunchTask extends Task {
         }
         
         // Proceed with the update
-        if (notInstalled || forceUpdate || (updateRequired && wantUpdate)) {
+        if (notInstalled || forceUpdate || forceIncrementalUpdate || (updateRequired && wantUpdate)) {
             // We have a custom package definition URL that we have to fetch!
             if (packageDefUrl != null) {
                 fireStatusChange("Downloading package definition for update...");
@@ -593,7 +604,8 @@ public class LaunchTask extends Task {
                         throw new IOException("Did not get expected 200 code");
                     }
                     
-                    update(rootDir, cache, conn.getInputStream(), forceUpdate, username, ticket);
+                    update(rootDir, cache, conn.getInputStream(), 
+                            forceUpdate, forceIncrementalUpdate, username, ticket);
                 } catch (IOException e) {
                     e.printStackTrace();
                     throw new ExecutionException("Could not fetch the update package definition file (" +
@@ -605,7 +617,7 @@ public class LaunchTask extends Task {
             } else {
                 // For vanilla, we bundle the package
                 update(rootDir, cache, Launcher.class.getResourceAsStream("/resources/update.xml"),
-                        forceUpdate, username, ticket);
+                        forceUpdate, forceIncrementalUpdate, username, ticket);
             }
             
             // Check for cancel
@@ -630,13 +642,15 @@ public class LaunchTask extends Task {
      * @param rootDir path to the working directory of minecraft
      * @param packageStream input stream of the package .xml file
      * @param forced true to force re-download
+     * @param forcedIncremental true to force an incremental update
      * @throws ExecutionException thrown on any error
      */
     private void update(File rootDir, UpdateCache cache, InputStream packageStream,
-            boolean forced, String username, String ticket) throws ExecutionException {
+            boolean forced, boolean forcedIncremental,
+            String username, String ticket) throws ExecutionException {
         fireTitleChange("Updating Minecraft...");
         
-        updater = new Updater(packageStream, rootDir, cache);
+        updater = new Updater(frame, packageStream, rootDir, cache);
         updater.setReinstall(forced);
         updater.registerParameter("user", username);
         updater.registerParameter("ticket", "deprecated"); // Now deprecated
@@ -652,21 +666,6 @@ public class LaunchTask extends Task {
         } catch (Throwable t) {
             logger.log(Level.SEVERE, "Update error occurred", t);
             throw new ExecutionException("An unknown error occurred.", t);
-        }
-        
-        // Remind the user to disable mods
-        try {
-            SwingUtilities.invokeAndWait(new Runnable() {
-                @Override
-                public void run() {
-                    JOptionPane.showMessageDialog(getComponent(),
-                            "Your game has been updated. If you encounter problems, " +
-                            "try disabling any mods (if any) that you have installed.",
-                            "Update completed", JOptionPane.INFORMATION_MESSAGE);
-                }
-            });
-        } catch (InterruptedException e) {
-        } catch (InvocationTargetException e) {
         }
     }
 

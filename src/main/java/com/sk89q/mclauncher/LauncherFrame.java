@@ -92,6 +92,7 @@ public class LauncherFrame extends JFrame {
     private JTextField passText;
     private JCheckBox rememberPass;
     private JCheckBox forceUpdateCheck;
+    private JCheckBox changeComponentsCheck;
     private JCheckBox playOfflineCheck;
     private JCheckBox showConsoleCheck;
     private JCheckBox autoConnectCheck;
@@ -557,6 +558,9 @@ public class LauncherFrame extends JFrame {
 
         forceUpdateCheck = new JCheckBox("Force a game update");
         forceUpdateCheck.setBorder(null);
+        
+        changeComponentsCheck = new JCheckBox("Re-select install options (if any)");
+        changeComponentsCheck.setBorder(null);
 
         playOfflineCheck = new JCheckBox("Play in offline mode");
         playOfflineCheck.setBorder(null);
@@ -590,6 +594,7 @@ public class LauncherFrame extends JFrame {
         panel.add(rememberPass, checkboxC);
         panel.add(autoConnectCheck, checkboxC);
         panel.add(forceUpdateCheck, checkboxC);
+        panel.add(changeComponentsCheck, checkboxC);
         panel.add(playOfflineCheck, checkboxC);
         panel.add(showConsoleCheck, checkboxC);
         panel.add(expandContainer, checkboxC);
@@ -598,6 +603,7 @@ public class LauncherFrame extends JFrame {
         jarLabel.setVisible(false);
         jarCombo.setVisible(false);
         forceUpdateCheck.setVisible(false);
+        changeComponentsCheck.setVisible(false);
         playOfflineCheck.setVisible(false);
 
         userText.addActionListener(new ActionListener() {
@@ -661,6 +667,7 @@ public class LauncherFrame extends JFrame {
                 jarLabel.setVisible(true);
                 jarCombo.setVisible(true);
                 forceUpdateCheck.setVisible(true);
+                changeComponentsCheck.setVisible(true);
                 playOfflineCheck.setVisible(allowOfflineName);
                 // registerAccount.setVisible(true);
             }
@@ -897,6 +904,7 @@ public class LauncherFrame extends JFrame {
 
         LaunchTask task = new LaunchTask(this, getWorkspace(), username, password, jar);
         task.setForceUpdate(forceUpdateCheck.isSelected());
+        task.setForceIncrementalUpdate(changeComponentsCheck.isSelected());
         task.setPlayOffline(playOfflineCheck.isSelected() || (test && options.getSettings().getBool(Def.FAST_TEST, false)));
         task.setShowConsole(showConsoleCheck.isSelected());
         if (autoConnect != null) {
