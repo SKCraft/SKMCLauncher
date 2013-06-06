@@ -18,6 +18,8 @@
 
 package com.sk89q.mclauncher.update;
 
+import static com.sk89q.mclauncher.util.XMLUtil.*;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -39,12 +41,8 @@ import org.xml.sax.SAXException;
 
 import com.sk89q.mclauncher.util.SimpleNode;
 
-import static com.sk89q.mclauncher.util.XMLUtil.*;
-
 /**
  * Stores update versioning information.
- * 
- * @author sk89q
  */
 public class UpdateCache {
     

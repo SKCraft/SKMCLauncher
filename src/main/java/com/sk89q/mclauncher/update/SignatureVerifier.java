@@ -93,45 +93,52 @@ public class SignatureVerifier {
      * @throws SecurityException throw on verification failure
      * @throws IOException on I/O error
      */
+    @SuppressWarnings("resource")
     public void verifyJar(InputStream in) throws IOException {
-        JarInputStream jarFile = new JarInputStream(in);
-        Manifest manifest = jarFile.getManifest();
-        if (manifest == null) {
-            throw new SecurityException("The given file was not digitally signed");
-        }
-
-        // Ensure all the entries' signatures verify correctly
-        byte[] buffer = new byte[8192];
-        JarEntry entry;
-        while ((entry = jarFile.getNextJarEntry()) != null) {
-            if (entry.isDirectory()) continue;
-
-            do {
-            } while (jarFile.read(buffer, 0, buffer.length) != -1);
-            
-            Certificate[] certs = entry.getCertificates();
-            if (isMetaInf(entry.getName())) {
-                continue;
-            } else if (certs == null || certs.length == 0) {
-                throw new SecurityException("The archive contains files that are not digitally signed");
-            } else {
-                int i = 0;
-                boolean verified = false;
-                while (i < certs.length) {
-                    X509Certificate[] chain = findChain(certs, i);
-                    try {
-                        verify(chain);
-                        verified = true;
-                        break;
-                    } catch (SecurityException e) {
-                    }
-                    i += chain.length;
-                }
+        JarInputStream jarFile = null;
+        
+        try {
+            jarFile = new JarInputStream(in);
+            Manifest manifest = jarFile.getManifest();
+            if (manifest == null) {
+                throw new SecurityException("The given file was not digitally signed");
+            }
+    
+            // Ensure all the entries' signatures verify correctly
+            byte[] buffer = new byte[8192];
+            JarEntry entry;
+            while ((entry = jarFile.getNextJarEntry()) != null) {
+                if (entry.isDirectory()) continue;
+    
+                do {
+                } while (jarFile.read(buffer, 0, buffer.length) != -1);
                 
-                if (!verified) {
-                    throw new SecurityException("The file(s) are signed by an entity that is not registered as 'trusted' with the launcher");
+                Certificate[] certs = entry.getCertificates();
+                if (isMetaInf(entry.getName())) {
+                    continue;
+                } else if (certs == null || certs.length == 0) {
+                    throw new SecurityException("The archive contains files that are not digitally signed");
+                } else {
+                    int i = 0;
+                    boolean verified = false;
+                    while (i < certs.length) {
+                        X509Certificate[] chain = findChain(certs, i);
+                        try {
+                            verify(chain);
+                            verified = true;
+                            break;
+                        } catch (SecurityException e) {
+                        }
+                        i += chain.length;
+                    }
+                    
+                    if (!verified) {
+                        throw new SecurityException("The file(s) are signed by an entity that is not registered as 'trusted' with the launcher");
+                    }
                 }
             }
+        } finally {
+            Util.close(jarFile);
         }
     }
     

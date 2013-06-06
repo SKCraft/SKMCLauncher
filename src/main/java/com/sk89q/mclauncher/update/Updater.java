@@ -33,10 +33,9 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.EventObject;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -44,17 +43,17 @@ import javax.swing.event.EventListenerList;
 
 import com.sk89q.mclauncher.DownloadListener;
 import com.sk89q.mclauncher.DownloadProgressEvent;
-import com.sk89q.mclauncher.Launcher;
 import com.sk89q.mclauncher.ProgressListener;
 import com.sk89q.mclauncher.StatusChangeEvent;
 import com.sk89q.mclauncher.TitleChangeEvent;
 import com.sk89q.mclauncher.ValueChangeEvent;
-import com.sk89q.mclauncher.security.X509KeyRing.Ring;
-import com.sk89q.mclauncher.update.PackageFile.MessageDigestAlgorithm;
+import com.sk89q.mclauncher.model.FileGroup;
+import com.sk89q.mclauncher.model.PackageFile;
+import com.sk89q.mclauncher.model.PackageManifest;
 import com.sk89q.mclauncher.util.Downloader;
-import com.sk89q.mclauncher.util.SocketDownloader;
 import com.sk89q.mclauncher.util.URLConnectionDownloader;
 import com.sk89q.mclauncher.util.Util;
+import com.sk89q.mclauncher.util.XMLUtil;
 
 /**
  * Downloads and applies an update.
@@ -65,7 +64,6 @@ public class Updater implements DownloadListener {
     
     private static final Logger logger = Logger.getLogger(Updater.class.getCanonicalName());
 
-    private boolean verifying = true;
     private InputStream packageStream;
     private File rootDir;
     private UpdateCache cache;
@@ -73,16 +71,18 @@ public class Updater implements DownloadListener {
     private long retryDelay = 5000;
     private boolean forced = false;
     private Map<String, String> parameters = new HashMap<String, String>();
+
+    private PackageManifest manifest;
     
     private EventListenerList listenerList = new EventListenerList();
     private double subprogressOffset = 0;
     private double subprogressSize = 1;
     private volatile boolean running = true;
     private Downloader downloader;
-    private List<PackageFile> fileList;
     private int currentIndex = 0;
     private long totalEstimatedSize = 0;
     private long downloadedEstimatedSize = 0;
+    private int numFiles;
     
     /**
      * Construct the updater.
@@ -95,24 +95,6 @@ public class Updater implements DownloadListener {
         this.packageStream = packageStream;
         this.rootDir = rootDir;
         this.cache = cache;
-    }
-    
-    /**
-     * Returns whether signatures are verified after the download.
-     * 
-     * @return true if verifying
-     */
-    public boolean isVerifying() {
-        return verifying;
-    }
-
-    /**
-     * Set whether the signatures of downloaded files should be verified.
-     * 
-     * @param verifying true to verify
-     */
-    public void setVerifying(boolean verifying) {
-        this.verifying = verifying;
     }
 
     /**
@@ -186,18 +168,6 @@ public class Updater implements DownloadListener {
     }
     
     /**
-     * Tries to load the MessageDigest instance for the given algorithm.
-     * 
-     * @param type type algorithm
-     * @return the message digest
-     * @throws NoSuchAlgorithmException no algorithm is registered
-     */
-    private MessageDigest loadMessageDigest(MessageDigestAlgorithm type)
-            throws NoSuchAlgorithmException {
-        return MessageDigest.getInstance(type.getJavaDigestName());
-    }
-    
-    /**
      * Returns whether two digests (in hex) match.
      * 
      * @param s1 digest 1
@@ -227,12 +197,20 @@ public class Updater implements DownloadListener {
      */
     private void parsePackageFile() throws UpdateException {
         try {
-            PackageDefinition def = PackageDefinition.parse(rootDir, packageStream);
-            fileList = def.getFileList();
-            totalEstimatedSize = def.getEstimatedTotalSize();
+            manifest = XMLUtil.parseJaxb(PackageManifest.class, packageStream);
+            manifest.setDestDir(rootDir);
+            totalEstimatedSize = manifest.getTotalSize();
+            numFiles = manifest.getDownloadCount();
+            
+            if (!manifest.isSupportedVersion()) {
+                throw new UpdateException(
+                        "The update package is written in an unsupported version. (Update launcher?)");
+            }
         } catch (Throwable e) {
             logger.log(Level.SEVERE, "Failed to read package file", e);
-            throw new UpdateException("Could not read package.xml file. The update cannot continue.\n\nThe error: " + e.getMessage(), e);
+            throw new UpdateException(
+                    "Could not read package.xml file. " +
+                    "The update cannot continue.\n\nThe error: " + e.getMessage(), e);
         }
     }
     
@@ -244,151 +222,117 @@ public class Updater implements DownloadListener {
     private void downloadFiles() throws UpdateException {
         currentIndex = 0;
         
-        for (PackageFile file : fileList) {
-            checkRunning();
-            fireDownloadStatusChange("Connecting...");
-
-            OutputStream out;
-            boolean isVerifying = false;
-            boolean firstTry = true;
-            MessageDigest m = null;
-            URL url = parameterizeURL(file.getURL());
-            String cacheId = getRelative(rootDir, file.getFile());
-            
-            // Load the MessageDigest
-            if (!forced && file.getVerifyType() != null) {
-                isVerifying = true;
-                try {
-                    m = loadMessageDigest(file.getVerifyType());
-                } catch (NoSuchAlgorithmException e) {
-                    isVerifying = false;
-                    m = null;
-                    // Guess we're not going to verify files
-                }
-            }
-
-            // Create the folder
-            file.getTempFile().getParentFile().mkdirs();
-
-            int retryNum = 0;
-            for (int trial = downloadTries; trial >= -1; trial--) {
+        for (FileGroup group : manifest.getFileGroups()) {
+            for (PackageFile file : group.getFiles()) {
                 checkRunning();
                 
-                try {
-                    out = new BufferedOutputStream(new FileOutputStream(file.getTempFile()));
-                } catch (IOException e) {
-                    throw new UpdateException("Could not write to " +
-                            file.getTempFile().getAbsolutePath() + ".", e);
-                }
-
-                // Attempt downloading
-                try {
-                    if (url.getProtocol().equalsIgnoreCase("http") && firstTry) {
-                        logger.info("Using SocketDownloader for URL " + url.toString());
-                        downloader = new SocketDownloader(url, out);
-                    } else {
-                        logger.info("Using URLConnectionDownloader for URL " + url.toString());
-                        downloader = new URLConnectionDownloader(url, out);
-                    }
-                    
-                    firstTry = false;
-                    
-                    if (isVerifying) {
-                        downloader.setMessageDigest(m);
-                        downloader.setEtagCheck(cache.getCachedHash(cacheId));
-                    }
-                    downloader.addDownloadListener(this);
-                    
-                    if (downloader.download()) {
-                        checkRunning();
-                        
-                        // Check MD5 hash
-                        if (isVerifying) {
-                            String signature = new BigInteger(1, m.digest()).toString(16);
-                            if (!matchesDigest(downloader.getEtag(), signature)) {
-                                throw new UpdateException(
-                                        String.format("Signature for %s did not match; expected %s, got %s",
-                                                file.getURL(), downloader.getEtag(), signature));
-                            }
-                            
-                            cache.putCachedHash(cacheId, signature);
-                        }
-                    } else { // File already downloaded
-                        file.setIgnored(true);
-                        
-                        fireDownloadStatusChange("Already up-to-date.");
-                        fireAdjustedValueChange((downloadedEstimatedSize + file.getTotalEstimatedSize())
-                                / (double) totalEstimatedSize);
-                    }
-                    
-                    break;
-                } catch (IOException e) {
-                    logger.log(Level.WARNING, "Failed to fetch " + url, e);
-                    
-                    if (trial == -1) {
-                        throw new UpdateException("Could not download " + file.getURL() + ": " +
-                                e.getMessage(), e);
-                    }
-                } finally {
-                    downloader = null;
-                    Util.close(out);
+                if (!file.matchesEnvironment()) {
+                    continue;
                 }
                 
-                retryNum++;
-                
-                Util.sleep(retryDelay);
-                fireDownloadStatusChange("Download failed; retrying (" + retryNum + ")...");
+                downloadFile(group, file);
             }
-            
-            currentIndex++;
-            downloadedEstimatedSize += file.getTotalEstimatedSize();
         }
     }
     
     /**
-     * Verify newly-downloaded updates.
+     * Dwnload the given file.
      * 
-     * @throws UpdateException 
+     * @param group the group
+     * @param file the file
+     * @throws UpdateException on download error
      */
-    private void verify() throws UpdateException {
-        if (!isVerifying()) { // No verification!
-            return;
+    private void downloadFile(FileGroup group, PackageFile file) throws UpdateException {
+        fireDownloadStatusChange("Connecting...");
+        
+        OutputStream out;
+        boolean isVerifying = false;
+        MessageDigest m = null;
+        URL url = parameterizeURL(group.getURL(file));
+        String cacheId = getRelative(rootDir, file.getFile());
+        
+        // Load the MessageDigest
+        if (!forced) {
+            try {
+                m = group.createMessageDigest();
+                isVerifying = (m != null);
+            } catch (NoSuchAlgorithmException e) {
+                isVerifying = false;
+                m = null;
+                // Guess we're not going to verify files
+            }
         }
-        
-        currentIndex = 0;
-        
-        SignatureVerifier signatureVerifier = new SignatureVerifier(
-                Launcher.getInstance().getKeyRing().getKeyStore(Ring.UPDATE));
-        
-        for (PackageFile file : fileList) {
+
+        // Create the folder
+        file.getTempFile().getParentFile().mkdirs();
+
+        // Try to download
+        int retryNum = 0;
+        for (int trial = downloadTries; trial >= -1; trial--) {
             checkRunning();
             
-            if (file.isIgnored()) {
-                continue;
-            }
-            
-            fireAdjustedValueChange(currentIndex / fileList.size());
-            fireStatusChange(String.format("Verifying %s (%d/%d)...", file.getFile().getName(),
-                    currentIndex + 1, fileList.size()));
-            
+            // Create temp file to place data
             try {
-                file.verify(signatureVerifier);
-            } catch (SecurityException e) {
-                logger.log(Level.WARNING, "Failed to deploy " + file, e);
-                throw new UpdateException("The digital signature(s) of " +
-                        file.getFile().getAbsolutePath() + " could not be verified: " + e.getMessage(), e);
+                out = new BufferedOutputStream(new FileOutputStream(file.getTempFile()));
             } catch (IOException e) {
-                logger.log(Level.WARNING, "Failed to deploy " + file, e);
-                throw new UpdateException("Could not install to " +
-                        file.getFile().getAbsolutePath() + ": " + e.getMessage(), e);
-            } catch (Throwable e) {
-                logger.log(Level.WARNING, "Failed to deploy " + file, e);
-                throw new UpdateException("Could not install " +
-                        file.getFile().getAbsolutePath() + ": " + e.getMessage(), e);
+                throw new UpdateException("Could not write to " +
+                        file.getTempFile().getAbsolutePath() + ".", e);
+            }
+
+            // Attempt downloading
+            try {
+                logger.info("Using URLConnectionDownloader for URL " + url.toString());
+                downloader = new URLConnectionDownloader(url, out);
+                
+                if (isVerifying) {
+                    downloader.setMessageDigest(m);
+                    downloader.setEtagCheck(cache.getCachedHash(cacheId));
+                }
+                downloader.addDownloadListener(this);
+                
+                if (downloader.download()) {
+                    checkRunning();
+                    
+                    // Check MD5 hash
+                    if (isVerifying) {
+                        String signature = new BigInteger(1, m.digest()).toString(16);
+                        if (!matchesDigest(downloader.getEtag(), signature)) {
+                            throw new UpdateException(
+                                    String.format("Signature for %s did not match; expected %s, got %s",
+                                            group.getURL(file), downloader.getEtag(), signature));
+                        }
+                        
+                        cache.putCachedHash(cacheId, signature);
+                    }
+                } else { // File already downloaded
+                    file.setIgnored(true);
+                    
+                    fireDownloadStatusChange("Already up-to-date.");
+                    fireAdjustedValueChange((downloadedEstimatedSize + file.getSize())
+                            / (double) totalEstimatedSize);
+                }
+                
+                break;
+            } catch (IOException e) {
+                logger.log(Level.WARNING, "Failed to fetch " + url, e);
+                
+                if (trial == -1) {
+                    throw new UpdateException(
+                            "Could not download " + group.getURL(file) + ": " + e.getMessage(), e);
+                }
+            } finally {
+                downloader = null;
+                Util.close(out);
             }
             
-            currentIndex++;
+            retryNum++;
+            
+            Util.sleep(retryDelay);
+            fireDownloadStatusChange("Download failed; retrying (" + retryNum + ")...");
         }
+        
+        currentIndex++;
+        downloadedEstimatedSize += file.getSize();
     }
     
     /**
@@ -398,35 +342,41 @@ public class Updater implements DownloadListener {
      */
     private void deploy(UninstallLog log) throws UpdateException {
         currentIndex = 0;
-        
-        for (PackageFile file : fileList) {
-            checkRunning();
-            
-            if (file.isIgnored()) {
-                continue;
+
+        for (FileGroup group : manifest.getFileGroups()) {
+            for (PackageFile file : group.getFiles()) {
+                checkRunning();
+                
+                if (!file.matchesEnvironment()) {
+                    continue;
+                }
+                
+                if (file.isIgnored()) {
+                    continue;
+                }
+                
+                fireAdjustedValueChange(currentIndex / numFiles);
+                fireStatusChange(String.format("Installing %s (%d/%d)...", file.getFile().getName(),
+                        currentIndex + 1, numFiles));
+                
+                try {
+                    file.deploy(log);
+                } catch (SecurityException e) {
+                    logger.log(Level.WARNING, "Failed to deploy " + file, e);
+                    throw new UpdateException("The digital signature(s) of " +
+                            file.getFile().getAbsolutePath() + " could not be verified: " + e.getMessage(), e);
+                } catch (IOException e) {
+                    logger.log(Level.WARNING, "Failed to deploy " + file, e);
+                    throw new UpdateException("Could not install to " +
+                            file.getFile().getAbsolutePath() + ": " + e.getMessage(), e);
+                } catch (Throwable e) {
+                    logger.log(Level.WARNING, "Failed to deploy " + file, e);
+                    throw new UpdateException("Could not install " +
+                            file.getFile().getAbsolutePath() + ": " + e.getMessage(), e);
+                }
+                
+                currentIndex++;
             }
-            
-            fireAdjustedValueChange(currentIndex / fileList.size());
-            fireStatusChange(String.format("Installing %s (%d/%d)...", file.getFile().getName(),
-                    currentIndex + 1, fileList.size()));
-            
-            try {
-                file.deploy(log);
-            } catch (SecurityException e) {
-                logger.log(Level.WARNING, "Failed to deploy " + file, e);
-                throw new UpdateException("The digital signature(s) of " +
-                        file.getFile().getAbsolutePath() + " could not be verified: " + e.getMessage(), e);
-            } catch (IOException e) {
-                logger.log(Level.WARNING, "Failed to deploy " + file, e);
-                throw new UpdateException("Could not install to " +
-                        file.getFile().getAbsolutePath() + ": " + e.getMessage(), e);
-            } catch (Throwable e) {
-                logger.log(Level.WARNING, "Failed to deploy " + file, e);
-                throw new UpdateException("Could not install " +
-                        file.getFile().getAbsolutePath() + ": " + e.getMessage(), e);
-            }
-            
-            currentIndex++;
         }
     }
     
@@ -438,11 +388,13 @@ public class Updater implements DownloadListener {
      * @throws UpdateException update exception
      */
     private void deleteOldFiles(UninstallLog oldLog, UninstallLog newLog) throws UpdateException {
-        for (PackageFile file : fileList) {
-            checkRunning();
-            
-            if (file.isIgnored()) {
-                newLog.copyGroupFrom(oldLog, file.getFile());
+        for (FileGroup group : manifest.getFileGroups()) {
+            for (PackageFile file : group.getFiles()) {
+                checkRunning();
+                
+                if (file.isIgnored()) {
+                    newLog.copyGroupFrom(oldLog, file.getFile());
+                }
             }
         }
         
@@ -481,12 +433,8 @@ public class Updater implements DownloadListener {
             } catch (IOException e) {
             }
 
-            fireStatusChange("Verifying signatures...");
-            setSubprogress(0.8, 0.1);
-            verify();
-
             fireStatusChange("Installing...");
-            setSubprogress(0.9, 0.1);
+            setSubprogress(0.8, 0.2);
             deploy(newLog);
 
             fireStatusChange("Removing old files...");
@@ -503,13 +451,33 @@ public class Updater implements DownloadListener {
         } finally {
             // Cleanup
             fireStatusChange("Cleaning up temporary files...");
-            for (PackageFile file : fileList) {
-                File tempFile = file.getTempFile();
-                if (tempFile != null) {
-                    tempFile.delete();
+            for (FileGroup group : manifest.getFileGroups()) {
+                for (PackageFile file : group.getFiles()) {
+                    File tempFile = file.getTempFile();
+                    if (tempFile != null) {
+                        tempFile.delete();
+                    }
                 }
             }
         }
+    }
+    
+    /**
+     * Get the current file.
+     * 
+     * @return the current file
+     */
+    private PackageFile getCurrentFile() {
+        int index = 0;
+        for (FileGroup group : manifest.getFileGroups()) {
+            for (PackageFile file : group.getFiles()) {
+                if (index == currentIndex) {
+                    return file;
+                }
+                index++;
+            }
+        }
+        return null;
     }
     
     /**
@@ -519,7 +487,7 @@ public class Updater implements DownloadListener {
      */
     private void fireDownloadStatusChange(String message) {
         fireStatusChange(String.format("(%d/%d) %s: %s", currentIndex + 1,
-                fileList.size(), fileList.get(currentIndex).getFile().getName(), message));
+                numFiles, getCurrentFile().getFile().getName(), message));
     }
 
     /**
@@ -543,14 +511,14 @@ public class Updater implements DownloadListener {
     @Override
     public void downloadProgress(DownloadProgressEvent event) {
         long total = ((Downloader) event.getSource()).getTotalLength();
-        PackageFile download = fileList.get(currentIndex);
+        PackageFile download = getCurrentFile();
         
         // If length is known
         if (total > 0) {
             fireDownloadStatusChange(String.format("Downloaded %,d/%,d KB...",
                     event.getDownloadedLength() / 1024, total / 1024));
             fireAdjustedValueChange((downloadedEstimatedSize / (double) totalEstimatedSize) +
-                    (download.getTotalEstimatedSize() / (double) totalEstimatedSize) *
+                    (download.getSize() / (double) totalEstimatedSize) *
                     (event.getDownloadedLength() / (double) total));
         } else {
             fireDownloadStatusChange(String.format("Downloaded %,d KB...",
@@ -563,11 +531,9 @@ public class Updater implements DownloadListener {
      */
     @Override
     public void downloadCompleted(EventObject event) {
-        PackageFile download = fileList.get(currentIndex);
-        
         fireDownloadStatusChange("Download completed.");
         fireAdjustedValueChange((downloadedEstimatedSize / (double) totalEstimatedSize) +
-                (download.getTotalEstimatedSize() / (double) totalEstimatedSize));
+                (getCurrentFile().getSize() / (double) totalEstimatedSize));
     }
     
     /**

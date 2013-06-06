@@ -16,38 +16,18 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.sk89q.mclauncher.update;
+package com.sk89q.mclauncher.model;
 
 import java.io.BufferedOutputStream;
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 
+import com.sk89q.mclauncher.update.UninstallLog;
 import com.sk89q.mclauncher.util.Util;
 
-/**
- * Represents a single file.
- * 
- * @author sk89q
- */
 public class SingleFile extends PackageFile {
-    /**
-     * Construct.
-     * 
-     * @param url source URL
-     * @param tempFile temporary file
-     * @param file file
-     * @param totalEstimatedSize total estimated size
-     */
-    public SingleFile(URL url, File tempFile, File file, long totalEstimatedSize) {
-        super(url, tempFile, file, totalEstimatedSize);
-    }
-
-    /**
-     * Deploy.
-     */
+    
     @Override
     public void deploy(UninstallLog log) throws IOException {
         log.add(getFile(), getFile());
@@ -77,13 +57,5 @@ public class SingleFile extends PackageFile {
             getTempFile().renameTo(getFile());
         }
     }
-
-    /**
-     * Verify.
-     */
-    @Override
-    public void verify(SignatureVerifier verifier) throws SecurityException,
-            IOException {
-        verifier.verify(getInputStream(), Util.getExtension(getOriginalFilename()));
-    }
+    
 }

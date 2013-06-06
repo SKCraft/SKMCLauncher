@@ -22,6 +22,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -50,6 +54,23 @@ import org.xml.sax.SAXException;
 public class XMLUtil {
     
     private XMLUtil() {
+    }
+    
+    /**
+     * Parse XML using JAXB and a model class.
+     * 
+     * @param cls the root class
+     * @param in an input stream
+     * @return the requested object
+     * @throws JAXBException thrown on an error
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T parseJaxb(Class<T> cls, InputStream in) throws JAXBException {
+        JAXBContext context = JAXBContext.newInstance(cls);
+        Marshaller m = context.createMarshaller();
+        m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+        Unmarshaller um = context.createUnmarshaller();
+        return (T) um.unmarshal(in);
     }
     
     /**

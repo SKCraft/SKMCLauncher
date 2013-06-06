@@ -44,7 +44,6 @@ import com.sk89q.mclauncher.LoginSession.OutdatedLauncherException;
 import com.sk89q.mclauncher.addons.Addon;
 import com.sk89q.mclauncher.addons.AddonsProfile;
 import com.sk89q.mclauncher.config.Configuration;
-import com.sk89q.mclauncher.config.Constants;
 import com.sk89q.mclauncher.config.Def;
 import com.sk89q.mclauncher.config.LauncherOptions;
 import com.sk89q.mclauncher.launch.GameLauncher;
@@ -632,9 +631,6 @@ public class LaunchTask extends Task {
         
         updater = new Updater(packageStream, rootDir, cache);
         updater.setReinstall(forced);
-        // Verify if it's the default download or if the relevant constant is enabled
-        updater.setVerifying(configuration.getUpdateUrl() == null 
-                || Constants.VERIFY_CUSTOM_DOWNLOADS);
         updater.registerParameter("user", username);
         updater.registerParameter("ticket", "deprecated"); // Now deprecated
         for (ProgressListener listener : getProgressListenerList()) {
