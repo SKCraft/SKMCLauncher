@@ -365,7 +365,7 @@ public class Updater implements DownloadListener {
                     
                     // This may clear the version if we don't have a version to store
                     // this time
-                    cache.getFileVersion(cacheId, storedVersion);
+                    cache.setFileVersion(cacheId, storedVersion);
                 } else { // File already downloaded
                     file.setIgnored(true);
                     

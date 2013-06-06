@@ -149,7 +149,7 @@ public class UpdateCache {
         return hashCache.get(path);
     }
     
-    public void getFileVersion(String path, String hash) {
+    public void setFileVersion(String path, String hash) {
         if (hash == null) {
             hashCache.remove(path);
         } else {
