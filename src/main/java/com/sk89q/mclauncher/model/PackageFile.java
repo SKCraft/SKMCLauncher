@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlValue;
 
@@ -37,13 +38,18 @@ import com.sk89q.mclauncher.update.UninstallLog;
 
 public abstract class PackageFile {
     
+    public enum ExistingFilePolicy {
+        @XmlEnumValue("never") NEVER_OVERWRITE;
+    }
+    
     private long size;
     private Platform platform;
     private String filename;
     private String finalFilename;
-    private boolean ignored;
     private String version;
+    private ExistingFilePolicy overwrite;
 
+    private transient boolean ignored;
     private transient String[] filterExts;
     private transient File file;
     private transient File tempFile;
@@ -88,6 +94,15 @@ public abstract class PackageFile {
 
     public void setVersion(String version) {
         this.version = version;
+    }
+
+    @XmlAttribute
+    public ExistingFilePolicy getOverwrite() {
+        return overwrite;
+    }
+
+    public void setOverwrite(ExistingFilePolicy overwrite) {
+        this.overwrite = overwrite;
     }
 
     private void parseName() {

@@ -254,6 +254,9 @@ public class Updater implements DownloadListener {
         // to prevent a number of problems
         cache.touch(cacheId);
         
+        // Keep the last version
+        String lastVersion = cache.getFileVersion(cacheId);
+        
         // Load the MessageDigest
         // 'digest' may be null after this if the algorithm is not supported
         if (!forced) {
@@ -292,7 +295,6 @@ public class Updater implements DownloadListener {
                 // given file version (an arbitrary string) with the string we
                 // last stored for this file
                 if (!forced && file.getVersion() != null) {
-                    String lastVersion = cache.getFileVersion(cacheId);
                     if (lastVersion != null && lastVersion.equals(file.getVersion())) {
                         shouldDownload = false;
                     }
@@ -325,6 +327,11 @@ public class Updater implements DownloadListener {
                     // Use our own per-file versioning if we have that
                     if (file.getVersion() != null) {
                         storedVersion = file.getVersion();
+                    }
+                    
+                    // OK, if we're not overwriting, then store the last version
+                    if (file.getOverwrite() != null) {
+                        storedVersion = lastVersion;
                     }
                     
                     // This may clear the version if we don't have a version to store

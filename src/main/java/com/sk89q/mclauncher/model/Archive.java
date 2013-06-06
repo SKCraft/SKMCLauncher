@@ -54,6 +54,12 @@ public class Archive extends PackageFile {
                         File target = new File(getFile().getParentFile(), entry.getName());
                         checkSubchild(parent, target);
                         log.add(getFile(), target);
+
+                        // If we're not replacing, don't delete the existing file!
+                        if (getOverwrite() != null && target.exists()) {
+                            continue;
+                        }
+                        
                         target.getParentFile().mkdirs();
                         out = new BufferedOutputStream(
                                 new FileOutputStream(target));
@@ -97,7 +103,7 @@ public class Archive extends PackageFile {
     }
     
     /**
-     * Check to see whether the given file is within another give path.
+     * Check to see whether the given file is within another given path.
      * 
      * @param root folder that the child has to be under
      * @param child child file

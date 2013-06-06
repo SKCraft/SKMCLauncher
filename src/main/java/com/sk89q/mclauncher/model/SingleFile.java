@@ -32,6 +32,11 @@ public class SingleFile extends PackageFile {
     public void deploy(UninstallLog log) throws IOException {
         log.add(getFile(), getFile());
         
+        // If we're not replacing, don't delete the existing file!
+        if (getOverwrite() != null && getFile().exists()) {
+            return;
+        }
+        
         if (isFiltered()) {
             InputStream in = getInputStream();
             
