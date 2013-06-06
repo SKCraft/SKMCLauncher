@@ -310,6 +310,7 @@ public class Launcher {
             default:
                 workingDir = new File(homeDir, "SKMCLauncher");
         }
+
         if (!new File(workingDir, "config.xml").exists()) {
             workingDir = getOfficialDataDir();
         }
@@ -318,6 +319,26 @@ public class Launcher {
         }
         
         return workingDir;
+    }
+    
+    /**
+     * Get the built-in directory for instances.
+     * 
+     * @return the directory for instances
+     */
+    public static File getInstanceDataDir() {
+        return new File(getLauncherDataDir(), "instances");
+    }
+    
+    /**
+     * Replace path tokens (like %INSTANCES_DIR%).
+     * 
+     * @param path the path to replace
+     * @return the result path
+     */
+    public static File replacePathTokens(String path) {
+        return new File(path.replace("%INSTANCEDIR%", 
+                getInstanceDataDir().getAbsolutePath() + File.separator));
     }
     
     /**

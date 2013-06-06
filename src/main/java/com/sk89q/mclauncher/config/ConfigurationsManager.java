@@ -150,7 +150,7 @@ public class ConfigurationsManager implements Iterable<Configuration>, TableMode
         }
         Configuration config = get(id);
         if (config == null) {
-            config = new Configuration(id, name, appDir, url);
+            config = new Configuration(id, name, appDir, url, false);
             register(config);
         }
         config.setName(name);

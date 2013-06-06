@@ -18,6 +18,8 @@
 
 package com.sk89q.mclauncher.config;
 
+import static com.sk89q.mclauncher.util.XMLUtil.*;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -51,15 +53,13 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
+import util.Base64;
+
 import com.sk89q.mclauncher.Launcher;
 import com.sk89q.mclauncher.util.SettingsList;
 import com.sk89q.mclauncher.util.SimpleNode;
 import com.sk89q.mclauncher.util.Util;
 import com.sk89q.mclauncher.util.XMLUtil;
-
-import static com.sk89q.mclauncher.util.XMLUtil.*;
-
-import util.Base64;
 
 /**
  * Stores options for the launcher.
@@ -333,9 +333,9 @@ public class LauncherOptions {
                     URL updateUrl = urlString != null ? new URL(urlString) : null;
                     Configuration config;
                     if (basePath != null) {
-                        config = new Configuration(id, name, new File(basePath), updateUrl);
+                        config = new Configuration(id, name, basePath, updateUrl, true);
                     } else {
-                        config = new Configuration(id, name, appDir, updateUrl);
+                        config = new Configuration(id, name, appDir, updateUrl, false);
                     }
                     
                     Node settingsNode = XMLUtil.getNode(node, settingsExpr);
@@ -422,11 +422,11 @@ public class LauncherOptions {
             SimpleNode configurationsNode = root.addNode("configurations");
             for (Configuration config : configsManager) {
                 SimpleNode configurationNode = configurationsNode.addNode("configuration");
-                File f = config.getCustomBasePath();
+                String path = config.getCustomBasePath();
                 configurationNode.addNode("id").addValue(config.getId());
                 configurationNode.addNode("name").addValue(config.getName());
                 configurationNode.addNode("appDir").addValue(config.getAppDir());
-                configurationNode.addNode("basePath").addValue(f != null ? f.getPath() : null);
+                configurationNode.addNode("basePath").addValue(path);
                 configurationNode.addNode("updateURL").addValue(config.getUpdateUrl() != null ?
                         config.getUpdateUrl().toString() : null);
                 configurationNode.addNode("lastJar").addValue(config.getLastActiveJar());

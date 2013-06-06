@@ -25,25 +25,25 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.logging.Logger;
+import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import javax.imageio.ImageIO;
-
-import com.sk89q.mclauncher.Launcher;
-import com.sk89q.mclauncher.MinecraftJar;
-import com.sk89q.mclauncher.addons.AddonsProfile;
-import com.sk89q.mclauncher.util.SettingsList;
 
 import org.spout.nbt.CompoundMap;
 import org.spout.nbt.CompoundTag;
 import org.spout.nbt.ListTag;
 import org.spout.nbt.Tag;
 import org.spout.nbt.stream.NBTInputStream;
+
+import com.sk89q.mclauncher.Launcher;
+import com.sk89q.mclauncher.MinecraftJar;
+import com.sk89q.mclauncher.addons.AddonsProfile;
+import com.sk89q.mclauncher.util.SettingsList;
 
 /**
  * Represents a configuration for the game.
@@ -55,7 +55,7 @@ public class Configuration {
     private static final Logger logger = Logger.getLogger(Configuration.class.getCanonicalName());
     
     private String id;
-    private File customBasePath;
+    private String customBasePath;
     private String appDir;
     private String name;
     private URL updateUrl;
@@ -69,34 +69,22 @@ public class Configuration {
      * 
      * @param id id
      * @param name name
-     * @param appDir data directory name
+     * @param dir data directory name
      * @param updateUrl URL to update from, or null to use default
+     * @param isCustom true if it's a custom path
      */
-    public Configuration(String id, String name, String appDir, URL updateUrl) {
+    public Configuration(String id, String name, String dir, URL updateUrl, 
+            boolean isCustom) {
         if (!id.matches("^[A-Za-z0-9\\-]+{1,64}$")) {
             throw new IllegalArgumentException("Invalid configuration name");
         }
         this.id = id;
         setName(name);
-        setAppDir(appDir);
-        setUpdateUrl(updateUrl);
-    }
-    
-    /**
-     * Construct a configuration.
-     * 
-     * @param id id
-     * @param name name
-     * @param customBasePath base path to use
-     * @param updateUrl URL to update from, or null to use default
-     */
-    public Configuration(String id, String name, File customBasePath, URL updateUrl) {
-        if (!id.matches("^[A-Za-z0-9\\-]+{1,64}$")) {
-            throw new IllegalArgumentException("Invalid configuration name");
+        if (isCustom) {
+            setCustomBasePath(dir);
+        } else {
+            setAppDir(dir);
         }
-        this.id = id;
-        setName(name);
-        setCustomBasePath(customBasePath);
         setUpdateUrl(updateUrl);
     }
 
@@ -146,7 +134,7 @@ public class Configuration {
      * 
      * @return path or null
      */
-    public File getCustomBasePath() {
+    public String getCustomBasePath() {
         return customBasePath;
     }
 
@@ -157,14 +145,14 @@ public class Configuration {
      * 
      * @param customBasePath path or null
      */
-    public void setCustomBasePath(File customBasePath) {
+    public void setCustomBasePath(String customBasePath) {
         this.customBasePath = customBasePath;
     }
 
     /**
      * Get the data directory name.
      * 
-     * @see #setCustomBasePath(File) can override
+     * @see #setCustomBasePath(String) can override
      * @return name or null for default
      */
     public String getAppDir() {
@@ -174,7 +162,7 @@ public class Configuration {
     /**
      * Set the data directory name.
      * 
-     * @see #setCustomBasePath(File) can override
+     * @see #setCustomBasePath(String) can override
      * @param appDir name
      */
     public void setAppDir(String appDir) {
@@ -264,7 +252,7 @@ public class Configuration {
     public File getBaseDir() {
         File path;
         if (getCustomBasePath() != null) {
-            return getCustomBasePath();
+            return Launcher.replacePathTokens(getCustomBasePath());
         } else if (getAppDir() == null) {
             path = Launcher.getAppDataDir();
         } else {
@@ -276,6 +264,21 @@ public class Configuration {
     }
 
     /**
+     * Shortcut method to get the directory show in an options dialog.
+     * 
+     * @return directory
+     */
+    public String getDirForOptions() {
+        if (getCustomBasePath() != null) {
+            return getCustomBasePath();
+        } else if (getAppDir() == null) {
+            return Launcher.getAppDataDir().getAbsolutePath();
+        } else {
+            return Launcher.getAppDataDir(getAppDir()).getAbsolutePath();
+        }
+    }
+
+    /**
      * Shortcut method to get the directory that Minecraft will actually use.
      * 
      * @return directory
@@ -283,7 +286,7 @@ public class Configuration {
     public File getMinecraftDir() {
         File path;
         if (getCustomBasePath() != null) {
-            return Launcher.toMinecraftDir(getCustomBasePath());
+            return Launcher.toMinecraftDir(Launcher.replacePathTokens(getCustomBasePath()));
         } else if (getAppDir() == null) {
             path = Launcher.getOfficialDataDir();
         } else {

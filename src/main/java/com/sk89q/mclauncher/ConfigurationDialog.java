@@ -129,8 +129,7 @@ public class ConfigurationDialog extends JDialog {
                 boolean usingDefault = configuration.isUsingDefaultPath();
                 customPathCheck.setSelected(!usingDefault);
                 if (!usingDefault) {
-                    File f = configuration.getBaseDir();
-                    pathText.setText(f != null ? f.getPath() : "");
+                    pathText.setText(configuration.getDirForOptions());
                 }
             }
             URL updateUrl = configuration.getUpdateUrl();
@@ -313,12 +312,9 @@ public class ConfigurationDialog extends JDialog {
         boolean builtIn = configuration != null && configuration.isBuiltIn();
 
         String name = nameText.getText().trim();
-        String pathStr = customPathCheck.isSelected() ? pathText.getText()
-                .trim() : null;
-        String updateURLStr = customUpdateCheck.isSelected() ? urlText
-                .getText() : null;
+        String pathStr = customPathCheck.isSelected() ? pathText.getText().trim() : null;
+        String updateURLStr = customUpdateCheck.isSelected() ? urlText.getText() : null;
         URL updateUrl = null;
-        File f = null;
         
         if (!builtIn) {
             if (name.length() == 0) {
@@ -346,7 +342,8 @@ public class ConfigurationDialog extends JDialog {
             }
 
             if (pathStr != null) {
-                f = new File(pathStr);
+                File f = Launcher.replacePathTokens(pathStr);
+                f.mkdirs();
                 if (!f.isDirectory()) {
                     UIUtil.showError(this, "Invalid path", "The path that you entered does not exist or is not a directory.");
                     return false;
@@ -360,14 +357,14 @@ public class ConfigurationDialog extends JDialog {
         
         if (configuration == null) { // New configuration
             String id = UUID.randomUUID().toString();
-            Configuration config = new Configuration(id, name, f, updateUrl);
+            Configuration config = new Configuration(id, name, pathStr, updateUrl, true);
             config.setSettings(settings);
             configsManager.register(config);
             this.configuration = config;
         } else {
             if (!builtIn) {
                 configuration.setName(name);
-                configuration.setCustomBasePath(f);
+                configuration.setCustomBasePath(pathStr);
                 configuration.setUpdateUrl(updateUrl);
             }
         }
