@@ -242,11 +242,13 @@ public class Updater implements DownloadListener {
      * @throws UpdateException on download error
      */
     private void downloadFiles() throws UpdateException {
-        currentIndex = 0;
+        currentIndex = -1;
         
         for (FileGroup group : manifest.getFileGroups()) {
             for (PackageFile file : group.getFiles()) {
                 checkRunning();
+                
+                currentIndex++;
                 
                 if (!file.matchesEnvironment()) {
                     logger.info("Update: " + getURL(group, file) + " does NOT match environment");
@@ -393,7 +395,6 @@ public class Updater implements DownloadListener {
             fireDownloadStatusChange("Download failed; retrying (" + retryNum + ")...");
         }
         
-        currentIndex++;
         downloadedEstimatedSize += file.getSize();
     }
     
@@ -403,11 +404,13 @@ public class Updater implements DownloadListener {
      * @throws UpdateException 
      */
     private void deploy(UninstallLog log) throws UpdateException {
-        currentIndex = 0;
+        currentIndex = -1;
 
         for (FileGroup group : manifest.getFileGroups()) {
             for (PackageFile file : group.getFiles()) {
                 checkRunning();
+                
+                currentIndex++;
                 
                 if (!file.matchesEnvironment()) {
                     continue;
@@ -440,8 +443,6 @@ public class Updater implements DownloadListener {
                     throw new UpdateException("Could not install " +
                             file.getFile().getAbsolutePath() + ": " + e.getMessage(), e);
                 }
-                
-                currentIndex++;
             }
         }
     }
