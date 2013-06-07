@@ -629,8 +629,8 @@ public class Updater implements DownloadListener {
      * @param message message to show
      */
     private void fireDownloadStatusChange(String message) {
-        fireStatusChange(String.format("(%d/%d) %s: %s", currentIndex + 1,
-                numFiles, getCurrentFile().getFile().getName(), message));
+        fireStatusChange(String.format("(%d left) %s: %s", numFiles - currentIndex,
+                getCurrentFile().getFile().getName(), message));
     }
 
     /**

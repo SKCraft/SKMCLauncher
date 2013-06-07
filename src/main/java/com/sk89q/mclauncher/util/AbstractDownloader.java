@@ -161,7 +161,7 @@ public abstract class AbstractDownloader implements Downloader {
             while (running) {
                 fireDownloadProgress(getDownloadedLength());
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(100);
                 } catch (InterruptedException e) {
                     break;
                 }
