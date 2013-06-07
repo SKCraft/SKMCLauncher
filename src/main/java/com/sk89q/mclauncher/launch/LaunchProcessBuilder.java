@@ -8,6 +8,7 @@ import java.io.PrintStream;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import javax.swing.SwingUtilities;
 
@@ -22,6 +23,9 @@ import com.sk89q.mclauncher.util.SettingsList;
 import com.sk89q.mclauncher.util.Util;
 
 public class LaunchProcessBuilder {
+    
+    private static final Pattern maxPermGenPattern = 
+            Pattern.compile("^-XX:MaxPermSize=.*$", Pattern.CASE_INSENSITIVE);
 
     private final Configuration configuration;
     private final String username;
@@ -169,11 +173,21 @@ public class LaunchProcessBuilder {
         }
         
         // Add extra arguments
+        boolean userIncreasedPermGen = false;
         for (String arg : extraArgs) {
             arg = arg.trim();
             if (arg.length() > 0) {
                 params.add(arg);
+                if (maxPermGenPattern.matcher(arg).matches()) {
+                    userIncreasedPermGen = true;
+                }
             }
+        }
+        
+        // If the user didn't increase the max permanent generation size, then
+        // we do it ourselfs -- perm. gen is where classes stay in memory
+        if (!userIncreasedPermGen) {
+            params.add("-XX:MaxPermSize=256M");
         }
         
         // Add classpath
