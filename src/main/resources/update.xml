@@ -5,7 +5,7 @@
     <file size="738345">lwjgl.jar</file>
     <file size="227833">jinput.jar</file>
     <file size="138318">lwjgl_util.jar</file>
-    <file size="3988921" filename="minecraft.jar">minecraft.jar?user=%user%&amp;ticket=%ticket%</file>
+    <file size="3988921">minecraft.jar</file>
   </filegroup>
   <filegroup source="http://s3.amazonaws.com/MinecraftDownload/" dest="bin/natives" verify="md5">
     <archive size="491232" platform="windows">windows_natives.jar.lzma</archive>
