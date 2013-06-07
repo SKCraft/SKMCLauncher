@@ -456,6 +456,9 @@ public class UpdateBuilder {
     }
     
     private static void cleanDir(File dir) {
+        if (!dir.exists()) {
+            return;
+        }
         for (File f : dir.listFiles()) {
             if (f.isDirectory()) {
                 cleanDir(f);
