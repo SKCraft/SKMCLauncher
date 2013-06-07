@@ -22,6 +22,9 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 
 
@@ -71,7 +74,7 @@ public class URLConnectionDownloader extends AbstractDownloader {
     public String getEtag() {
         return etag;
     }
-
+    
     @Override
     public boolean download() throws IOException {
         conn = null;
@@ -79,7 +82,7 @@ public class URLConnectionDownloader extends AbstractDownloader {
         length = -1;
 
         try {
-            conn = (HttpURLConnection) getUrl().openConnection();
+            conn = (HttpURLConnection) fixURL(getUrl()).openConnection();
             conn.setRequestMethod("GET");
             if (getEtagCheck() != null) {
                 conn.setRequestProperty("If-None-Match", "\"" + getEtagCheck() + "\"");
@@ -95,7 +98,8 @@ public class URLConnectionDownloader extends AbstractDownloader {
                 }
                 return false;
             } else if (conn.getResponseCode() != 200) {
-                throw new IOException("Did not get expected 200 code");
+                throw new IOException("Did not get expected 200 code, got " + 
+                        conn.getResponseCode() + " from " + getUrl());
             }
             
             fireConnectionStarted();
@@ -153,5 +157,26 @@ public class URLConnectionDownloader extends AbstractDownloader {
         }
         
         return true;
+    }
+
+    /**
+     * URL may contain spaces and other nasties that will cause a failure.
+     * 
+     * @param existing the existing URL to transform
+     * @return the new URL, or old one if there was a failure
+     */
+    private static URL fixURL(URL existing) {
+        try {
+            URL url = new URL(existing.toString());
+            URI uri = new URI(
+                    url.getProtocol(), url.getUserInfo(), url.getHost(), url.getPort(), 
+                    url.getPath(), url.getQuery(), url.getRef());
+            url = uri.toURL();
+            return url;
+        } catch (MalformedURLException e) {
+            return existing;
+        } catch (URISyntaxException e) {
+            return existing;
+        }
     }
 }
