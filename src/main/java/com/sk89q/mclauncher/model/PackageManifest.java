@@ -25,6 +25,7 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 @XmlRootElement(name = "package")
 public class PackageManifest {
@@ -43,7 +44,7 @@ public class PackageManifest {
         this.version = version;
     }
 
-    @XmlAttribute
+    @XmlTransient
     public boolean isSupportedVersion() {
         return getVersion().matches("^1\\.[012]$");
     }
