@@ -5,6 +5,28 @@ SK's Minecraft Launcher is a custom Minecraft launcher with support for easy
 addon installation and more.
 
 
+Building a Mod Pack
+-------------------
+
+1. Build a folder with all the mods/ config/ etc. files for the package.
+2. Make a copy of `sample_builder_config.xml`, read through it, and edit it.
+3. Run the command: `java -cp SKMCLauncher.jar com.sk89q.lpbuilder.UpdateBuilder -dir "/path/to/files/" -out "/path/to/www/" -config "/path/to/sample_builder_config.xml"`
+
+After that's done, just give the URL to users of update.xml! They can use
+"Install from URL..." in the launcher.
+
+### Command Line Options ###
+    
+* `-dir path_of_client_files`
+* `-out output_dir`
+* `-id id` (replace the ID for the mod pack)
+* `-name name` (replace the name of the mod pack)
+* `-version version` (set the version of this package)
+* `-package-filename filename` (change package.xml to something else)
+* `-update-filename filename` (change update.xml to something else)
+* `-config config_path`
+* `-clean` (delete contents of the output directory first)
+
 Compiling
 ---------
 
