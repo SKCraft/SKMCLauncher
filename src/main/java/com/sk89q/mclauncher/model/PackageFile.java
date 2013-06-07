@@ -209,6 +209,10 @@ public abstract class PackageFile {
         return tempFile;
     }
 
+    public void setTempFile(File tempFile) {
+        this.tempFile = tempFile;
+    }
+
     @XmlTransient
     public boolean isIgnored() {
         return ignored;
@@ -241,8 +245,6 @@ public abstract class PackageFile {
             throw new RuntimeException("Path '" + file.getAbsolutePath()
                     + "' is not in '" + dir.getAbsolutePath() + "'");
         }
-
-        tempFile = new File(file.getAbsolutePath() + ".tmp");
     }
 
 }

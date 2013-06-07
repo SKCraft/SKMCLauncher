@@ -73,6 +73,7 @@ public class Updater implements DownloadListener {
     private final File rootDir;
     private final UpdateCache cache;
     private final EventListenerList listenerList = new EventListenerList();
+    private final File downloadDir;
     
     private int downloadTries = 5;
     private long retryDelay = 5000;
@@ -106,6 +107,8 @@ public class Updater implements DownloadListener {
         this.packageStream = packageStream;
         this.rootDir = rootDir;
         this.cache = cache;
+        this.downloadDir = new File(rootDir, "_download");
+        downloadDir.mkdirs();
     }
     
     /**
@@ -251,18 +254,46 @@ public class Updater implements DownloadListener {
                 currentIndex++;
                 
                 if (!file.matchesEnvironment()) {
-                    logger.info("Update: " + getURL(group, file) + " does NOT match environment");
+                    logger.info(getURL(group, file) + " does NOT match environment");
                     continue;
                 }
                 
                 if (!file.matchesFilter(manifest.getComponents())) {
-                    logger.info("Update: " + getURL(group, file) + " does NOT match filter");
+                    logger.info(getURL(group, file) + " does NOT match filter");
                     continue;
                 }
 
-                logger.info("Update: " + getURL(group, file) + " OK");
+                // Try to download
+                int retryNum = 0;
+                Exception e = null;
+                for (int trial = 0; trial < downloadTries; trial++) {
+                    checkRunning();
+                    
+                    logger.info("Downloading " + getURL(group, file) + "...");
+
+                    fireStatusChange(String.format(
+                            "Downloading %s (%d/%d) [try %d]...",
+                            file.getFile().getName(),
+                            currentIndex + 1,
+                            numFiles,
+                            trial + 1
+                            ));
+                    fireAdjustedValueChange((downloadedEstimatedSize + file.getSize())
+                            / (double) totalEstimatedSize);
+                    
+                    if ((e = downloadFile(group, file)) == null) {
+                        break;
+                    } else {
+                        retryNum++;
+                        fireDownloadStatusChange("Download failed; retrying (" + retryNum + ")...");
+                        Util.sleep(retryDelay);
+                    }
+                }
                 
-                downloadFile(group, file);
+                if (e != null) {
+                    throw new UpdateException(
+                            "Could not download " + getURL(group, file) + ": " + e.getMessage(), e);
+                }
             }
         }
     }
@@ -272,130 +303,145 @@ public class Updater implements DownloadListener {
      * 
      * @param group the group
      * @param file the file
+     * @return exception if there was a recoverable error
      * @throws UpdateException on download error
      */
-    private void downloadFile(FileGroup group, PackageFile file) throws UpdateException {
-        fireDownloadStatusChange("Connecting...");
-        
+    private Exception downloadFile(FileGroup group, PackageFile file) throws UpdateException {
         OutputStream out;
         MessageDigest digest = null; // Not null if we are verifying the file hash
         URL url = parameterizeURL(getURL(group, file));
         String cacheId = getCacheId(file);
-        
-        // We will later have to remove old entries from the cache in order
-        // to prevent a number of problems
-        cache.touch(cacheId);
-        
-        // Keep the last version
         String lastVersion = cache.getFileVersion(cacheId);
         
-        // Load the MessageDigest
-        // 'digest' may be null after this if the algorithm is not supported
+        // Tell the update log that this file was used this update
+        cache.touch(cacheId);
+        
+        // Load the MessageDigest used for verification
         if (!forced) {
             try {
-                digest = group.createMessageDigest();
+                digest = group.createMessageDigest(); // May return null
             } catch (NoSuchAlgorithmException e) {
-                digest = null; // Guess we're not going to verify files
+                throw new UpdateException("Unknown digest algorithm: " + e.getMessage());
             }
         }
 
-        // Create the folder
-        file.getTempFile().getParentFile().mkdirs();
+        // The file kept after the download has finished
+        // To be later transformed/read to be converted into the final file
+        File tempFile = new File(downloadDir, "_" + 
+                Util.getDigestAsHex(url.toExternalForm(), "MD5"));
+        
+        // The download file is where the data stored during the download
+        // We use two different files because the system/Java can die any second and
+        // leave the file behind, and if we want to "resume" the update using already
+        // downloaded files, we'd have half-downloaded files we thought were done
+        File downloadFile = new File(tempFile.getAbsoluteFile() + ".download");
+        
+        // We will use this later
+        file.setTempFile(tempFile);
 
-        // Try to download
-        int retryNum = 0;
-        for (int trial = downloadTries; trial >= -1; trial--) {
-            checkRunning();
+        // Now open a stream
+        try {
+            out = new BufferedOutputStream(new FileOutputStream(downloadFile));
+        } catch (IOException e) {
+            throw new UpdateException(
+                    "Could not write to " + tempFile.getAbsolutePath() + ".", e);
+        }
+
+        // Attempt downloading
+        try {
+            downloader = new URLConnectionDownloader(url, out);
+            downloader.addDownloadListener(this);
             
-            // Create temporary file to place data
-            try {
-                out = new BufferedOutputStream(new FileOutputStream(file.getTempFile()));
-            } catch (IOException e) {
-                throw new UpdateException("Could not write to " +
-                        file.getTempFile().getAbsolutePath() + ".", e);
-            }
-
-            // Attempt downloading
-            try {
-                downloader = new URLConnectionDownloader(url, out);
-                downloader.addDownloadListener(this);
-                
-                boolean shouldDownload = true;
-                
-                // We have our own per-file versioning mechanism where we compare the
-                // given file version (an arbitrary string) with the string we
-                // last stored for this file
-                if (!forced && file.getVersion() != null) {
-                    if (lastVersion != null && lastVersion.equals(file.getVersion())) {
-                        shouldDownload = false;
-                    }
-                } else {
-                    // But Mojang has their own digest-based + E-Tag method that
-                    // we also support
-                    if (digest != null) {
-                        downloader.setMessageDigest(digest);
-                        downloader.setEtagCheck(cache.getFileVersion(cacheId));
-                    }
+            boolean needsUpdate = true;
+            
+            // We have our own per-file versioning mechanism where we compare the
+            // given file version (an arbitrary string) with the string we
+            // last stored for this file
+            if (!forced && file.getVersion() != null) {
+                if (lastVersion != null && lastVersion.equals(file.getVersion())) {
+                    needsUpdate = false;
                 }
-                
-                if (shouldDownload && downloader.download()) {
+            // But Mojang has their own digest-based + E-Tag method that we also support
+            } else {
+                if (digest != null) {
+                    downloader.setMessageDigest(digest);
+                    downloader.setEtagCheck(cache.getFileVersion(cacheId));
+                }
+            }
+            
+            // Download?
+            if (needsUpdate) {
+                // OK, before we actually download, see if that temporary file "kept after
+                // the download has finished" exists from last time
+                // Note: Files that use a hash to verify its versions can't use this because
+                // we don't yet store the E-tag from last time
+                if (digest == null && tempFile.exists()) {
+                    logger.info("Found file already downloaded at " + tempFile.getAbsolutePath());
+                    
+                    // Pretend that we downloaded it
+                } else {
+                    logger.info("Downloading to " + downloadFile.getAbsolutePath() + "...");
+
                     checkRunning();
                     
-                    String storedVersion = null;
-                    
-                    // Check MD5 hash
-                    if (digest != null) {
-                        String signature = new BigInteger(1, digest.digest()).toString(16);
-                        if (!matchesDigest(downloader.getEtag(), signature)) {
-                            throw new UpdateException(
-                                    String.format("Signature for %s did not match; expected %s, got %s",
-                                            getURL(group, file), downloader.getEtag(), signature));
-                        }
+                    if (downloader.download()) {
+                        checkRunning();
                         
-                        storedVersion = signature;
+                        // Rename the .download file to the temporary file
+                        tempFile.delete();
+                        downloadFile.renameTo(tempFile);
+                    } else {
+                        // E-tag mechanism can switch "needs update" flag back to false
+                        needsUpdate = false;
                     }
-                    
-                    // Use our own per-file versioning if we have that
-                    if (file.getVersion() != null) {
-                        storedVersion = file.getVersion();
-                    }
-                    
-                    // OK, if we're not overwriting, then store the last version
-                    if (file.getOverwrite() != null) {
-                        storedVersion = lastVersion;
-                    }
-                    
-                    // This may clear the version if we don't have a version to store
-                    // this time
-                    cache.setFileVersion(cacheId, storedVersion);
-                } else { // File already downloaded
-                    file.setIgnored(true);
-                    
-                    fireDownloadStatusChange("Already up-to-date.");
-                    fireAdjustedValueChange((downloadedEstimatedSize + file.getSize())
-                            / (double) totalEstimatedSize);
                 }
-                
-                break;
-            } catch (IOException e) {
-                logger.log(Level.WARNING, "Failed to fetch " + url, e);
-                
-                if (trial == -1) {
-                    throw new UpdateException(
-                            "Could not download " + getURL(group, file) + ": " + e.getMessage(), e);
-                }
-            } finally {
-                downloader = null;
-                Util.close(out);
             }
             
-            retryNum++;
+            checkRunning();
             
-            Util.sleep(retryDelay);
-            fireDownloadStatusChange("Download failed; retrying (" + retryNum + ")...");
+            // We still need to update?
+            if (needsUpdate) {
+                String storedVersion = null;
+                
+                // Check MD5 hash
+                if (digest != null) {
+                    String signature = new BigInteger(1, digest.digest()).toString(16);
+                    if (!matchesDigest(downloader.getEtag(), signature)) {
+                        throw new UpdateException(
+                                String.format("Signature for %s did not match; expected %s, got %s",
+                                        getURL(group, file), downloader.getEtag(), signature));
+                    }
+                    
+                    storedVersion = signature;
+                }
+                
+                // Use our own per-file versioning if we have that
+                if (file.getVersion() != null) {
+                    storedVersion = file.getVersion();
+                }
+                
+                // OK, if we're not overwriting, then store the last version
+                if (file.getOverwrite() != null) {
+                    storedVersion = lastVersion;
+                }
+                
+                // This may clear the version if we don't have a version to store
+                // this time
+                cache.setFileVersion(cacheId, storedVersion);
+            } else { // File already downloaded
+                file.setIgnored(true);
+            }
+            
+            downloadedEstimatedSize += file.getSize();
+            
+            return null;
+        } catch (IOException e) {
+            return e;
+        } finally {
+            downloader = null;
+            Util.close(out);
+            downloadFile.delete();
         }
-        
-        downloadedEstimatedSize += file.getSize();
     }
     
     /**
@@ -409,6 +455,8 @@ public class Updater implements DownloadListener {
         for (FileGroup group : manifest.getFileGroups()) {
             for (PackageFile file : group.getFiles()) {
                 checkRunning();
+                
+                logger.info("Installing " + file.getFile().getAbsolutePath());
                 
                 currentIndex++;
                 
@@ -429,6 +477,7 @@ public class Updater implements DownloadListener {
                         currentIndex + 1, numFiles));
                 
                 try {
+                    file.getFile().getParentFile().mkdirs();
                     file.deploy(log);
                 } catch (SecurityException e) {
                     logger.log(Level.WARNING, "Failed to deploy " + file, e);
@@ -515,46 +564,45 @@ public class Updater implements DownloadListener {
         
         askComponents();
         
-        try {
-            fireStatusChange("Downloading files...");
-            setSubprogress(0, 0.8);
-            downloadFiles();
-            
-            UninstallLog oldLog = new UninstallLog();
-            UninstallLog newLog = new UninstallLog();
-            newLog.setBaseDir(rootDir);
-            try {
-                oldLog.read(logFile);
-            } catch (IOException e) {
-            }
-
-            fireStatusChange("Installing...");
-            setSubprogress(0.8, 0.2);
-            deploy(newLog);
-
-            fireStatusChange("Removing old files...");
-            deleteOldFiles(oldLog, newLog);
-            
-            // Save install log
-            try {
-                newLog.write(logFile);
-            } catch (IOException e) {
-                logger.log(Level.WARNING, "Failed to write " + logFile, e);
-                throw new UpdateException("The uninstall log file could not be written to. " +
-                		"The update has been aborted.", e);
-            }
-        } finally {
-            // Cleanup
-            fireStatusChange("Cleaning up temporary files...");
-            for (FileGroup group : manifest.getFileGroups()) {
-                for (PackageFile file : group.getFiles()) {
-                    File tempFile = file.getTempFile();
-                    if (tempFile != null) {
-                        tempFile.delete();
-                    }
-                }
-            }
+        if (forced) {
+            // Clean the download cache directory if we are force downloading
+            Util.cleanDir(downloadDir);
         }
+        
+        logger.info("Downloading files...");
+        fireStatusChange("Downloading files...");
+        setSubprogress(0, 0.8);
+        downloadFiles();
+        
+        UninstallLog oldLog = new UninstallLog();
+        UninstallLog newLog = new UninstallLog();
+        newLog.setBaseDir(rootDir);
+        try {
+            oldLog.read(logFile);
+        } catch (IOException e) {
+        }
+
+        logger.info("Installing...");
+        fireStatusChange("Installing...");
+        setSubprogress(0.8, 0.2);
+        deploy(newLog);
+
+        logger.info("Removing old files...");
+        fireStatusChange("Removing old files...");
+        deleteOldFiles(oldLog, newLog);
+        
+        // Save install log
+        try {
+            newLog.write(logFile);
+        } catch (IOException e) {
+            logger.log(Level.WARNING, "Failed to write " + logFile, e);
+            throw new UpdateException("The uninstall log file could not be written to. " +
+            		"The update has been aborted.", e);
+        }
+
+        // Make sure to delete all the downloads if we're succeessful
+        Util.cleanDir(downloadDir);
+        downloadDir.delete();
     }
     
     /**

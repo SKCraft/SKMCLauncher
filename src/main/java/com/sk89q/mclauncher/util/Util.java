@@ -34,6 +34,8 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.jar.JarFile;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -302,6 +304,59 @@ public final class Util {
                     + port + url);
         } else {
             return new URL(baseUrl.toExternalForm().substring(0, lastSlash + 1) + url);
+        }
+    }
+
+    /**
+     * Get the digest hexadecimal string for a string.
+     * 
+     * @param str the string
+     * @param algorithm the algorithm
+     * @return the digest
+     */
+    public static String getDigestAsHex(String str, String algorithm) {
+        InputStream fis = null;
+        try {
+            MessageDigest complete = MessageDigest.getInstance(algorithm);
+            complete.update(str.getBytes());
+            return getHexString(complete.digest());
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        } finally {
+            Util.close(fis);
+        }
+    }
+
+    /**
+     * Get the hexadecimal representation of bytes.
+     * 
+     * @param b bytes
+     * @return the hex string
+     */
+    public static String getHexString(byte[] b) {
+        String result = "";
+        for (int i = 0; i < b.length; i++) {
+            result += Integer.toString((b[i] & 0xff) + 0x100, 16).substring(1);
+        }
+        return result;
+    }
+    
+    /**
+     * Delete everything inside a directory.
+     * 
+     * @param dir the directory
+     */
+    public static void cleanDir(File dir) {
+        if (!dir.exists()) {
+            return;
+        }
+        for (File f : dir.listFiles()) {
+            if (f.isDirectory()) {
+                cleanDir(f);
+                f.delete();
+            } else {
+                f.delete();
+            }
         }
     }
 

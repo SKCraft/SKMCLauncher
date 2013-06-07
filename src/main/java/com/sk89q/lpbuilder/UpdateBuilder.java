@@ -327,7 +327,7 @@ public class UpdateBuilder {
                     complete.update(buffer, 0, numRead);
                 }
             } while (numRead != -1);
-            return getHexString(complete.digest());
+            return Util.getHexString(complete.digest());
         } catch (NoSuchAlgorithmException e) {
             throw new IOException(e);
         } finally {
@@ -384,14 +384,6 @@ public class UpdateBuilder {
         } finally {
             Util.close(fos);
         }
-    }
-
-    private static String getHexString(byte[] b) {
-        String result = "";
-        for (int i = 0; i < b.length; i++) {
-            result += Integer.toString((b[i] & 0xff) + 0x100, 16).substring(1);
-        }
-        return result;
     }
 
     @SuppressWarnings("unused")
@@ -455,20 +447,6 @@ public class UpdateBuilder {
         }
     }
     
-    private static void cleanDir(File dir) {
-        if (!dir.exists()) {
-            return;
-        }
-        for (File f : dir.listFiles()) {
-            if (f.isDirectory()) {
-                cleanDir(f);
-                f.delete();
-            } else {
-                f.delete();
-            }
-        }
-    }
-    
     public static void main(String[] args) throws Throwable {
         SimpleLogFormatter.setAsFormatter();
 
@@ -522,7 +500,7 @@ public class UpdateBuilder {
             logger.info("Cleaning target directory");
             logger.info("---------------------------------------------------");
             
-            cleanDir(outputDir);
+            Util.cleanDir(outputDir);
 
             logger.info("Deleted the contents of " + outputDir.getAbsolutePath());
         }

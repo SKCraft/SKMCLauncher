@@ -52,6 +52,7 @@ import com.sk89q.mclauncher.update.UpdateCache;
 import com.sk89q.mclauncher.util.BasicArgsParser;
 import com.sk89q.mclauncher.util.BasicArgsParser.ArgsContext;
 import com.sk89q.mclauncher.util.ConsoleFrame;
+import com.sk89q.mclauncher.util.SimpleLogFormatter;
 import com.sk89q.mclauncher.util.Util;
 
 /**
@@ -109,6 +110,8 @@ public class Launcher {
         instance = this;
         
         System.setProperty("http.agent", "SKMCLauncher/" + VERSION + " (+http://www.sk89q.com)");
+        
+        SimpleLogFormatter.setAsFormatter();
         
         // Read options
         File base = getLauncherDataDir();
