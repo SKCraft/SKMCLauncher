@@ -165,27 +165,22 @@ public class GameLauncher  {
         
         logger.info("Now launching...");
         
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    LoaderCompat loaderCompat = new LoaderCompat(self);
-                    loaderCompat.installHooks();
-                    
-                    Class<?> cls = classLoader.loadClass("net.minecraft.client.MinecraftApplet");
-                    Applet game = (Applet) cls.newInstance();
-                    
-                    GameFrame frame = new GameFrame(windowDim);
-                    frame.setVisible(true);
-                    GameAppletContainer container = new GameAppletContainer(parameters, game, loaderCompat);
-                    frame.start(container);
-                } catch (Throwable e) {
-                    logger.log(Level.SEVERE, "Failed to launch", e);
-                    UIUtil.showError(null, "Launch error", "An error occurred while launching: " +
-                            e.getMessage() + "\n\n" + Util.getStackTrace(e));
-                }
-            }
-        });
+        try {
+            LoaderCompat loaderCompat = new LoaderCompat(self);
+            loaderCompat.installHooks();
+            
+            Class<?> cls = classLoader.loadClass("net.minecraft.client.MinecraftApplet");
+            Applet game = (Applet) cls.newInstance();
+            
+            GameFrame frame = new GameFrame(windowDim);
+            frame.setVisible(true);
+            GameAppletContainer container = new GameAppletContainer(parameters, game, loaderCompat);
+            frame.start(container);
+        } catch (Throwable e) {
+            logger.log(Level.SEVERE, "Failed to launch", e);
+            UIUtil.showError(null, "Launch error", "An error occurred while launching: " +
+                    e.getMessage() + "\n\n" + Util.getStackTrace(e));
+        }
     }
     
     private static void redirectLogger() {
