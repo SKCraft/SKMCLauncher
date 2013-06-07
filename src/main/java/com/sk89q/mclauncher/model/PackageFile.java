@@ -56,6 +56,18 @@ public abstract class PackageFile {
     private transient File file;
     private transient File tempFile;
     
+    public void inheritGenericProperties(PackageFile pattern) {
+        if (pattern.getComponentFilter() != null) {
+            setComponentFilter(pattern.getComponentFilter());
+        }
+        if (pattern.getOverwrite() != null) {
+            setOverwrite(pattern.getOverwrite());
+        }
+        if (pattern.getPlatform() != null) {
+            setPlatform(pattern.getPlatform());
+        }
+    }
+    
     @XmlAttribute
     public long getSize() {
         return size;
