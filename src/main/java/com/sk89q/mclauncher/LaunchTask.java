@@ -18,20 +18,14 @@
 
 package com.sk89q.mclauncher;
 
-import java.awt.Color;
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -42,22 +36,17 @@ import javax.swing.SwingUtilities;
 
 import com.sk89q.mclauncher.LoginSession.LoginException;
 import com.sk89q.mclauncher.LoginSession.OutdatedLauncherException;
-import com.sk89q.mclauncher.addons.Addon;
-import com.sk89q.mclauncher.addons.AddonsProfile;
 import com.sk89q.mclauncher.config.Configuration;
-import com.sk89q.mclauncher.config.Def;
 import com.sk89q.mclauncher.config.LauncherOptions;
-import com.sk89q.mclauncher.launch.GameLauncher;
+import com.sk89q.mclauncher.launch.LaunchProcessBuilder;
 import com.sk89q.mclauncher.model.UpdateManifest;
 import com.sk89q.mclauncher.update.CancelledUpdateException;
 import com.sk89q.mclauncher.update.UpdateCache;
 import com.sk89q.mclauncher.update.UpdateException;
 import com.sk89q.mclauncher.update.UpdateManifestFetcher;
 import com.sk89q.mclauncher.update.Updater;
-import com.sk89q.mclauncher.util.ConsoleFrame;
 import com.sk89q.mclauncher.util.SettingsList;
 import com.sk89q.mclauncher.util.UIUtil;
-import com.sk89q.mclauncher.util.Util;
 
 /**
  * Used for launching the game.
@@ -211,198 +200,31 @@ public class LaunchTask extends Task {
                 options.getSettings(), configuration.getSettings());
         
         // Find launcher path
-        String launcherPath;
-        try {
-            launcherPath = Launcher.class.getProtectionDomain()
-                    .getCodeSource().getLocation().toURI().getPath();
-        } catch (URISyntaxException e) {
-            throw new ExecutionException("The path to the launcher could not be discovered.", e);
-        }
         
         // Read some settings
         String username = !allowOfflineName && playOffline ? "Player" : this.username;
-        String runtimePath = Util.nullEmpty(settings.get(Def.JAVA_RUNTIME));
-        String wrapperPath = Util.nullEmpty(settings.get(Def.JAVA_WRAPPER_PROGRAM));
-        int minMem = settings.getInt(Def.JAVA_MIN_MEM, 128);
-        int maxMem = settings.getInt(Def.JAVA_MAX_MEM, 1024);
-        String[] extraArgs = settings.get(Def.JAVA_ARGS, "").split(" +");
-        String extraClasspath = Util.nullEmpty(settings.get(Def.JAVA_CLASSPATH));
-        final boolean showConsole = (this.showConsole || settings.getBool(Def.JAVA_CONSOLE, false));
-        final boolean relaunch = settings.getBool(Def.LAUNCHER_REOPEN, false);
-        final boolean coloredConsole = settings.getBool(Def.COLORED_CONSOLE, true);
-        final boolean consoleKillsProcess = settings.getBool(Def.CONSOLE_KILLS_PROCESS, true);
-        String validatedRuntimePath = "";
-        
-        // Figure out what to use for the Java runtime
-        if (runtimePath != null) {
-            File test = new File(runtimePath);
-            // Try the parent directory
-            if (!test.exists()) {
-                throw new ExecutionException("The configured Java runtime path '" + runtimePath + "' doesn't exist.");
-            } else if (test.isFile()) {
-                test = test.getParentFile();
-            }
-            File test2 = new File(test, "bin");
-            if (test2.isDirectory()) {
-                test = test2;
-            }
-            validatedRuntimePath = test.getAbsolutePath() + File.separator;
-        }
-        
-        // Set some things straight
-        String actualJar = activeJar != null ? activeJar : "minecraft.jar";
-        File actualWorkingDirectory = configuration.getBaseDir();
-        
-        if (!new File(configuration.getMinecraftDir(), "bin/" + actualJar).exists()) {
-            throw new ExecutionException("The game is not installed.");
-        }
-        
-        // Get addons
-        List<Addon> addons;
-        try {
-            AddonsProfile addonsProfile = configuration.getAddonsProfile(actualJar);
-            addonsProfile.read();
-            addons = addonsProfile.getEnabledAddons();
-        } catch (IOException e) {
-            throw new ExecutionException("Failed to get addons list: " + e.getMessage(), e);
-        }
-        
-        ArrayList<String> params = new ArrayList<String>();
-        
-        // Start with a wrapper
-        if (wrapperPath != null) {
-            params.add(wrapperPath);
-        }
-        
-        // Choose the java version that we want
-        params.add(validatedRuntimePath + "java");
-        
-        // Add memory options
-        if (minMem > 0) {
-            params.add("-Xms" + minMem + "M");
-        }
-        if (maxMem > 0) {
-            params.add("-Xmx" + maxMem + "M");
-        }
-        
-        // Add some Java flags
-        params.add("-Dsun.java2d.noddraw=true");
-        params.add("-Dsun.java2d.d3d=false");
-        params.add("-Dsun.java2d.opengl=false");
-        params.add("-Dsun.java2d.pmoffscreen=false");
-        if (settings.getBool(Def.LWJGL_DEBUG, false)) {
-            params.add("-Dorg.lwjgl.util.Debug=true");
-        }
-        
-        // Add extra arguments
-        for (String arg : extraArgs) {
-            arg = arg.trim();
-            if (arg.length() > 0) {
-                params.add(arg);
-            }
-        }
-        
-        // Add classpath
-        params.add("-classpath");
-        params.add(launcherPath + (extraClasspath != null ? File.pathSeparator + extraClasspath : ""));
-        
-        // Class to run
-        params.add(GameLauncher.class.getCanonicalName());
 
-        // Child launcher flags
-        params.add("-width");
-        params.add(String.valueOf(settings.getInt(Def.WINDOW_WIDTH, 300)));
-        params.add("-height");
-        params.add(String.valueOf(settings.getInt(Def.WINDOW_HEIGHT, 300)));
+        LaunchProcessBuilder builder = new LaunchProcessBuilder(
+                configuration, username, session);
+        builder.readSettings(settings);
+        builder.setActiveJar(activeJar);
+        builder.setDemo(demo);
+        builder.setAutoConnect(autoConnect);
         
-        // Child launcher arguments
-        params.add(actualWorkingDirectory.getAbsolutePath());
-        params.add(actualJar);
-        
-        ProcessBuilder procBuilder = new ProcessBuilder(params);
-        
-        // Have to do this for Windows here; can't do it in the launcher spawn
-        procBuilder.environment().put("APPDATA", actualWorkingDirectory.getAbsolutePath());
-        
-        // Start the baby!
-        final Process proc;
         try {
-            proc = procBuilder.start();
+            builder.launch();
         } catch (IOException e) {
-            throw new ExecutionException("The game could not be started: " + e.getMessage(), e);
+            throw new ExecutionException(e.getMessage(), e.getCause());
         }
         
-        // Create console
-        if (showConsole) {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    ConsoleFrame consoleFrame = new ConsoleFrame(
-                            10000, coloredConsole, proc, consoleKillsProcess);
-                    consoleFrame.setVisible(true);
-                    consoleFrame.consume(proc.getInputStream());
-                    consoleFrame.consume(proc.getErrorStream(), Color.RED);
-                }
-            });
-        }
-        
-        PrintStream out = new PrintStream(new BufferedOutputStream(proc.getOutputStream()));
-        
-        // Add parameters
-        out.println("@username=" + username);
-        out.println("@mppass=" + username);
-        out.println("@sessionid=" + (session.isValid() ? session.getSessionId() : ""));
-        if (demo) {
-            out.println("@demo=true");
-        }
-        if (settings.getBool(Def.WINDOW_FULLSCREEN, false)) {
-            out.println("@fullscreen=true");
-        }
-        if (autoConnect != null) {
-            String[] parts = autoConnect.split(":", 2);
-            if (parts.length == 1) {
-                out.println("@server=" + parts[0]);
-                out.println("@port=25565");
-            } else {
-                out.println("@server=" + parts[0]);
-                out.println("@port=" + parts[1]);
+        // A System.exit() call may fire before we get here
+
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                frame.dispose();
             }
-        }
-        
-        // Add enabled addons
-        for (Addon addon : addons) {
-            out.println("!" + addon.getFile().getAbsolutePath());
-        }
-        
-        out.close(); // Here it starts
-        
-        if (showConsole || relaunch) {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    frame.dispose();
-                }
-            });
-            
-            if (relaunch) {
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            if (!showConsole) {
-                                Util.consumeBlindly(proc.getInputStream());
-                                Util.consumeBlindly(proc.getErrorStream());
-                            }
-                            proc.waitFor();
-                        } catch (InterruptedException e) {
-                        }
-                        Launcher.startLauncherFrame();
-                    }
-                }).start();
-            }
-        } else {
-            System.exit(0);
-        }
+        });
     }
     
     /**

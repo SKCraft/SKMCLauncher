@@ -532,7 +532,7 @@ public class Launcher {
     /**
      * Start the launcher frame.
      */
-    static void startLauncherFrame() {
+    public static void startLauncherFrame() {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
