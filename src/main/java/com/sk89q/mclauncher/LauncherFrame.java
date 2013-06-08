@@ -371,6 +371,8 @@ public class LauncherFrame extends JFrame implements ListSelectionListener {
         configuration.updateLastLaunch();
         configuration.setLastJar(jar);
         
+        options.getConfigurations().sortByDate();
+        
         options.save();
 
         LaunchTask task = new LaunchTask(

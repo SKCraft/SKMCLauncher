@@ -172,6 +172,13 @@ public class ConfigurationList implements Iterable<Configuration>, TableModel, L
         register(config);
         return config;
     }
+    
+    public void sortByDate() {
+        Collections.sort(configurations);
+        fireTableChanged(new TableModelEvent(this));
+        fireListChanged(new ListDataEvent(this, ListDataEvent.CONTENTS_CHANGED, 
+                0, configurations.size() - 1));
+    }
 
     public Configuration getConfigurationAt(int i) {
         return configurations.get(i);
@@ -319,7 +326,7 @@ public class ConfigurationList implements Iterable<Configuration>, TableModel, L
 
     void afterUnmarshal(Unmarshaller u, Object parent) {
         Constants.register(this);
-        Collections.sort(configurations);
+        sortByDate();
     }
 
 }
