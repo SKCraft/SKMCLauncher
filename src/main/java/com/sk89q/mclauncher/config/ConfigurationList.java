@@ -318,6 +318,7 @@ public class ConfigurationList implements Iterable<Configuration>, TableModel, L
     }
 
     void afterUnmarshal(Unmarshaller u, Object parent) {
+        Constants.register(this);
         Collections.sort(configurations);
     }
 
