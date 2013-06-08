@@ -75,6 +75,7 @@ public class ConsoleFrame extends JFrame implements PasteCallback {
     private boolean running = true;
     
     private Process trackProc;
+    private boolean killProcess;
     private Handler loggerHandler;
     private JTextComponent textComponent;
     private JButton killButton;
@@ -121,6 +122,7 @@ public class ConsoleFrame extends JFrame implements PasteCallback {
         this.numLines = numLines;
         this.colorEnabled = colorEnabled;
         this.trackProc = proc;
+        this.killProcess = killProcess;
         
         this.highlightedAttributes = new SimpleAttributeSet();
         StyleConstants.setForeground(highlightedAttributes, Color.BLACK);
@@ -144,32 +146,39 @@ public class ConsoleFrame extends JFrame implements PasteCallback {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent event) {
-                if (trackProc != null && killProcess) {
-                    trackProc.destroy();
-                    trackProc = null;
-                }
-                if (trackProc == null) {
-                    running = false;
-                    
-                    // Tell threads waiting on us that we're done
-                    synchronized (self) {
-                        self.notifyAll();
-                    }
-                    
-                    if (trayIcon != null) {
-                        SystemTray.getSystemTray().remove(trayIcon);
-                    }
-                    
-                    if (loggerHandler != null) {
-                        rootLogger.removeHandler(loggerHandler);
-                    }
-                    
-                    event.getWindow().dispose();
-                } else {
-                    self.setVisible(false);
-                }
+                close();
             }
         });
+    }
+    
+    /**
+     * Try to close.
+     */
+    private void close() {
+        if (trackProc != null && killProcess) {
+            trackProc.destroy();
+            trackProc = null;
+        }
+        if (trackProc == null) {
+            running = false;
+            
+            // Tell threads waiting on us that we're done
+            synchronized (self) {
+                self.notifyAll();
+            }
+            
+            if (trayIcon != null) {
+                SystemTray.getSystemTray().remove(trayIcon);
+            }
+            
+            if (loggerHandler != null) {
+                rootLogger.removeHandler(loggerHandler);
+            }
+            
+            dispose();
+        } else {
+            self.setVisible(false);
+        }
     }
     
     /**
@@ -444,7 +453,13 @@ public class ConsoleFrame extends JFrame implements PasteCallback {
                             killButton.setEnabled(false);
                         }
                         if (minimizeButton != null) {
-                            minimizeButton.setEnabled(false);
+                            minimizeButton.setText("Close Log");
+                            minimizeButton.addActionListener(new ActionListener() {
+                                @Override
+                                public void actionPerformed(ActionEvent e) {
+                                    close();
+                                }
+                            });
                         }
                         if (trayIcon != null) {
                             trayIcon.setImage(trayClosedImage);
