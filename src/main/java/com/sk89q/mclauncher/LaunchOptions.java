@@ -126,7 +126,7 @@ public class LaunchOptions extends JPanel implements ListSelectionListener {
         playOfflineCheck = new JCheckBox("Play in offline mode");
         playOfflineCheck.setBorder(null);
     
-        showConsoleCheck = new JCheckBox("Launch with console");
+        showConsoleCheck = new JCheckBox("Show errors and messages");
         showConsoleCheck.setBorder(null);
     
         expandBtn = new LinkButton("More options...");
