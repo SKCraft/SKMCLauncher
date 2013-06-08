@@ -116,7 +116,7 @@ public class ConsoleFrame extends JFrame implements PasteCallback {
             final Process proc, final boolean killProcess) {
         super("Messages and Errors");
 
-        UIUtil.setIconImage(this, "/resources/icon.png");
+        UIUtil.setIconImage(this, "/resources/tray_ok.png");
         
         this.numLines = numLines;
         this.colorEnabled = colorEnabled;
@@ -449,6 +449,8 @@ public class ConsoleFrame extends JFrame implements PasteCallback {
                         if (trayIcon != null) {
                             trayIcon.setImage(trayClosedImage);
                         }
+
+                        UIUtil.setIconImage(self, "/resources/tray_closed.png");
                         reshowWindowListener.actionPerformed(null);
                     }
                 });
