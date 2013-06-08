@@ -367,8 +367,6 @@ public class Launcher {
      * will appear in the console.
      */
     public static void showConsole() {
-        if (consoleFrame != null) return;
-
         final boolean colorEnabled = Launcher.getInstance().getOptions()
                 .getSettings().getBool(Def.COLORED_CONSOLE, true);
         
@@ -377,12 +375,15 @@ public class Launcher {
                 @Override
                 public void run() {
                     ConsoleFrame frame = consoleFrame;
-                    if (frame == null || frame.isActive()) {
+                    if (frame == null || !frame.isRunning()) {
                         frame = new ConsoleFrame(10000, colorEnabled);
                         consoleFrame = frame;
                         frame.setTitle("Launcher Debugging Console");
                         frame.registerLoggerHandler();
                         frame.setVisible(true);
+                    } else {
+                        frame.setVisible(true);
+                        frame.requestFocus();
                     }
                 }
             });

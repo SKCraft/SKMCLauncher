@@ -106,7 +106,12 @@ public class UIUtil {
      * @param message message
      */
     public static void showError(Component component, String title, String message) {
-        JOptionPane.showMessageDialog(component, message, title, JOptionPane.ERROR_MESSAGE);;
+        String escaped = message
+                .replace(">", "&gt;")
+                .replace("<", "&lt;")
+                .replace("&", "&amp;");
+        message = "<html>" + escaped;
+        JOptionPane.showMessageDialog(component, message, title, JOptionPane.ERROR_MESSAGE);
     }
     
     /**
