@@ -36,6 +36,7 @@ import javax.swing.JFrame;
 import javax.swing.JLayeredPane;
 import javax.swing.JList;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JProgressBar;
@@ -209,6 +210,24 @@ public class LauncherFrame extends JFrame implements ListSelectionListener {
         leftPanel.add(topPanel, BorderLayout.NORTH);
 
         // Add listener
+        configurationList.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                maybeShowPopup(e);
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                maybeShowPopup(e);
+            }
+
+            private void maybeShowPopup(MouseEvent e) {
+                if (e.isPopupTrigger()) {
+                    popupConfigurationMenu(e.getComponent(), e.getX(), e.getY());
+                }
+            }
+        });
+        
         installBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -304,6 +323,59 @@ public class LauncherFrame extends JFrame implements ListSelectionListener {
         newsProgress.setIndeterminate(true);
         newsPanel.add(newsProgress, new Integer(2));
         NewsFetcher.update(newsView, newsProgress);
+    }
+    
+    /**
+     * Open the configuration menu.
+     * 
+     * @param component component to open from
+     */
+    private void popupConfigurationMenu(Component component, int x, int y) {
+        final LauncherFrame self = this;
+        final Configuration configuration = getCurrentConfiguration();
+        
+        if (configuration != null) {
+            JPopupMenu popup = new JPopupMenu();
+            JMenuItem menuItem;
+            
+            menuItem = new JMenuItem("Edit '" + configuration.getName() + "'...");
+            menuItem.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    new ConfigurationDialog(self, configuration)
+                            .setVisible(true);
+                }
+            });
+            popup.add(menuItem);
+            
+            menuItem = new JMenuItem("Delete '" + configuration.getName() + "'...");
+            menuItem.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    if (JOptionPane
+                            .showConfirmDialog(
+                                    self,
+                                    "Are you sure you want to remove the selected configuration? No files will be deleted.",
+                                    "Remove", JOptionPane.YES_NO_OPTION) != 0)
+                        return;
+                    
+                    if (configuration.isBuiltIn()) {
+                        UIUtil.showError(
+                                self,
+                                "Built-in configuration",
+                                "The configuration '"
+                                        + configuration.getName()
+                                        + "' is built-in and cannot be removed.");
+                        return;
+                    }
+                    
+                    options.getConfigurations().remove(configuration);
+                }
+            });
+            popup.add(menuItem);
+
+            popup.show(component, x, y);
+        }
     }
 
     /**

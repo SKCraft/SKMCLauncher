@@ -211,7 +211,7 @@ public class OptionsDialog extends JDialog {
         newBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                new ConfigurationDialog(self, options.getConfigurations())
+                new ConfigurationDialog(self)
                         .setVisible(true);
             }
         });
@@ -236,8 +236,7 @@ public class OptionsDialog extends JDialog {
 
                 Configuration config = options.getConfigurations()
                         .getConfigurationAt(min);
-                new ConfigurationDialog(self, options.getConfigurations(),
-                        config).setVisible(true);
+                new ConfigurationDialog(self, config).setVisible(true);
             }
         });
 

@@ -24,6 +24,7 @@ import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -50,6 +51,7 @@ import javax.swing.filechooser.FileFilter;
 
 import com.sk89q.mclauncher.config.Configuration;
 import com.sk89q.mclauncher.config.ConfigurationList;
+import com.sk89q.mclauncher.config.LauncherOptions;
 import com.sk89q.mclauncher.config.SettingsList;
 import com.sk89q.mclauncher.util.UIUtil;
 
@@ -61,60 +63,61 @@ import com.sk89q.mclauncher.util.UIUtil;
 public class ConfigurationDialog extends JDialog {
 
     private static final long serialVersionUID = -7347791965966294361L;
-    private OptionsDialog optionsDialog;
-    private ConfigurationList configsManager;
+    private final Window dialog;
+    private final LauncherOptions options;
+    private final ConfigurationList configsManager;
+    private final SettingsList settings;
+    private Configuration configuration;
     private JButton browseBtn;
     private JTextField nameText;
     private JTextField pathText;
     private JCheckBox customPathCheck;
     private JTextField urlText;
     private JCheckBox customUpdateCheck;
-    private Configuration configuration;
-    private SettingsList settings;
     private List<OptionsPanel> optionsPanels = new ArrayList<OptionsPanel>();
     
     /**
      * Start editing a given configuration.
      * 
      * @param owner owning dialog
-     * @param configsManager configurations manager
      * @param configuration configuration to edit
      */
-    public ConfigurationDialog(OptionsDialog owner, ConfigurationList configsManager,
-            Configuration configuration) {
-        super(owner, "Edit Configuration", true);
+    public ConfigurationDialog(Window owner, Configuration configuration) {
+        super(owner, "Edit Configuration", ModalityType.APPLICATION_MODAL);
+        this.dialog = owner;
+        this.options = Launcher.getInstance().getOptions();
+        this.configsManager = options.getConfigurations();
         this.configuration = configuration;
         this.settings = configuration.getSettings();
-        setup(owner, configsManager);
+        setup();
     }
 
     /**
      * Start a new configuration.
      * 
      * @param owner owning dialog
-     * @param configsManager configurations manager
      */
-    public ConfigurationDialog(OptionsDialog owner, ConfigurationList configsManager) {
-        super(owner, "New Configuration", true);
+    public ConfigurationDialog(Window owner) {
+        super(owner, "New Configuration", ModalityType.APPLICATION_MODAL);
+        this.dialog = owner;
+        this.options = Launcher.getInstance().getOptions();
+        this.configsManager = options.getConfigurations();
+        this.configuration = null;
         this.settings = new SettingsList();
-        setup(owner, configsManager);
+        setup();
     }
     
     /**
      * Setup.
      * 
-     * @param owner owning dialog
      * @param configsManager configurations manager
      */
-    private void setup(OptionsDialog owner, ConfigurationList configsManager) {
-        this.optionsDialog = owner;
-        this.configsManager = configsManager;
-        
+    private void setup() {
         setResizable(false);
         buildUI();
         pack();
         setSize(400, 500);
-        setLocationRelativeTo(owner);
+        setLocationRelativeTo(dialog);
 
         for (OptionsPanel panel : optionsPanels) {
             panel.copySettingsToFields();
@@ -370,7 +373,7 @@ public class ConfigurationDialog extends JDialog {
             }
         }
         
-        optionsDialog.save(false);
+        options.save();
         
         return true;
     }
