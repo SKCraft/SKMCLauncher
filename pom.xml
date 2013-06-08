@@ -148,13 +148,14 @@
         <artifactId>osxappbundle-maven-plugin</artifactId>
         <version>1.0-alpha-2</version>
         <configuration>
-          <bundleName>${project.build.finalName}</bundleName>
+          <bundleName>${project.name}</bundleName>
           <version>${project.version}</version>
           <internetEnable>true</internetEnable>
           <mainClass>com.sk89q.mclauncher.Launcher</mainClass>
           <javaApplicationStub>${basedir}/src/main/resources/JavaApplicationStub</javaApplicationStub>
           <jvmVersion>1.6+</jvmVersion>
           <zipFile>${project.build.directory}/${project.build.finalName}.app.zip</zipFile>
+          <diskImageFile>${project.build.directory}/${project.build.finalName}.dmg</diskImageFile>
           <iconFile>icon.icns</iconFile>
         </configuration>
         <executions>
@@ -163,6 +164,46 @@
             <goals>
               <goal>bundle</goal>
             </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.bluestemsoftware.open.maven.plugin</groupId>
+        <artifactId>launch4j-plugin</artifactId>
+        <version>1.5.0.0</version>
+        <executions>
+          <execution>
+            <id>l4j-gui</id>
+            <phase>package</phase>
+            <goals>
+              <goal>launch4j</goal>
+            </goals>
+            <configuration>
+              <headerType>gui</headerType>
+              <outfile>${project.build.directory}/${project.build.finalName}.exe</outfile>
+              <jar>target/${project.build.finalName}.jar</jar>
+              <errTitle>${project.name} Error</errTitle>
+              <classPath>
+                <mainClass>com.sk89q.mclauncher.Launcher</mainClass>
+              </classPath>
+              <icon>${basedir}/icon.ico</icon>
+              <jre>
+                <minVersion>1.6.0</minVersion>
+                <initialHeapSize>32</initialHeapSize>
+                <maxHeapSize>1024</maxHeapSize>
+              </jre>
+              <versionInfo>
+                <fileVersion>1.0.0.0</fileVersion> <!-- Cannot use ${project.version} -->
+                <txtFileVersion>1.0.0.0</txtFileVersion>
+                <productVersion>1.0.0.0</productVersion>
+                <txtProductVersion>1.0.0.0</txtProductVersion>
+                <fileDescription>${project.name}</fileDescription>
+                <copyright>http://github.com/sk89q/skmclauncher</copyright>
+                <productName>${project.name}</productName>
+                <internalName>SKMCLauncher</internalName>
+                <originalFilename>${project.build.finalName}.exe</originalFilename>
+              </versionInfo>
+            </configuration>
           </execution>
         </executions>
       </plugin>
