@@ -45,6 +45,7 @@ import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextPane;
@@ -59,6 +60,8 @@ import javax.swing.text.JTextComponent;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 
+import com.sk89q.mclauncher.Launcher;
+import com.sk89q.mclauncher.config.Def;
 import com.sk89q.mclauncher.util.PastebinPoster.PasteCallback;
 
 /**
@@ -152,10 +155,36 @@ public class ConsoleFrame extends JFrame implements PasteCallback {
     }
     
     /**
+     * Confirm a force kill attempt.
+     * 
+     * @return true to continue force closing
+     */
+    private boolean confirmKill() {
+        boolean confirmKill = 
+                Launcher.getInstance().getOptions().getSettings().getBool(
+                        Def.CONSOLE_CONFIRM_KILL, true);// Confirm the kill process
+        
+        if (confirmKill && JOptionPane
+                .showConfirmDialog(
+                        self,
+                        "Are you sure? If you're in a single player game, this can " +
+                        "make you lose your progress!",
+                        "Force Close", JOptionPane.YES_NO_OPTION) != 0) {
+            return false;
+        }
+        
+        return true;
+    }
+    
+    /**
      * Try to close.
      */
     private void close() {
         if (trackProc != null && killProcess) {
+            if (!confirmKill()) {
+                return;
+            }
+            
             trackProc.destroy();
             trackProc = null;
         }
@@ -235,9 +264,8 @@ public class ConsoleFrame extends JFrame implements PasteCallback {
         });
         
         if (trackProc != null) {
-            killButton = new JButton("Kill Process");
-            minimizeButton = new JButton("Hide Log");
-            UIUtil.equalWidth(killButton, minimizeButton);
+            killButton = new JButton("Force Close");
+            minimizeButton = new JButton("Hide Window");
             
             buttonsPanel.add(Box.createHorizontalGlue());
             buttonsPanel.add(killButton);
@@ -453,9 +481,17 @@ public class ConsoleFrame extends JFrame implements PasteCallback {
                 try {
                     int code = trackProc.waitFor();
                     out.println("Process ended with code " + code);
+                    out.println("Minecraft is no longer running! " +
+                            "Click 'Close Window' to close this window.");
+                    out.println("Did you know: In 'Options', under 'Environment', you " +
+                    		"can disable this window from appearing.");
                     trackProc = null;
                 } catch (InterruptedException e) {
                     out.println("Process tracking interrupted!");
+                }
+                
+                if (!running) {
+                    return;
                 }
                 
                 SwingUtilities.invokeLater(new Runnable() {
@@ -464,8 +500,9 @@ public class ConsoleFrame extends JFrame implements PasteCallback {
                         if (killButton != null) {
                             killButton.setEnabled(false);
                         }
+                        
                         if (minimizeButton != null) {
-                            minimizeButton.setText("Close Log");
+                            minimizeButton.setText("Close Window");
                             minimizeButton.addActionListener(new ActionListener() {
                                 @Override
                                 public void actionPerformed(ActionEvent e) {
@@ -473,6 +510,7 @@ public class ConsoleFrame extends JFrame implements PasteCallback {
                                 }
                             });
                         }
+                        
                         if (trayIcon != null) {
                             trayIcon.setImage(trayClosedImage);
                         }
@@ -517,6 +555,10 @@ public class ConsoleFrame extends JFrame implements PasteCallback {
     private ActionListener killProcessListener = new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
+            if (!confirmKill()) {
+                return;
+            }
+            
             if (killButton != null) {
                 killButton.setEnabled(false);
             }
