@@ -258,7 +258,7 @@ public class UpdateBuilder {
             buckets.put(archiveName, bucket);
         }
         bucket.inheritGenericProperties(packageFile);
-        bucket.getContents().add(file);
+        bucket.queue(file);
     }
 
     /**
@@ -281,9 +281,8 @@ public class UpdateBuilder {
             logger.info("-> " + filename);
             
             ZipBucket bucket = entry.getValue();
-            bucket.writeContents(updateDir, target);
-            bucket.setSize(target.length());
-            bucket.setVersion(getVersionString(target));
+            bucket.writeContents(updateDir, target); // This also sets a version
+            bucket.setSize(target.length());;
             bucket.setFilename(filename);
 
             // Match patterns and apply properties
@@ -306,15 +305,15 @@ public class UpdateBuilder {
     }
 
     /**
-     * Generate the version string for a file.
+     * Generate the version digest for a file.
      * 
-     * <p>Currently, this generates an MD5 hash.</p>
+     * <p>Currently, this generates an MD5 digest.</p>
      * 
      * @param file the file
-     * @return a version string
+     * @return a version digest
      * @throws IOException on I/O exception
      */
-    public static String getVersionString(File file) throws IOException {
+    public static byte[] getVersionDigest(File file) throws IOException {
         InputStream fis = null;
         try {
             fis = new FileInputStream(file);
@@ -327,12 +326,25 @@ public class UpdateBuilder {
                     complete.update(buffer, 0, numRead);
                 }
             } while (numRead != -1);
-            return Util.getHexString(complete.digest());
+            return complete.digest();
         } catch (NoSuchAlgorithmException e) {
             throw new IOException(e);
         } finally {
             Util.close(fis);
         }
+    }
+
+    /**
+     * Generate the version string for a file.
+     * 
+     * <p>Currently, this generates an MD5 hash.</p>
+     * 
+     * @param file the file
+     * @return a version string
+     * @throws IOException on I/O exception
+     */
+    public static String getVersionString(File file) throws IOException {
+        return Util.getHexString(getVersionDigest(file));
     }
     
     /**

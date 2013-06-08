@@ -22,26 +22,41 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
-import javax.xml.bind.annotation.XmlTransient;
 
 import com.sk89q.mclauncher.model.Archive;
 import com.sk89q.mclauncher.util.Util;
 
 class ZipBucket extends Archive {
     
-    private final List<File> contents = new ArrayList<File>();
+    private final List<QueuedFile> contents = new ArrayList<QueuedFile>();
 
-    @XmlTransient
-    public List<File> getContents() {
-        return contents;
+    void queue(File file) {
+        QueuedFile q = new QueuedFile();
+        q.file = file;
+        contents.add(q);
     }
 
     public void writeContents(File baseDir, File target) throws IOException {
+        MessageDigest digest;
+        try {
+            digest = MessageDigest.getInstance("MD5");
+        } catch (NoSuchAlgorithmException e) {
+            throw new IOException(e);
+        }
+
+        // Make more deterministic
+        for (QueuedFile q : contents) {
+            q.relPath = getRelative(baseDir, q.file);
+        }
+        Collections.sort(contents);
+        
         FileOutputStream fos = null;
         ZipOutputStream zip = null;
         FileInputStream fis = null;
@@ -51,16 +66,24 @@ class ZipBucket extends Archive {
             fos = new FileOutputStream(target);
             zip = new ZipOutputStream(fos);
 
-            for (File file : contents) {
-                zip.putNextEntry(new ZipEntry(getRelative(baseDir, file)));
+            for (QueuedFile q : contents) {
+                zip.putNextEntry(new ZipEntry(q.relPath));
                 
-                fis = new FileInputStream(file);
+                // Add the path and digest of the file to this ZIP's digest
+                digest.update(q.relPath.getBytes());
+                digest.update((byte) 0);
+                digest.update(UpdateBuilder.getVersionDigest(q.file));
+                
+                fis = new FileInputStream(q.file);
                 int count;
                 while ((count = fis.read(buf)) > 0) {
                     zip.write(buf, 0, count);
                 }
                 Util.close(fis);
             }
+            
+            // Set the version
+            setVersion(Util.getHexString(digest.digest()));
         } finally {
             Util.close(zip);
             Util.close(fos);
@@ -70,6 +93,16 @@ class ZipBucket extends Archive {
 
     private static String getRelative(File base, File path) {
         return base.toURI().relativize(path.toURI()).getPath();
+    }
+    
+    private static class QueuedFile implements Comparable<QueuedFile> {
+        public String relPath;
+        public File file;
+
+        @Override
+        public int compareTo(QueuedFile o) {
+            return relPath.compareTo(o.relPath);
+        }
     }
 
 }
