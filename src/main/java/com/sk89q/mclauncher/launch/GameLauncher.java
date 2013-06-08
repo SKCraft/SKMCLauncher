@@ -64,10 +64,22 @@ public class GameLauncher  {
     
     private GameLauncher(File baseDir, String activeJar) {
         logger.info("SK's Minecraft Launcher, v" + Launcher.VERSION);
+        logJavaInformation();
         
         this.baseDir = baseDir;
         this.actualDir = Launcher.toMinecraftDir(baseDir);
         this.activeJar = activeJar;
+    }
+    
+    private void logJavaInformation() {
+        Runtime runtime = Runtime.getRuntime();
+        
+        logger.info("-------------------------------------------------");
+        logger.info("Java version: " + System.getProperty("java.version"));
+        logger.info("Java architecture: " + System.getProperty("sun.arch.data.model"));
+        logger.info("Total memory: " + runtime.totalMemory());
+        logger.info("Maximum memory: " + runtime.maxMemory());
+        logger.info("-------------------------------------------------");
     }
     
     public void setParameter(String key, String val) {
