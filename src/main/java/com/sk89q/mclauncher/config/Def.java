@@ -28,7 +28,7 @@ public class Def {
     public static final String FAST_TEST = "addons.test.fast";
     public static final String LOCAL_CONSOLE = "console.local";
     public static final String COLORED_CONSOLE = "console.colored";
-    public static final String CONSOLE_KILLS_PROCESS = "console.kill-process";
+    public static final String CONSOLE_KILLS_PROCESS = "console.kill-process-if-closed";
     public static final String LAUNCHER_NO_NEWS = "launcher.newsless";
     public static final String LAUNCHER_HIDE_NEWS = "launcher.hidenews";
     public static final String LAUNCHER_ALWAYS_MORE_OPTIONS = "launcher.always-more-options";

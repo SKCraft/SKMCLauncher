@@ -126,7 +126,7 @@ public class LaunchOptions extends JPanel implements ListSelectionListener {
         playOfflineCheck = new JCheckBox("Play in offline mode");
         playOfflineCheck.setBorder(null);
     
-        showConsoleCheck = new JCheckBox("Show errors and messages");
+        showConsoleCheck = new JCheckBox("Show messages and errors");
         showConsoleCheck.setBorder(null);
     
         expandBtn = new LinkButton("More options...");
@@ -156,6 +156,7 @@ public class LaunchOptions extends JPanel implements ListSelectionListener {
         jarCombo.setVisible(false);
         forceUpdateCheck.setVisible(false);
         changeComponentsCheck.setVisible(false);
+        showConsoleCheck.setVisible(false);
         playOfflineCheck.setVisible(false);
     
         userText.addActionListener(new ActionListener() {
@@ -221,6 +222,7 @@ public class LaunchOptions extends JPanel implements ListSelectionListener {
                 jarCombo.setVisible(true);
                 forceUpdateCheck.setVisible(true);
                 changeComponentsCheck.setVisible(true);
+                showConsoleCheck.setVisible(true);
                 playOfflineCheck.setVisible(true);
                 // registerAccount.setVisible(true);
             }

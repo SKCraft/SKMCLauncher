@@ -24,6 +24,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryMXBean;
+import java.lang.management.RuntimeMXBean;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -72,13 +75,24 @@ public class GameLauncher  {
     }
     
     private void logJavaInformation() {
-        Runtime runtime = Runtime.getRuntime();
-        
+        logger.info("-------------------------------------------------");
+        RuntimeMXBean runtimeBean = ManagementFactory.getRuntimeMXBean();
+        logger.info("Java arguments: " + runtimeBean.getInputArguments());
+        logger.info("Library path: " + runtimeBean.getLibraryPath());
         logger.info("-------------------------------------------------");
         logger.info("Java version: " + System.getProperty("java.version"));
         logger.info("Java architecture: " + System.getProperty("sun.arch.data.model"));
-        logger.info("Total memory: " + runtime.totalMemory());
-        logger.info("Maximum memory: " + runtime.maxMemory());
+        logger.info("JVM: " + runtimeBean.getVmName() + " version " + 
+        runtimeBean.getVmVersion() + " (vendor: "+ runtimeBean.getVmVendor() + ")");
+        MemoryMXBean mem = ManagementFactory.getMemoryMXBean();
+        logger.info(String.format("HEAP initial: %d MB", 
+                mem.getHeapMemoryUsage().getInit() / 1024 / 1024));
+        logger.info(String.format("HEAP maximum: %d MB", 
+                mem.getHeapMemoryUsage().getMax() / 1024 / 1024));
+        logger.info(String.format("NON-HEAP initial: %d MB", 
+                mem.getNonHeapMemoryUsage().getInit() / 1024 / 1024));
+        logger.info(String.format("NON-HEAP maximum: %d MB", 
+                mem.getNonHeapMemoryUsage().getMax() / 1024 / 1024));
         logger.info("-------------------------------------------------");
     }
     

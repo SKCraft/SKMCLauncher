@@ -51,6 +51,8 @@ public class LaunchProcessBuilder {
     private int windowWidth = 300;
     private int windowHeight = 300;
     
+    private ConsoleFrame consoleFrame;
+    
     public LaunchProcessBuilder(Configuration configuration, 
             String username, LoginSession session) {
         this.configuration = configuration;
@@ -236,7 +238,7 @@ public class LaunchProcessBuilder {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                    ConsoleFrame consoleFrame = new ConsoleFrame(
+                    consoleFrame = new ConsoleFrame(
                             10000, coloredConsole, proc, consoleKillsProcess);
                     consoleFrame.setVisible(true);
                     consoleFrame.consume(proc.getInputStream());
@@ -286,6 +288,9 @@ public class LaunchProcessBuilder {
                                 Util.consumeBlindly(proc.getErrorStream());
                             }
                             proc.waitFor();
+                            if (consoleFrame != null) {
+                                consoleFrame.waitFor();
+                            }
                         } catch (InterruptedException e) {
                         }
                         Launcher.startLauncherFrame();

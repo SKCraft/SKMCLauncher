@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <settings>
     <setting key="console.colored">true</setting>
-    <setting key="console.kill-process">true</setting>
+    <setting key="console.kill-process-if-closed">false</setting>
     <setting key="java.arguments"/>
     <setting key="java.classpath"/>
     <setting key="java.console">false</setting>

@@ -22,6 +22,7 @@ import java.awt.Component;
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -158,19 +159,35 @@ public class UIUtil {
     }
 
     /**
+     * Try to read an embedded image.
+     * 
+     * @param path path
+     * @return the image
+     */
+    public static BufferedImage readIconImage(String path) {
+        InputStream in = null;
+        try {
+            in = Launcher.class.getResourceAsStream(path);
+            if (in != null) {
+                return ImageIO.read(in);
+            }
+        } catch (IOException e) {
+        } finally {
+            Util.close(in);
+        }
+        return null;
+    }
+
+    /**
      * Try to set the icon on a frame from an embedded image.
      * 
      * @param frame the frame
      * @param path path
      */
     public static void setIconImage(JFrame frame, String path) {
-        try {
-            InputStream in = Launcher.class
-                    .getResourceAsStream(path);
-            if (in != null) {
-                frame.setIconImage(ImageIO.read(in));
-            }
-        } catch (IOException e) {
+        BufferedImage image = readIconImage(path);
+        if (image != null) {
+            frame.setIconImage(image);
         }
     }
 
