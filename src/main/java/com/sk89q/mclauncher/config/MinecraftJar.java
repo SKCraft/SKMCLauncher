@@ -1,20 +1,19 @@
-package com.sk89q.mclauncher;
+package com.sk89q.mclauncher.config;
+
+import java.io.File;
 
 import com.sk89q.mclauncher.util.Util;
-import java.io.File;
 
 /**
  * Represents a jar that contains the main Minecraft game.
- *
- * @author md_5
  */
 public class MinecraftJar {
 
     private final File file;
     private String version;
 
-    public MinecraftJar(File file) {
-        this.file = file;
+    public MinecraftJar(File f) {
+        this.file = f;
     }
 
     public File getFile() {

@@ -55,6 +55,9 @@ import javax.swing.filechooser.FileFilter;
 import com.sk89q.mclauncher.addons.Addon;
 import com.sk89q.mclauncher.addons.AddonsProfile;
 import com.sk89q.mclauncher.config.Configuration;
+import com.sk89q.mclauncher.config.Def;
+import com.sk89q.mclauncher.config.MinecraftJar;
+import com.sk89q.mclauncher.config.SettingsList;
 import com.sk89q.mclauncher.util.UIUtil;
 
 /**
@@ -98,9 +101,6 @@ public class AddonManagerDialog extends JDialog {
         pack();
         setSize(550, 350);
         setLocationRelativeTo(owner);
-
-        // Populate the jar list
-        populateJarList();
 
         // Select a JAR
         for (int i = 0; i < jarCombo.getItemCount(); i++) {
@@ -216,11 +216,15 @@ public class AddonManagerDialog extends JDialog {
         if (worker.isAlive()) return;
         if (!checkAddonsProfileLoaded()) return;
         
+        SettingsList settings = Launcher.getInstance().getOptions().getSettings();
+        
         // Ask for a file.
         JFileChooser chooser = new JFileChooser();
         chooser.setDialogTitle("Select addon to install");
-        File lastFolder = Launcher.getInstance().getOptions().getLastInstallDir(); 
-        if (lastFolder != null) chooser.setCurrentDirectory(lastFolder);
+        String lastFolder = settings.get(Def.LAST_INSTALL_DIR); 
+        if (lastFolder != null) 
+            chooser.setCurrentDirectory(new File(lastFolder));
+        
         chooser.setFileFilter(new FileFilter() {
             @Override
             public boolean accept(File pathname) {
@@ -242,8 +246,8 @@ public class AddonManagerDialog extends JDialog {
         });
         
         int returnVal = chooser.showOpenDialog(this);
-        Launcher.getInstance().getOptions().setLastInstallDir(
-                chooser.getCurrentDirectory());
+        settings.set(Def.LAST_INSTALL_DIR, 
+                chooser.getCurrentDirectory().getAbsolutePath());
         
         // Proceed with installation
         if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -342,6 +346,7 @@ public class AddonManagerDialog extends JDialog {
         panel.add(Box.createHorizontalStrut(5));
 
         jarCombo = new JComboBox();
+        jarCombo.setModel(configuration.getJars());
         panel.add(jarCombo);
 
         panel.add(Box.createHorizontalGlue());
@@ -502,8 +507,9 @@ public class AddonManagerDialog extends JDialog {
                 saveAddonsProfile();
                 Launcher.getInstance().getOptions().save();
                 self.dispose();
-                launcherFrame.setShowConsole(true);
-                launcherFrame.launch(null, true);
+                
+                launcherFrame.getLaunchSettings().setTestMode();
+                launcherFrame.launch();
             }
         });
 
@@ -526,15 +532,6 @@ public class AddonManagerDialog extends JDialog {
         UIUtil.equalWidth(launchBtn, testBtn, okBtn);
 
         return panel;
-    }
-
-    /**
-     * Popular the active JAR combo box with entries.
-     */
-    private void populateJarList() {
-        for (MinecraftJar jar : configuration.getJars()) {
-            jarCombo.addItem(jar);
-        }
     }
 
 }

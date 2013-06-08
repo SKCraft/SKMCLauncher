@@ -49,8 +49,8 @@ import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
 
 import com.sk89q.mclauncher.config.Configuration;
-import com.sk89q.mclauncher.config.ConfigurationsManager;
-import com.sk89q.mclauncher.util.SettingsList;
+import com.sk89q.mclauncher.config.ConfigurationList;
+import com.sk89q.mclauncher.config.SettingsList;
 import com.sk89q.mclauncher.util.UIUtil;
 
 /**
@@ -62,7 +62,7 @@ public class ConfigurationDialog extends JDialog {
 
     private static final long serialVersionUID = -7347791965966294361L;
     private OptionsDialog optionsDialog;
-    private ConfigurationsManager configsManager;
+    private ConfigurationList configsManager;
     private JButton browseBtn;
     private JTextField nameText;
     private JTextField pathText;
@@ -80,7 +80,7 @@ public class ConfigurationDialog extends JDialog {
      * @param configsManager configurations manager
      * @param configuration configuration to edit
      */
-    public ConfigurationDialog(OptionsDialog owner, ConfigurationsManager configsManager,
+    public ConfigurationDialog(OptionsDialog owner, ConfigurationList configsManager,
             Configuration configuration) {
         super(owner, "Edit Configuration", true);
         this.configuration = configuration;
@@ -94,7 +94,7 @@ public class ConfigurationDialog extends JDialog {
      * @param owner owning dialog
      * @param configsManager configurations manager
      */
-    public ConfigurationDialog(OptionsDialog owner, ConfigurationsManager configsManager) {
+    public ConfigurationDialog(OptionsDialog owner, ConfigurationList configsManager) {
         super(owner, "New Configuration", true);
         this.settings = new SettingsList();
         setup(owner, configsManager);
@@ -106,7 +106,7 @@ public class ConfigurationDialog extends JDialog {
      * @param owner owning dialog
      * @param configsManager configurations manager
      */
-    private void setup(OptionsDialog owner, ConfigurationsManager configsManager) {
+    private void setup(OptionsDialog owner, ConfigurationList configsManager) {
         this.optionsDialog = owner;
         this.configsManager = configsManager;
         
@@ -357,7 +357,8 @@ public class ConfigurationDialog extends JDialog {
         
         if (configuration == null) { // New configuration
             String id = UUID.randomUUID().toString();
-            Configuration config = new Configuration(id, name, pathStr, updateUrl, true);
+            Configuration config = Configuration.createCustom(
+                    id, name, pathStr, updateUrl);
             config.setSettings(settings);
             configsManager.register(config);
             this.configuration = config;

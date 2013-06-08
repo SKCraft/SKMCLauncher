@@ -37,7 +37,9 @@ import javax.swing.SwingUtilities;
 import com.sk89q.mclauncher.LoginSession.LoginException;
 import com.sk89q.mclauncher.LoginSession.OutdatedLauncherException;
 import com.sk89q.mclauncher.config.Configuration;
-import com.sk89q.mclauncher.config.LauncherOptions;
+import com.sk89q.mclauncher.config.DefaultJar;
+import com.sk89q.mclauncher.config.MinecraftJar;
+import com.sk89q.mclauncher.config.SettingsList;
 import com.sk89q.mclauncher.launch.LaunchProcessBuilder;
 import com.sk89q.mclauncher.model.UpdateManifest;
 import com.sk89q.mclauncher.update.CancelledUpdateException;
@@ -45,7 +47,6 @@ import com.sk89q.mclauncher.update.UpdateCache;
 import com.sk89q.mclauncher.update.UpdateException;
 import com.sk89q.mclauncher.update.UpdateManifestFetcher;
 import com.sk89q.mclauncher.update.Updater;
-import com.sk89q.mclauncher.util.SettingsList;
 import com.sk89q.mclauncher.util.UIUtil;
 
 /**
@@ -62,7 +63,7 @@ public class LaunchTask extends Task {
     private JFrame frame;
     private String username;
     private String password;
-    private String activeJar;
+    private MinecraftJar activeJar;
     private LoginSession session;
     private Configuration configuration;
     private File rootDir;
@@ -76,7 +77,7 @@ public class LaunchTask extends Task {
     private boolean demo = false;
     private boolean allowOfflineName = false;
 
-    private boolean showConsole = false;
+    private boolean forceConsole = false;
     private String autoConnect;
     
     /**
@@ -89,7 +90,7 @@ public class LaunchTask extends Task {
      * @param jar jar name
      */
     public LaunchTask(JFrame frame, Configuration configuration,
-            String username, String password, String jar) {
+            String username, String password, MinecraftJar jar) {
         this.frame = frame;
         this.configuration = configuration;
         this.username = username;
@@ -128,10 +129,10 @@ public class LaunchTask extends Task {
     /**
      * Set to show the Java console.
      * 
-     * @param showConsole true to show console
+     * @param forceConsole true to show console
      */
-    public void setShowConsole(boolean showConsole) {
-        this.showConsole = showConsole;
+    public void setForceConsole(boolean forceConsole) {
+        this.forceConsole = forceConsole;
     }
     
     /**
@@ -175,9 +176,10 @@ public class LaunchTask extends Task {
             login();
         }
         
-        notInstalled = (activeJar == null && !(new File(rootDir, "bin/minecraft.jar").exists()));
+        notInstalled = (activeJar instanceof DefaultJar &&
+                !(new File(rootDir, "bin/minecraft.jar").exists()));
         
-        if (activeJar == null && !skipUpdateCheck) {
+        if (activeJar instanceof DefaultJar && !skipUpdateCheck) {
             checkForUpdates();
         }
         
@@ -195,19 +197,18 @@ public class LaunchTask extends Task {
         fireStatusChange("Launching Minecraft...");
         fireValueChange(-1);
         
-        LauncherOptions options = Launcher.getInstance().getOptions();
         SettingsList settings = new SettingsList(
-                options.getSettings(), configuration.getSettings());
-        
-        // Find launcher path
-        
-        // Read some settings
+                Launcher.getInstance().getOptions().getSettings(),
+                configuration.getSettings());
         String username = !allowOfflineName && playOffline ? "Player" : this.username;
 
         LaunchProcessBuilder builder = new LaunchProcessBuilder(
                 configuration, username, session);
         builder.readSettings(settings);
-        builder.setActiveJar(activeJar);
+        if (forceConsole) {
+            builder.setShowConsole(forceConsole);
+        }
+        builder.setActiveJar(activeJar.getName());
         builder.setDemo(demo);
         builder.setAutoConnect(autoConnect);
         

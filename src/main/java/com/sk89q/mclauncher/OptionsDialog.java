@@ -45,7 +45,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.text.DefaultCaret;
 
 import com.sk89q.mclauncher.config.Configuration;
-import com.sk89q.mclauncher.config.ConfigurationsManager;
+import com.sk89q.mclauncher.config.ConfigurationList;
 import com.sk89q.mclauncher.config.LauncherOptions;
 import com.sk89q.mclauncher.util.UIUtil;
 
@@ -261,7 +261,7 @@ public class OptionsDialog extends JDialog {
                                 "Remove", JOptionPane.YES_NO_OPTION) != 0)
                     return;
 
-                ConfigurationsManager configsManager = options
+                ConfigurationList configsManager = options
                         .getConfigurations();
                 for (int i = min; i <= max; i++) {
                     Configuration config = configsManager.getConfigurationAt(i);

@@ -21,7 +21,7 @@ package com.sk89q.mclauncher;
 import javax.swing.JCheckBox;
 
 import com.sk89q.mclauncher.config.Def;
-import com.sk89q.mclauncher.util.SettingsList;
+import com.sk89q.mclauncher.config.SettingsList;
 
 public class LauncherOptionsPanel extends OptionsPanel {
 

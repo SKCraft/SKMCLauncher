@@ -18,7 +18,6 @@
 
 package com.sk89q.mclauncher;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
@@ -68,12 +67,9 @@ public class InstallFromURLTask extends Task {
                                 + existing.getName() + "'.");
             }
             
-            Configuration configuration = new Configuration(
-                    id,
-                    manifest.getName(), 
-                    "%INSTANCEDIR%" + File.separator + id,
-                    urlObject,
-                    true);
+            Configuration configuration = 
+                    Configuration.createInstance(
+                            id, manifest.getName(), urlObject);
             
             options.getConfigurations().register(configuration);
 

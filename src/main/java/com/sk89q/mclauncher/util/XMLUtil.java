@@ -18,9 +18,12 @@
 
 package com.sk89q.mclauncher.util;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -59,9 +62,9 @@ public class XMLUtil {
     /**
      * Parse XML using JAXB and a model class.
      * 
-     * @param cls the root class
      * @param in an input stream
      * @return the requested object
+     * @param cls the root class
      * @throws JAXBException thrown on an error
      */
     @SuppressWarnings("unchecked")
@@ -71,6 +74,44 @@ public class XMLUtil {
         m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
         Unmarshaller um = context.createUnmarshaller();
         return (T) um.unmarshal(in);
+    }
+
+    /**
+     * Write XML using JAXB.
+     * 
+     * @param obj the object
+     * @param out output stream
+     * @param cls the class
+     * @throws JAXBException on an error
+     */
+    public static void writeJaxb(Object obj, OutputStream out, Class<?>... cls)
+            throws JAXBException {
+        JAXBContext context = JAXBContext.newInstance(cls);
+        Marshaller m = context.createMarshaller();
+        m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+        m.marshal(obj, out);
+    }
+    
+    /**
+     * Write XML using JAXB.
+     * 
+     * @param obj the object
+     * @param file the file
+     * @param cls the class
+     * @throws JAXBException on an error
+     * @throws IOException on an error
+     */
+    public static void writeJaxb(Object obj, File file, Class<?>... cls) 
+            throws JAXBException, IOException {
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(file);
+            BufferedOutputStream buf = new BufferedOutputStream(fos);
+            writeJaxb(obj, buf, cls);
+            buf.close();
+        } finally {
+            Util.close(fos);
+        }
     }
     
     /**

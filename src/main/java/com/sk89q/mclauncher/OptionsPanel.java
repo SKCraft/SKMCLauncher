@@ -45,7 +45,7 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import com.sk89q.mclauncher.util.SettingsList;
+import com.sk89q.mclauncher.config.SettingsList;
 
 /**
  * Easy panel for options, based off of SettingsList.

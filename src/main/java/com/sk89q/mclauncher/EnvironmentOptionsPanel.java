@@ -26,7 +26,7 @@ import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 
 import com.sk89q.mclauncher.config.Def;
-import com.sk89q.mclauncher.util.SettingsList;
+import com.sk89q.mclauncher.config.SettingsList;
 
 public class EnvironmentOptionsPanel extends OptionsPanel {
 

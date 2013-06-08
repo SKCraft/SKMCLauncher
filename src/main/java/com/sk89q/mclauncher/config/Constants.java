@@ -27,8 +27,8 @@ import java.security.cert.CertificateException;
 
 import com.sk89q.mclauncher.Launcher;
 import com.sk89q.mclauncher.security.X509KeyRing;
-import com.sk89q.mclauncher.security.X509KeyStore;
 import com.sk89q.mclauncher.security.X509KeyRing.Ring;
+import com.sk89q.mclauncher.security.X509KeyStore;
 
 /**
  * Registers built-in items.
@@ -40,7 +40,8 @@ public class Constants {
     public static final boolean VERIFY_CUSTOM_DOWNLOADS = false;
     public static final URL NEWS_URL;
         
-    private static final String NEWS_URL_BASE = "http://minecraft.update.sk89q.com/updates/?v=%version%";
+    private static final String NEWS_URL_BASE = 
+            "http://minecraft.update.sk89q.com/updates/?v=%version%";
     
     static {
         try {
@@ -67,9 +68,8 @@ public class Constants {
      * @param configsManager
      *            configurations manager
      */
-    public static void register(ConfigurationsManager configsManager) {
-        configsManager.setDefault(configsManager.registerBuiltIn("minecraft",
-                "Default", null, null));
+    public static void register(ConfigurationList configsManager) {
+        configsManager.registerBuiltIn("minecraft", "Default", null, null);
     }
 
     /**
@@ -95,14 +95,6 @@ public class Constants {
                 .getResourceAsStream("/resources/mcupdate.cer"));
         keyStore.addRootCertificates(Launcher.class
                 .getResourceAsStream("/resources/sk89q.cer"));
-    }
-    
-    /**
-     * Register built-in host lists.
-     * 
-     * @param hotListManager host list manager
-     */
-    public static void register(ServerHotListManager hotListManager) {
     }
 
 }

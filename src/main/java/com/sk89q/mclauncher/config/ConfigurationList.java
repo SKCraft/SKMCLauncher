@@ -21,10 +21,9 @@ package com.sk89q.mclauncher.config;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import javax.swing.ListModel;
 import javax.swing.SwingUtilities;
@@ -34,45 +33,57 @@ import javax.swing.event.ListDataListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.annotation.XmlElement;
 
 /**
  * Knows about various configurations. This is definitely NOT thread-safe.
- * 
- * @author sk89q
  */
-public class ConfigurationsManager implements Iterable<Configuration>, TableModel, ListModel  {
+public class ConfigurationList implements Iterable<Configuration>, TableModel, ListModel  {
     
-    private Map<String, Configuration> configurations = new HashMap<String, Configuration>();
-    private List<Configuration> configurationsList = new ArrayList<Configuration>();
+    private List<Configuration> configurations = new ArrayList<Configuration>();
     private EventListenerList listenerList = new EventListenerList();
-    private Configuration defaultConfiguration;
+    
+    @XmlElement(name = "configuration")
+    public List<Configuration> getConfigurations() {
+        if (configurations.size() == 0) {
+            Constants.register(this);
+        }
+        
+        return configurations;
+    }
+
+    public void setConfigurations(List<Configuration> configurations) {
+        this.configurations = configurations;
+
+        if (configurations.size() == 0) {
+            Constants.register(this);
+        }
+    }
 
     /**
-     * Get the default configuration.
+     * Get the configuration used at startup.
      * 
-     * @return default configuration
+     * @return the configuration
      */
-    public Configuration getDefault() {
-        return defaultConfiguration;
+    public Configuration getStartupConfiguration() {
+        return getConfigurations().get(0);
     }
-    
+
     /**
-     * Set the default configuration.
+     * Get a configuration by a given ID.
      * 
-     * @param configuration configuration
-     */
-    public void setDefault(Configuration configuration) {
-        defaultConfiguration = configuration;
-    }
-    
-    /**
-     * Get a configuration.
-     * 
-     * @param id configuration ID
-     * @return configuration or null if not found
+     * @param id the ID
+     * @return a configuration matching the ID, or null if there's no such configuration
      */
     public Configuration get(String id) {
-        return configurations.get(id);
+        for (Configuration configuration : configurations) {
+            if (configuration.getId().equals(id)) {
+                return configuration;
+            }
+        }
+        
+        return null;
     }
     
     /**
@@ -81,17 +92,16 @@ public class ConfigurationsManager implements Iterable<Configuration>, TableMode
      * @param configuration configuration
      */
     public void register(Configuration configuration) {
-        int index = configurationsList.indexOf(configuration);
-        configurations.put(configuration.getId(), configuration);
+        int index = configurations.indexOf(configuration);
         if (index == -1) {
-            configurationsList.add(configuration);
-            fireTableChanged(new TableModelEvent(this, configurationsList.size() - 1));
+            configurations.add(configuration);
+            fireTableChanged(new TableModelEvent(this, configurations.size() - 1));
             fireListChanged(new ListDataEvent(this, ListDataEvent.INTERVAL_ADDED, 
-                    configurationsList.size() - 1, configurationsList.size() - 1));
+                    configurations.size() - 1, configurations.size() - 1));
         } else {
             fireTableChanged(new TableModelEvent(this, index));
             fireListChanged(new ListDataEvent(this, ListDataEvent.CONTENTS_CHANGED, 
-                    0, configurationsList.size() - 1));
+                    0, configurations.size() - 1));
         }
     }
     
@@ -102,15 +112,14 @@ public class ConfigurationsManager implements Iterable<Configuration>, TableMode
      * @return true if it was removed
      */
     public boolean remove(Configuration configuration) {
-        int index = configurationsList.indexOf(configuration);
+        int index = configurations.indexOf(configuration);
         if (index == -1) {
             return false;
         }
-        configurations.remove(configuration.getId());
-        configurationsList.remove(index);
+        configurations.remove(index);
         fireTableChanged(new TableModelEvent(this));
         fireListChanged(new ListDataEvent(this, ListDataEvent.CONTENTS_CHANGED, 
-                0, configurationsList.size() - 1));
+                0, configurations.size() - 1));
         return true;
     }
     
@@ -121,7 +130,7 @@ public class ConfigurationsManager implements Iterable<Configuration>, TableMode
      * @return true if it was in the list
      */
     public boolean update(Configuration configuration) {
-        int index = configurationsList.indexOf(configuration);
+        int index = configurations.indexOf(configuration);
         if (index == -1) {
             return false;
         }
@@ -140,7 +149,9 @@ public class ConfigurationsManager implements Iterable<Configuration>, TableMode
      * @param urlString update URL or null for none
      * @return configuration
      */
-    public Configuration registerBuiltIn(String id, String name, String appDir, String urlString) {
+    @SuppressWarnings("deprecation")
+    public Configuration registerBuiltIn(String id, String name, String appDir,
+            String urlString) {
         URL url = null;
         try {
             if (urlString != null) {
@@ -148,9 +159,10 @@ public class ConfigurationsManager implements Iterable<Configuration>, TableMode
             }
         } catch (MalformedURLException e) {
         }
+        
         Configuration config = get(id);
         if (config == null) {
-            config = new Configuration(id, name, appDir, url, false);
+            config = Configuration.createGlobal(id, name, appDir, url);
             register(config);
         }
         config.setName(name);
@@ -160,32 +172,14 @@ public class ConfigurationsManager implements Iterable<Configuration>, TableMode
         register(config);
         return config;
     }
-    
-    /**
-     * Get the map of configurations.
-     * 
-     * @return configuration map
-     */
-    public Map<String, Configuration> getConfigurations() {
-        return configurations;
-    }
 
-    /**
-     * Get a configuration at an index.
-     * 
-     * @param i index
-     * @return configuration
-     */
     public Configuration getConfigurationAt(int i) {
-        return configurationsList.get(i);
+        return configurations.get(i);
     }
-
-    /**
-     * Get iterator.
-     */
+    
     @Override
     public Iterator<Configuration> iterator() {
-        return configurations.values().iterator();
+        return configurations.iterator();
     }
 
     @Override
@@ -236,7 +230,7 @@ public class ConfigurationsManager implements Iterable<Configuration>, TableMode
 
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
-        Configuration configuration = configurationsList.get(rowIndex);
+        Configuration configuration = configurations.get(rowIndex);
         if (configuration == null) {
             return null;
         }
@@ -252,7 +246,7 @@ public class ConfigurationsManager implements Iterable<Configuration>, TableMode
 
     @Override
     public void setValueAt(Object value, int rowIndex, int columnIndex) {
-        Configuration configuration = configurationsList.get(rowIndex);
+        Configuration configuration = configurations.get(rowIndex);
         if (configuration == null) {
             return;
         }
@@ -263,6 +257,26 @@ public class ConfigurationsManager implements Iterable<Configuration>, TableMode
         default:
             break;
         }
+    }
+
+    @Override
+    public int getSize() {
+        return configurations.size();
+    }
+
+    @Override
+    public Object getElementAt(int index) {
+        return configurations.get(index);
+    }
+
+    @Override
+    public void addListDataListener(ListDataListener l) {
+        listenerList.add(ListDataListener.class, l);
+    }
+
+    @Override
+    public void removeListDataListener(ListDataListener l) {
+        listenerList.remove(ListDataListener.class, l);
     }
 
     @Override
@@ -303,24 +317,8 @@ public class ConfigurationsManager implements Iterable<Configuration>, TableMode
         });
     }
 
-    @Override
-    public int getSize() {
-        return configurations.size();
-    }
-
-    @Override
-    public Object getElementAt(int index) {
-        return configurationsList.get(index);
-    }
-
-    @Override
-    public void addListDataListener(ListDataListener l) {
-        listenerList.add(ListDataListener.class, l);
-    }
-
-    @Override
-    public void removeListDataListener(ListDataListener l) {
-        listenerList.remove(ListDataListener.class, l);
+    void afterUnmarshal(Unmarshaller u, Object parent) {
+        Collections.sort(configurations);
     }
 
 }

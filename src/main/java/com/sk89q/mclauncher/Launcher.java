@@ -36,7 +36,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.crypto.Cipher;
-import javax.crypto.CipherInputStream;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
@@ -122,10 +121,7 @@ public class Launcher {
         
         // If the options file does not exist, try to import old data
         if (!optionsFile.exists()) {
-            try {
-                importLauncherLogin();
-            } catch (IOException e) {
-            }
+            options.getIdentities().importLogins();
         }
         
         keyRing = new X509KeyRing();
@@ -345,45 +341,6 @@ public class Launcher {
     }
     
     /**
-     * Import old launcher settings.
-     * 
-     * @throws IOException on I/O error
-     */
-    private void importLauncherLogin() throws IOException {
-        File file = new File(getOfficialDataDir(), "lastlogin");
-        if (!file.exists()) return;
-        
-        DataInputStream in = null;
-        try {
-            Cipher cipher = getCipher(Cipher.DECRYPT_MODE, "passwordfile");
-            in = new DataInputStream(new CipherInputStream(
-                    new FileInputStream(file), cipher));
-            String username = in.readUTF();
-            String password = in.readUTF();
-            if (username.trim().length() == 0) {
-                return;
-            }
-            if (password.trim().length() == 0) {
-                password = null;
-            }
-            options.saveIdentity(username, password);
-            options.setLastUsername(username);
-        } catch (InvalidKeyException e) {
-            throw new IOException(e);
-        } catch (InvalidKeySpecException e) {
-            throw new IOException(e);
-        } catch (NoSuchAlgorithmException e) {
-            throw new IOException(e);
-        } catch (NoSuchPaddingException e) {
-            throw new IOException(e);
-        } catch (InvalidAlgorithmParameterException e) {
-            throw new IOException(e);
-        } finally {
-            Util.close(in);
-        }
-    }
-    
-    /**
      * Import old launcher game version information.
      * 
      * @param cache update cache to update
@@ -515,11 +472,11 @@ public class Launcher {
                 frame.setVisible(true);
                 
                 if (username != null) {
-                    frame.setLogin(username, password);
+                    frame.getLaunchSettings().setLogin(username, password);
                 }
                 
                 if (autoConnect != null && autoConnect.matches("^[A-Za-z0-9\\.]{1,128}(?::[0-9]+)?$")) {
-                    frame.setAutoConnect(autoConnect);
+                    frame.getLaunchSettings().setAutoConnect(autoConnect);
                 }
                 
                 if (autoLaunch) {

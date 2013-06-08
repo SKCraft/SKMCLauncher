@@ -18,481 +18,177 @@
 
 package com.sk89q.mclauncher.config;
 
-import static com.sk89q.mclauncher.util.XMLUtil.*;
-
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.xml.sax.SAXException;
-
-import util.Base64;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 import com.sk89q.mclauncher.Launcher;
-import com.sk89q.mclauncher.util.SettingsList;
-import com.sk89q.mclauncher.util.SimpleNode;
 import com.sk89q.mclauncher.util.Util;
 import com.sk89q.mclauncher.util.XMLUtil;
 
 /**
  * Stores options for the launcher.
- * 
- * @author sk89q
  */
+@XmlRootElement(name = "launcher")
 public class LauncherOptions {
     
-    private static final Logger logger = Logger.getLogger(LauncherOptions.class.getCanonicalName());
+    private static final Logger logger = Logger.getLogger(
+            LauncherOptions.class.getCanonicalName());
+    private static final SettingsList defaultSettings;
     
-    private File file;
-    private String lastConfigName;
-    private String lastUsername;
-    private File lastInstallDir;
-    private ServerHotListManager serverHotList = new ServerHotListManager();
-    private ConfigurationsManager configsManager = new ConfigurationsManager();
-    private Map<String, String> identities = new HashMap<String, String>();
-    private SettingsList defaultSettings = new SettingsList();
+    private ConfigurationList configurations = new ConfigurationList();
+    private ServerList servers = new ServerList();
+    private IdentityList identities = new IdentityList();
     private SettingsList settings = new SettingsList(defaultSettings);
+
+    private transient File file;
     
-    /**
-     * Construct the options based off of the given file.
-     * 
-     * @param file file
-     */
-    public LauncherOptions(File file) {
-        this.file = file;
+    static {
+        SettingsList def;
         
         InputStream in = Launcher.class.getResourceAsStream("/resources/defaults.xml");
         if (in != null) {
             try {
-                defaultSettings.read(in);
-            } catch (IOException e) {
+                def = XMLUtil.parseJaxb(SettingsList.class, in);
+            } catch (JAXBException e) {
+                def = null;
                 logger.log(Level.WARNING, "Could not read default settings", e);
+            } finally {
+                Util.close(in);
             }
+        } else {
+            def = null;
         }
+        
+        defaultSettings = def;
+    }
+    
+    public LauncherOptions() {
     }
     
     /**
-     * Register built-in configurations.
-     */
-    private void registerBuiltInConfigurations() {
-        Constants.register(serverHotList);
-        Constants.register(configsManager);
-    }
-    
-    /**
-     * Get the configurations manager.
+     * Create an instance of the options with a file set.
      * 
-     * @return configurations manager
+     * @param file the file
      */
-    public ConfigurationsManager getConfigurations() {
-        return configsManager;
+    public LauncherOptions(File file) {
+        setFile(file);
     }
     
-    /**
-     * Get the server hot list manager.
-     * 
-     * @return server hot list manager
-     */
-    public ServerHotListManager getServers() {
-        return serverHotList;
-    }
-    
-    /**
-     * Get a list of saved usernames.
-     * 
-     * @return list of usernames
-     */
-    public Set<String> getSavedUsernames() {
-        return identities.keySet();
-    }
-    
-    /**
-     * Get a saved password.
-     * 
-     * @param username username
-     * @return password or null if no password is saved
-     */
-    public String getSavedPassword(String username) {
-        return identities.get(username);
-    }
-    
-    /**
-     * Remember a given identity.
-     * 
-     * @param username username
-     * @param password password, possibly null to only remember the name
-     */
-    public void saveIdentity(String username, String password) {
-        identities.put(username, password);
-    }
-    
-    /**
-     * Forget a user's password but the user him/herself.
-     * 
-     * @param username username
-     */
-    public void forgetPassword(String username) {
-        identities.put(username, null);
-    }
-    
-    /**
-     * Forget a given identity.
-     * 
-     * @param username username
-     */
-    public void forgetIdentity(String username) {
-        identities.remove(username);
+    @XmlElement
+    public ConfigurationList getConfigurations() {
+        return configurations;
     }
 
-    /**
-     * Forget all remembered identities.
-     */
-    public void forgetAllIdentities() {
-        identities.clear();
-    }
-    
-    /**
-     * Get the last configuration name.
-     * 
-     * @return configuration name
-     */
-    public String getLastConfigName() {
-        return lastConfigName;
+    public void setConfigurations(ConfigurationList configurations) {
+        this.configurations = configurations;
     }
 
-    /**
-     * Set the last configuration name.
-     * 
-     * @param lastConfigName
-     */
-    public void setLastConfigName(String lastConfigName) {
-        this.lastConfigName = lastConfigName;
-    }
-    
-    /**
-     * Get the last configuration.
-     * 
-     * @return last configuration or null
-     */
-    public Configuration getLastConfiguration() {
-        return configsManager.get(getLastConfigName());
-    }
-    
-    /**
-     * Get the last configuration, or default configuration if no last
-     * configuration is set (or exists).
-     * 
-     * @return last configuration or default configuration
-     */
-    public Configuration getStartupConfiguration() {
-        Configuration config = getLastConfiguration();
-        if (config == null) {
-            return configsManager.getDefault();
-        }
-        return config;
+    @XmlElement
+    public ServerList getServers() {
+        return servers;
     }
 
-    /**
-     * Get the last used username.
-     * 
-     * @return username or null
-     */
-    public String getLastUsername() {
-        return lastUsername;
-    }
-    
-    /**
-     * Set the last used username.
-     * 
-     * @param lastUsername username
-     */
-    public void setLastUsername(String lastUsername) {
-        this.lastUsername = lastUsername;
-    }
-    
-    /**
-     * Gets the directory of where addons were last installed from.
-     * 
-     * @return directory, or null if one isn't set
-     */
-    public File getLastInstallDir() {
-        return lastInstallDir;
+    public void setServers(ServerList servers) {
+        this.servers = servers;
     }
 
-    /**
-     * Set the last directory that addons were installed from.
-     * 
-     * @param dir directory
-     */
-    public void setLastInstallDir(File dir) {
-        this.lastInstallDir = dir;
+    @XmlElement
+    public IdentityList getIdentities() {
+        return identities;
     }
 
-    /**
-     * Get the settings list.
-     * 
-     * @return settings
-     */
+    public void setIdentities(IdentityList identities) {
+        this.identities = identities;
+    }
+
+    @XmlElement
     public SettingsList getSettings() {
         return settings;
     }
+    
+    public void setSettings(SettingsList settings) {
+        this.settings = settings;
+        settings.setParents(defaultSettings);
+    }
 
-    /**
-     * Read the configuration.
-     * 
-     * @throws IOException on I/O error
-     */
-    public void read() throws IOException {
-        identities = new HashMap<String, String>();
-        configsManager = new ConfigurationsManager();
-        serverHotList = new ServerHotListManager();
-        
-        InputStream in = null;
-        
-        try {
-            Cipher cipher = Launcher.getInstance().getCipher(Cipher.DECRYPT_MODE, "passwordfile");
-            
-            in = new BufferedInputStream(new FileInputStream(file));
-            
-            Document doc = parseXml(in);
-            XPath xpath = XPathFactory.newInstance().newXPath();
+    @XmlTransient
+    public File getFile() {
+        return file;
+    }
 
-            lastUsername = getStringOrNull(doc, xpath.compile("/launcher/username"));
-            lastConfigName = getStringOrNull(doc,
-                    xpath.compile("/launcher/lastConfiguration"));
-            lastInstallDir = Util.getClosestDirectory(getStringOrNull(doc,
-                    xpath.compile("/launcher/lastInstallDirectory")));
-
-            XPathExpression nameExpr = xpath.compile("name/text()");
-            XPathExpression keyExpr = xpath.compile("key/text()");
-            
-            // Read all the <identity> elements
-            for (Node node : getNodes(doc, xpath.compile("/launcher/identities/identity"))) {
-                String username = getString(node, nameExpr);
-                String key = getString(node, keyExpr);
-                String password = null;
-                
-                if (key.length() > 0) {
-                    try {
-                        byte[] decrypted = cipher.doFinal(Base64.decode(key));
-                        password = new String(decrypted, "UTF-8");
-                    } catch (IllegalBlockSizeException e) {
-                        e.printStackTrace();
-                    } catch (BadPaddingException e) {
-                        e.printStackTrace();
-                    }
-                }
-                
-                identities.put(username, password);
-            }
-            
-            XPathExpression idExpr = xpath.compile("id/text()");
-            XPathExpression appDirExpr = xpath.compile("appDir/text()");
-            XPathExpression basePathExpr = xpath.compile("basePath/text()");
-            XPathExpression updateURLExpr = xpath.compile("updateURL/text()");
-            XPathExpression lastJarExpr = xpath.compile("lastJar/text()");
-            XPathExpression settingsExpr = xpath.compile("settings");
-            
-            // Read all the <configuration> elements
-            for (Node node : getNodes(doc, xpath.compile("/launcher/configurations/configuration"))) {
-                String id = getString(node, idExpr);
-                String name = getString(node, nameExpr);
-                String appDir = getStringOrNull(node, appDirExpr);
-                String basePath = getStringOrNull(node, basePathExpr);
-                String urlString = getStringOrNull(node, updateURLExpr);
-                String lastJar = getStringOrNull(node, lastJarExpr);
-                
-                try {
-                    URL updateUrl = urlString != null ? new URL(urlString) : null;
-                    Configuration config;
-                    if (basePath != null) {
-                        config = new Configuration(id, name, basePath, updateUrl, true);
-                    } else {
-                        config = new Configuration(id, name, appDir, updateUrl, false);
-                    }
-                    
-                    Node settingsNode = XMLUtil.getNode(node, settingsExpr);
-                    SettingsList settings = new SettingsList();
-                    if (settingsNode != null) {
-                        settings.read(settingsNode);
-                    }
-                    config.setSettings(settings);
-                    
-                    config.setLastActiveJar(lastJar);
-                    configsManager.register(config);
-                } catch (MalformedURLException e) {
-                    logger.log(Level.WARNING, "Could not read configuration '" + id + "', bad URL '" + urlString + "'", e);
-                } catch (IllegalArgumentException e) {
-                    logger.log(Level.WARNING, "Could not read configuration '" + id + "'", e);
-                }
-            }
-            
-            XPathExpression addressExpr = xpath.compile("address");
-            
-            // Read all the <server> elements
-            for (Node node : getNodes(doc, xpath.compile("/launcher/servers/server"))) {
-                String name = getString(node, nameExpr);
-                String address = getString(node, addressExpr);
-                serverHotList.register(name, address, false);
-            }
-
-            for (Node node : getNodes(doc, xpath.compile("/launcher/settings"))) {
-                settings.read(node);
-            }
-        } catch (FileNotFoundException e) {
-        } catch (InvalidKeyException e) {
-            throw new IOException(e);
-        } catch (InvalidKeySpecException e) {
-            throw new IOException(e);
-        } catch (NoSuchAlgorithmException e) {
-            throw new IOException(e);
-        } catch (NoSuchPaddingException e) {
-            throw new IOException(e);
-        } catch (InvalidAlgorithmParameterException e) {
-            throw new IOException(e);
-        } catch (XPathExpressionException e) {
-            throw new IOException(e);
-        } catch (ParserConfigurationException e) {
-            throw new IOException(e);
-        } catch (SAXException e) {
-            throw new IOException(e);
-        } finally {
-            registerBuiltInConfigurations();
-            Util.close(in);
-        }
+    public void setFile(File file) {
+        this.file = file;
     }
     
     /**
-     * Write to disk.
+     * Copy options from another instance.
      * 
-     * @throws IOException on I/O error
+     * @param newOptions the options
      */
-    public void write() throws IOException {
-        try {
-            Cipher cipher = Launcher.getInstance().getCipher(Cipher.ENCRYPT_MODE, "passwordfile");
-            
-            Document doc = newXml();
-            SimpleNode root = start(doc, "launcher");
-            
-            root.addNode("username").addValue(lastUsername);
-            root.addNode("lastConfiguration").addValue(lastConfigName);
-            root.addNode("lastInstallDirectory").addValue(
-                    lastInstallDir != null ? lastInstallDir
-                            .getAbsolutePath() : null);
-
-            SimpleNode identitiesNode = root.addNode("identities");
-            for (Map.Entry<String, String> entry : identities.entrySet()) {
-                SimpleNode identityNode = identitiesNode.addNode("identity");
-                identityNode.addNode("name").addValue(entry.getKey());
-                
-                // Save encrypted password
-                if (entry.getValue() != null) {
-                    byte[] encrypted = cipher.doFinal(entry.getValue().getBytes());
-                    identityNode.addNode("key").addValue(Base64.encodeToString(encrypted, false));
-                }
-            }
-            
-            SimpleNode configurationsNode = root.addNode("configurations");
-            for (Configuration config : configsManager) {
-                SimpleNode configurationNode = configurationsNode.addNode("configuration");
-                String path = config.getCustomBasePath();
-                configurationNode.addNode("id").addValue(config.getId());
-                configurationNode.addNode("name").addValue(config.getName());
-                configurationNode.addNode("appDir").addValue(config.getAppDir());
-                configurationNode.addNode("basePath").addValue(path);
-                configurationNode.addNode("updateURL").addValue(config.getUpdateUrl() != null ?
-                        config.getUpdateUrl().toString() : null);
-                configurationNode.addNode("lastJar").addValue(config.getLastActiveJar());
-                config.getSettings().write(configurationNode.addNode("settings").getNode());
-            }
-            
-            SimpleNode serversNode = root.addNode("servers");
-            for (String name : serverHotList.getServerNames()) {
-                if (!serverHotList.isBuiltIn(name)) {
-                    SimpleNode serverNode = serversNode.addNode("server");
-                    serverNode.addNode("name").addValue(name);
-                    serverNode.addNode("address").addValue(serverHotList.get(name));
-                }
-            }
-            
-            SimpleNode settingsNode = root.addNode("settings");
-            settings.write(settingsNode.getNode());
-            
-            writeXml(doc, file);
-        } catch (InvalidKeyException e) {
-            throw new IOException(e);
-        } catch (InvalidKeySpecException e) {
-            throw new IOException(e);
-        } catch (NoSuchAlgorithmException e) {
-            throw new IOException(e);
-        } catch (NoSuchPaddingException e) {
-            throw new IOException(e);
-        } catch (InvalidAlgorithmParameterException e) {
-            throw new IOException(e);
-        } catch (TransformerException e) {
-            throw new IOException(e);
-        } catch (IllegalBlockSizeException e) {
-            throw new IOException(e);
-        } catch (BadPaddingException e) {
-            throw new IOException(e);
-        } catch (ParserConfigurationException e) {
-            throw new IOException(e);
-        }
+    private void read(LauncherOptions newOptions) {
+        setConfigurations(newOptions.configurations);
+        setIdentities(newOptions.identities);
+        setSettings(newOptions.settings);
     }
-    
+
     /**
      * Load the configuration.
      * 
      * @return true if successful
      */
     public boolean load() {
+        if (file == null) {
+            throw new RuntimeException("No file was set on this instance");
+        }
+        
+        FileInputStream fis = null;
+        BufferedInputStream bis = null;
         try {
-            read();
+            fis = new FileInputStream(file);
+            bis = new BufferedInputStream(fis);
+            LauncherOptions newOptions = XMLUtil.parseJaxb(LauncherOptions.class, bis);
+            read(newOptions);
             return true;
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (FileNotFoundException e) {
+            return true;
+        } catch (JAXBException e) {
+            logger.log(Level.WARNING, "Failed to load configuration", e);
             return false;
+        } finally {
+            Util.close(bis);
+            Util.close(fis);
         }
     }
-    
+
     /**
      * Save the configuration.
      * 
      * @return true if successful
      */
     public boolean save() {
+        if (file == null) {
+            throw new RuntimeException("No file was set on this instance");
+        }
+        
         try {
-            write();
+            XMLUtil.writeJaxb(this, file, LauncherOptions.class);
             return true;
         } catch (IOException e) {
-            logger.log(Level.WARNING, "Failed to load options", e);
+            logger.log(Level.WARNING, "Failed to save configuration", e);
+            return false;
+        } catch (JAXBException e) {
+            logger.log(Level.WARNING, "Failed to save configuration", e);
             return false;
         }
     }

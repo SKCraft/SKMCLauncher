@@ -18,8 +18,8 @@ import com.sk89q.mclauncher.addons.Addon;
 import com.sk89q.mclauncher.addons.AddonsProfile;
 import com.sk89q.mclauncher.config.Configuration;
 import com.sk89q.mclauncher.config.Def;
+import com.sk89q.mclauncher.config.SettingsList;
 import com.sk89q.mclauncher.util.ConsoleFrame;
-import com.sk89q.mclauncher.util.SettingsList;
 import com.sk89q.mclauncher.util.Util;
 
 public class LaunchProcessBuilder {
@@ -99,6 +99,14 @@ public class LaunchProcessBuilder {
         this.autoConnect = autoConnect;
     }
 
+    public boolean getShowConsole() {
+        return showConsole;
+    }
+
+    public void setShowConsole(boolean showConsole) {
+        this.showConsole = showConsole;
+    }
+
     private String getLauncherPath() throws IOException {
         try {
             return Launcher.class.getProtectionDomain()
@@ -128,17 +136,18 @@ public class LaunchProcessBuilder {
         }
         
         // Set some things straight
-        String actualJar = activeJar != null ? activeJar : "minecraft.jar";
         File actualWorkingDirectory = configuration.getBaseDir();
+        File jarFile = new File(configuration.getMinecraftDir(), "bin/" + activeJar);
         
-        if (!new File(configuration.getMinecraftDir(), "bin/" + actualJar).exists()) {
-            throw new IOException("The game is not installed.");
+        if (!jarFile.exists()) {
+            throw new IOException("Launch failed -- can't find '"
+                    + jarFile.getAbsolutePath() + "'.");
         }
-        
+
         // Get addons
         List<Addon> addons;
         try {
-            AddonsProfile addonsProfile = configuration.getAddonsProfile(actualJar);
+            AddonsProfile addonsProfile = configuration.getAddonsProfile(activeJar);
             addonsProfile.read();
             addons = addonsProfile.getEnabledAddons();
         } catch (IOException e) {
@@ -207,7 +216,7 @@ public class LaunchProcessBuilder {
         
         // Child launcher arguments
         params.add(actualWorkingDirectory.getAbsolutePath());
-        params.add(actualJar);
+        params.add(activeJar);
         
         ProcessBuilder procBuilder = new ProcessBuilder(params);
         
