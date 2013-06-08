@@ -21,7 +21,6 @@ import com.sk89q.mclauncher.config.Configuration;
 import com.sk89q.mclauncher.config.Def;
 import com.sk89q.mclauncher.config.SettingsList;
 import com.sk89q.mclauncher.util.ConsoleFrame;
-import com.sk89q.mclauncher.util.GameConsoleFrame;
 import com.sk89q.mclauncher.util.JavaRuntimeFinder;
 import com.sk89q.mclauncher.util.Util;
 
@@ -251,7 +250,7 @@ public class LaunchProcessBuilder {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                    consoleFrame = new GameConsoleFrame(
+                    consoleFrame = new ConsoleFrame(
                             10000, coloredConsole, proc, consoleKillsProcess);
                     consoleFrame.setVisible(true);
                     consoleFrame.consume(proc.getInputStream());

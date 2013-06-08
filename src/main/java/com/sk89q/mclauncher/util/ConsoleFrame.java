@@ -18,9 +18,15 @@
 
 package com.sk89q.mclauncher.util;
 
+import java.awt.AWTException;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Image;
+import java.awt.MenuItem;
+import java.awt.PopupMenu;
+import java.awt.SystemTray;
+import java.awt.TrayIcon;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
@@ -39,10 +45,12 @@ import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextPane;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
@@ -52,28 +60,43 @@ import javax.swing.text.JTextComponent;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 
+import com.sk89q.mclauncher.Launcher;
+import com.sk89q.mclauncher.config.Def;
 import com.sk89q.mclauncher.util.PastebinPoster.PasteCallback;
 
+/**
+ * Console dialog for showing console messages.
+ */
 public class ConsoleFrame extends JFrame implements PasteCallback {
 
     private static final long serialVersionUID = -3266712569265372777L;
     private static final Logger rootLogger = Logger.getLogger("");
+    private static final Image trayOkImage;
+    private static final Image trayClosedImage;
 
-    protected final ConsoleFrame self = this;
+    private final ConsoleFrame self = this;
+    private boolean running = true;
+    
+    private Process trackProc;
+    private boolean killProcess;
+    private Handler loggerHandler;
+    private JTextComponent textComponent;
+    private JButton killButton;
+    private JButton minimizeButton;
+    private Document document;
     private int numLines;
     private boolean colorEnabled = false;
-
-    protected boolean running = true;
-    protected Box buttonsPanel;
-    protected JTextComponent textComponent;
-    protected Document document;
-
-    private Handler loggerHandler;
-    protected final SimpleAttributeSet defaultAttributes = new SimpleAttributeSet();
-    protected final SimpleAttributeSet highlightedAttributes;
-    protected final SimpleAttributeSet errorAttributes;
-    protected final SimpleAttributeSet infoAttributes;
-    protected final SimpleAttributeSet debugAttributes;
+    private TrayIcon trayIcon;
+    private final SimpleAttributeSet defaultAttributes = new SimpleAttributeSet();
+    private final SimpleAttributeSet highlightedAttributes;
+    private final SimpleAttributeSet errorAttributes;
+    private final SimpleAttributeSet infoAttributes;
+    private final SimpleAttributeSet debugAttributes;
+    
+    static {
+        trayOkImage = UIUtil.readIconImage("/resources/tray_ok.png");
+        trayClosedImage = UIUtil.readIconImage("/resources/tray_closed.png");
+    }
     
     /**
      * Construct the frame.
@@ -82,32 +105,27 @@ public class ConsoleFrame extends JFrame implements PasteCallback {
      * @param colorEnabled true to enable a colored console
      */
     public ConsoleFrame(int numLines, boolean colorEnabled) {
-        this("Console", numLines, colorEnabled);
-    }
-
-    /**
-     * Return whether the console is still active.
-     * 
-     * @return true if still active
-     */
-    public boolean isRunning() {
-        return running;
+        this(numLines, colorEnabled, null, false);
     }
 
     /**
      * Construct the frame.
      * 
-     * @param title the title of the window
      * @param numLines number of lines to show at a time
      * @param colorEnabled true to enable a colored console
+     * @param proc process to track
+     * @param killProcess true to kill the process on console close
      */
-    public ConsoleFrame(String title, int numLines, boolean colorEnabled) {
-        super(title);
-        
+    public ConsoleFrame(int numLines, boolean colorEnabled,
+            final Process proc, final boolean killProcess) {
+        super("Messages and Errors");
+
         UIUtil.setIconImage(this, "/resources/tray_ok.png");
         
         this.numLines = numLines;
         this.colorEnabled = colorEnabled;
+        this.trackProc = proc;
+        this.killProcess = killProcess;
         
         this.highlightedAttributes = new SimpleAttributeSet();
         StyleConstants.setForeground(highlightedAttributes, Color.BLACK);
@@ -122,49 +140,80 @@ public class ConsoleFrame extends JFrame implements PasteCallback {
         
         setSize(new Dimension(650, 400));
         addComponents();
+        
+        if (proc != null) {
+            track(proc);
+        }
 
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent event) {
-                tryClose();
+                close();
             }
         });
     }
     
     /**
-     * Detach the handler on the global logger.
+     * Confirm a force kill attempt.
+     * 
+     * @return true to continue force closing
      */
-    protected void detachGlobalHandler() {
-        if (loggerHandler != null) {
-            rootLogger.removeHandler(loggerHandler);
-            loggerHandler = null;
+    private boolean confirmKill() {
+        boolean confirmKill = 
+                Launcher.getInstance().getOptions().getSettings().getBool(
+                        Def.CONSOLE_CONFIRM_KILL, true);// Confirm the kill process
+        
+        if (confirmKill && JOptionPane
+                .showConfirmDialog(
+                        self,
+                        "Are you sure? If you're in a single player game, this can " +
+                        "make you lose your progress!",
+                        "Force Close", JOptionPane.YES_NO_OPTION) != 0) {
+            return false;
         }
+        
+        return true;
     }
     
     /**
      * Try to close.
      */
-    protected void tryClose() {
-        synchronized (self) {
-            if (!running) {
-                return; // Already closed
+    private void close() {
+        if (trackProc != null && killProcess) {
+            if (!confirmKill()) {
+                return;
             }
             
-            running = false;
-
-            // Tell threads waiting on us that we're done
-            self.notifyAll();
+            trackProc.destroy();
+            trackProc = null;
         }
-        
-        detachGlobalHandler();
-        dispose();
+        if (trackProc == null) {
+            running = false;
+            
+            // Tell threads waiting on us that we're done
+            synchronized (self) {
+                self.notifyAll();
+            }
+            
+            if (trayIcon != null) {
+                SystemTray.getSystemTray().remove(trayIcon);
+            }
+            
+            if (loggerHandler != null) {
+                rootLogger.removeHandler(loggerHandler);
+            }
+            
+            dispose();
+        } else {
+            self.setVisible(false);
+        }
     }
     
     /**
      * Build the interface.
      */
-    protected void addComponents() {
+    private void addComponents() {
         if (colorEnabled) {
             JTextPane text = new JTextPane() {
                 private static final long serialVersionUID = 6814733823000144811L;
@@ -197,7 +246,7 @@ public class ConsoleFrame extends JFrame implements PasteCallback {
         scrollText.setHorizontalScrollBarPolicy(
                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
-        buttonsPanel = Box.createHorizontalBox();
+        Box buttonsPanel = Box.createHorizontalBox();
         buttonsPanel.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
         JButton pastebinButton = new JButton("Upload Log...");
         buttonsPanel.add(pastebinButton);
@@ -214,7 +263,65 @@ public class ConsoleFrame extends JFrame implements PasteCallback {
             }
         });
         
+        if (trackProc != null) {
+            killButton = new JButton("Force Close");
+            minimizeButton = new JButton("Hide Window");
+            
+            buttonsPanel.add(Box.createHorizontalGlue());
+            buttonsPanel.add(killButton);
+            buttonsPanel.add(Box.createHorizontalStrut(5));
+            buttonsPanel.add(minimizeButton);
+            
+            killButton.addActionListener(killProcessListener);
+            
+            minimizeButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    self.setVisible(false);
+                }
+            });
+            
+            if (!setupTrayIcon()) {
+                minimizeButton.setEnabled(true);
+            }
+        }
+        
         add(scrollText, BorderLayout.CENTER);
+    }
+    
+    private boolean setupTrayIcon() {
+        if (!SystemTray.isSupported() || trayOkImage == null || trayClosedImage == null) {
+            return false;
+        }
+        
+        trayIcon = new TrayIcon(trayOkImage);
+        trayIcon.setImageAutoSize(true);
+        trayIcon.setToolTip("Messages and Errors for SKMCLauncher");
+        
+        trayIcon.addActionListener(reshowWindowListener);
+       
+        PopupMenu popup = new PopupMenu();
+        MenuItem item;
+
+        popup.add(item = new MenuItem("SKMCLauncher"));
+        item.setEnabled(false);
+
+        popup.add(item = new MenuItem("Show messages and errors"));
+        item.addActionListener(reshowWindowListener);
+
+        popup.add(item = new MenuItem("Kill game"));
+        item.addActionListener(killProcessListener);
+       
+        trayIcon.setPopupMenu(popup);
+       
+        try {
+            SystemTray tray = SystemTray.getSystemTray();
+            tray.add(trayIcon);
+            return true;
+        } catch (AWTException e) {
+        }
+        
+        return false;
     }
     
     public String getPastableText() {
@@ -362,6 +469,63 @@ public class ConsoleFrame extends JFrame implements PasteCallback {
     }
 
     /**
+     * Track a process in a separate daemon thread.
+     * 
+     * @param process process
+     */
+    private void track(Process process) {
+        final PrintWriter out = new PrintWriter(getOutputStream(Color.MAGENTA), true);
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    int code = trackProc.waitFor();
+                    out.println("Process ended with code " + code);
+                    out.println("Minecraft is no longer running! " +
+                            "Click 'Close Window' to close this window.");
+                    out.println("Did you know: In 'Options', under 'Environment', you " +
+                    		"can disable this window from appearing.");
+                    trackProc = null;
+                } catch (InterruptedException e) {
+                    out.println("Process tracking interrupted!");
+                }
+                
+                if (!running) {
+                    return;
+                }
+                
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (killButton != null) {
+                            killButton.setEnabled(false);
+                        }
+                        
+                        if (minimizeButton != null) {
+                            minimizeButton.setText("Close Window");
+                            minimizeButton.addActionListener(new ActionListener() {
+                                @Override
+                                public void actionPerformed(ActionEvent e) {
+                                    close();
+                                }
+                            });
+                        }
+                        
+                        if (trayIcon != null) {
+                            trayIcon.setImage(trayClosedImage);
+                        }
+
+                        UIUtil.setIconImage(self, "/resources/tray_closed.png");
+                        reshowWindowListener.actionPerformed(null);
+                    }
+                });
+            }
+        });
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    /**
      * Register a global logger listener.
      */
     public void registerLoggerHandler() {
@@ -387,6 +551,37 @@ public class ConsoleFrame extends JFrame implements PasteCallback {
             }
         }
     }
+    
+    private ActionListener killProcessListener = new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (!confirmKill()) {
+                return;
+            }
+            
+            if (killButton != null) {
+                killButton.setEnabled(false);
+            }
+            
+            if (trackProc != null) {
+                trackProc.destroy();
+                trackProc = null;
+            }
+            
+            if (loggerHandler != null) {
+                rootLogger.removeHandler(loggerHandler);
+                loggerHandler = null;
+            }
+        }
+    };
+    
+    private ActionListener reshowWindowListener = new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            self.setVisible(true);
+            self.requestFocus();
+        }
+    };
     
     /**
      * Used to send console messages to the console.

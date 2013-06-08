@@ -99,7 +99,7 @@ public class URLConnectionDownloader extends AbstractDownloader {
                 return false;
             } else if (conn.getResponseCode() != 200) {
                 throw new IOException("Did not get expected 200 code, got " + 
-                        conn.getResponseCode());
+                        conn.getResponseCode() + " from " + getUrl());
             }
             
             fireConnectionStarted();

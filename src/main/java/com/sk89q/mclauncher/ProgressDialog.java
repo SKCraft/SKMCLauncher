@@ -48,7 +48,7 @@ public class ProgressDialog extends JDialog implements ProgressListener {
     private JButton cancelButton;
     
     public ProgressDialog(Window owner, final Task task, String title) {
-        super(owner, title, Dialog.ModalityType.DOCUMENT_MODAL);
+        super(owner, title, Dialog.ModalityType.APPLICATION_MODAL);
 
         this.task = task;
 

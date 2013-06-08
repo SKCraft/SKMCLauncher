@@ -44,7 +44,6 @@ import javax.swing.event.EventListenerList;
 
 import com.sk89q.mclauncher.DownloadListener;
 import com.sk89q.mclauncher.DownloadProgressEvent;
-import com.sk89q.mclauncher.Launcher;
 import com.sk89q.mclauncher.ProgressListener;
 import com.sk89q.mclauncher.SelectComponentsDialog;
 import com.sk89q.mclauncher.StatusChangeEvent;
@@ -77,7 +76,7 @@ public class Updater implements DownloadListener {
     private final File downloadDir;
     
     private int downloadTries = 5;
-    private long retryDelay = 2000;
+    private long retryDelay = 5000;
     private boolean forced = false;
     private Map<String, String> parameters = new HashMap<String, String>();
 
@@ -287,16 +286,13 @@ public class Updater implements DownloadListener {
                     } else {
                         retryNum++;
                         fireDownloadStatusChange("Download failed; retrying (" + retryNum + ")...");
-                        Launcher.showConsole();
-                        logger.warning("Failed to download " + getURL(group, file));
                         Util.sleep(retryDelay);
                     }
                 }
                 
                 if (e != null) {
                     throw new UpdateException(
-                            "Could not download " + file + 
-                            ": " + e.getMessage(), e);
+                            "Could not download " + getURL(group, file) + ": " + e.getMessage(), e);
                 }
             }
         }
