@@ -21,7 +21,9 @@ import com.sk89q.mclauncher.config.Configuration;
 import com.sk89q.mclauncher.config.Def;
 import com.sk89q.mclauncher.config.SettingsList;
 import com.sk89q.mclauncher.util.ConsoleFrame;
+import com.sk89q.mclauncher.util.GameConsoleFrame;
 import com.sk89q.mclauncher.util.JavaRuntimeFinder;
+import com.sk89q.mclauncher.util.MessageLog;
 import com.sk89q.mclauncher.util.Util;
 
 public class LaunchProcessBuilder {
@@ -250,11 +252,12 @@ public class LaunchProcessBuilder {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                    consoleFrame = new ConsoleFrame(
+                    consoleFrame = new GameConsoleFrame(
                             10000, coloredConsole, proc, consoleKillsProcess);
                     consoleFrame.setVisible(true);
-                    consoleFrame.consume(proc.getInputStream());
-                    consoleFrame.consume(proc.getErrorStream(), Color.RED);
+                    MessageLog log = consoleFrame.getMessageLog();
+                    log.consume(proc.getInputStream());
+                    log.consume(proc.getErrorStream(), Color.RED);
                 }
             });
         }
@@ -291,7 +294,7 @@ public class LaunchProcessBuilder {
         
         if (showConsole || relaunch) {
             if (relaunch) {
-                new Thread(new Runnable() {
+                Thread thread = new Thread(new Runnable() {
                     @Override
                     public void run() {
                         try {
@@ -307,7 +310,9 @@ public class LaunchProcessBuilder {
                         }
                         Launcher.startLauncherFrame();
                     }
-                }).start();
+                });
+                thread.setName("Wait For Game Close");
+                thread.start();
             }
         } else {
             System.exit(0);
