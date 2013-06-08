@@ -30,6 +30,11 @@
       <artifactId>simplenbt</artifactId>
       <version>1.0.4-SNAPSHOT</version>
     </dependency>
+  <dependency>
+    <groupId>com.github.jponge</groupId>
+    <artifactId>lzma-java</artifactId>
+    <version>1.2</version>
+  </dependency>
   </dependencies>
   <build>
     <sourceDirectory>${basedir}/src/main/java/</sourceDirectory>
