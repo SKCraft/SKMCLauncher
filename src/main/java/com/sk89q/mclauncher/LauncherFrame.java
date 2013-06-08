@@ -370,6 +370,7 @@ public class LauncherFrame extends JFrame implements ListSelectionListener {
                     }
                     
                     options.getConfigurations().remove(configuration);
+                    options.save();
                 }
             });
             popup.add(menuItem);
