@@ -49,7 +49,8 @@ import com.sk89q.mclauncher.util.Util;
 public class IdentityList implements ComboBoxModel {
 
     private transient EventListenerList listenerList = new EventListenerList();
-    
+
+    private boolean hasLoggedIn;
     private String lastId;
     private List<Identity> identities = new ArrayList<Identity>();
     
@@ -58,6 +59,15 @@ public class IdentityList implements ComboBoxModel {
     public IdentityList() {
     }
     
+    @XmlAttribute(name = "loggedIn")
+    public boolean getHasLoggedIn() {
+        return hasLoggedIn;
+    }
+
+    public void setHasLoggedIn(boolean hasLoggedIn) {
+        this.hasLoggedIn = hasLoggedIn;
+    }
+
     @XmlAttribute(name = "lastUsed")
     public String getLastUsedId() {
         return lastId;
@@ -284,6 +294,9 @@ public class IdentityList implements ComboBoxModel {
         } else {
             this.selected = new Identity(id, null);
         }
+
+        fireListDataEvent(new ListDataEvent(
+                this, ListDataEvent.CONTENTS_CHANGED, 0, getSize()));
     }
 
     @XmlTransient

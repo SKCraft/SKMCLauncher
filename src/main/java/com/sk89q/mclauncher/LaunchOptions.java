@@ -125,15 +125,6 @@ public class LaunchOptions extends JPanel implements ListSelectionListener {
     
         playOfflineCheck = new JCheckBox("Play in offline mode");
         playOfflineCheck.setBorder(null);
-        playOfflineCheck.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                boolean selected = ((JCheckBox) e.getSource()).isSelected();
-                userText.setEnabled(!selected);
-                passText.setEnabled(!selected);
-                rememberPass.setEnabled(!selected);
-            }
-        });
     
         showConsoleCheck = new JCheckBox("Launch with console");
         showConsoleCheck.setBorder(null);
@@ -211,6 +202,16 @@ public class LaunchOptions extends JPanel implements ListSelectionListener {
                 }
             }
         });
+        
+        playOfflineCheck.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                boolean selected = ((JCheckBox) e.getSource()).isSelected();
+                userText.setEnabled(!selected);
+                passText.setEnabled(!selected);
+                rememberPass.setEnabled(!selected);
+            }
+        });
     
         expandBtn.addActionListener(new ActionListener() {
             @Override
@@ -220,9 +221,7 @@ public class LaunchOptions extends JPanel implements ListSelectionListener {
                 jarCombo.setVisible(true);
                 forceUpdateCheck.setVisible(true);
                 changeComponentsCheck.setVisible(true);
-                playOfflineCheck.setVisible(
-                        options.getSettings().getBool(
-                                Def.LAUNCHER_ALLOW_OFFLINE_NAME, false));
+                playOfflineCheck.setVisible(true);
                 // registerAccount.setVisible(true);
             }
         });
@@ -282,10 +281,12 @@ public class LaunchOptions extends JPanel implements ListSelectionListener {
             rememberPass.setSelected(true);
             return;
         }
+        
+        Identity saved = options.getIdentities().byId(selected.getId());
 
-        if (options.getIdentities().byId(selected.getId()) != null) {
-            rememberPass.setSelected(selected.getPassword() != null);
-            passText.setText(selected.getPassword());
+        if (saved != null) {
+            rememberPass.setSelected(saved.getPassword() != null);
+            passText.setText(saved.getPassword());
         } else {
             rememberPass.setSelected(true);
         }
@@ -398,7 +399,7 @@ public class LaunchOptions extends JPanel implements ListSelectionListener {
      * @return true if set properly
      */
     public boolean verifyAndNotify() {
-        if (getLoginId() == null) {
+        if (!playOfflineCheck.isSelected() && getLoginId() == null) {
             UIUtil.showError(frame, "No username", "A username must be entered.");
             return false;
         }

@@ -364,6 +364,8 @@ public class LauncherFrame extends JFrame implements ListSelectionListener {
             } else {
                 identities.forgetPassword(identity.getId());
             }
+        } else {
+            identity = new Identity("Player", null);
         }
         
         configuration.updateLastLaunch();

@@ -38,6 +38,7 @@ import com.sk89q.mclauncher.LoginSession.LoginException;
 import com.sk89q.mclauncher.LoginSession.OutdatedLauncherException;
 import com.sk89q.mclauncher.config.Configuration;
 import com.sk89q.mclauncher.config.DefaultJar;
+import com.sk89q.mclauncher.config.LauncherOptions;
 import com.sk89q.mclauncher.config.MinecraftJar;
 import com.sk89q.mclauncher.config.SettingsList;
 import com.sk89q.mclauncher.launch.LaunchProcessBuilder;
@@ -174,6 +175,10 @@ public class LaunchTask extends Task {
         
         if (!playOffline) {
             login();
+        } else {
+            if (!Launcher.getInstance().getOptions().getIdentities().getHasLoggedIn()) {
+                throw new ExecutionException("Login once before using offline mode.");
+            }
         }
         
         notInstalled = (activeJar instanceof DefaultJar &&
@@ -242,6 +247,10 @@ public class LaunchTask extends Task {
             if (!session.login(password)) {
                 throw new ExecutionException("You've entered an invalid username/password combination.");
             }
+            
+            LauncherOptions options = Launcher.getInstance().getOptions();
+            options.getIdentities().setHasLoggedIn(true);
+            options.save();
             
             username = session.getUsername();
         } catch (SSLHandshakeException e) {
