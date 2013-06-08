@@ -186,12 +186,21 @@ public class ConsoleFrame extends JFrame implements PasteCallback {
      */
     private void addComponents() {
         if (colorEnabled) {
-            JTextPane text = new JTextPane();
+            JTextPane text = new JTextPane() {
+                private static final long serialVersionUID = 6814733823000144811L;
+
+                @Override
+                public boolean getScrollableTracksViewportWidth()
+                {
+                    return true;
+                }
+            };
             this.textComponent = text;
         } else {
             JTextArea text = new JTextArea();
             this.textComponent = text;
             text.setLineWrap(true);
+            text.setWrapStyleWord(true);
         }
         
         textComponent.setFont(new JLabel().getFont());
@@ -203,7 +212,10 @@ public class ConsoleFrame extends JFrame implements PasteCallback {
         
         JScrollPane scrollText = new JScrollPane(textComponent);
         scrollText.setBorder(null);
-        scrollText.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        scrollText.setVerticalScrollBarPolicy(
+                ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        scrollText.setHorizontalScrollBarPolicy(
+                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
         Box buttonsPanel = Box.createHorizontalBox();
         buttonsPanel.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
