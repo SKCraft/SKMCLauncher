@@ -445,11 +445,12 @@ public class LauncherFrame extends JFrame implements ListSelectionListener {
         configuration.setLastJar(jar);
         
         options.getConfigurations().sortByDate();
+        configurationList.setSelectedIndex(0);
         
         options.save();
 
         LaunchTask task = new LaunchTask(
-                this, getCurrentConfiguration(), 
+                this, configuration, 
                 identity.getId(), identity.getPassword(), jar);
         task.setForceUpdate(launchOptions.isForcingUpdate());
         task.setForceIncrementalUpdate(launchOptions.isForcingIncrementalUpdate());
