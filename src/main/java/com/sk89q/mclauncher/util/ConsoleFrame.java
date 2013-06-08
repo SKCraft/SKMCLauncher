@@ -254,8 +254,14 @@ public class ConsoleFrame extends JFrame implements PasteCallback {
         PopupMenu popup = new PopupMenu();
         MenuItem item;
 
-        popup.add(item = new MenuItem("Show messages and errors..."));
+        popup.add(item = new MenuItem("SKMCLauncher"));
+        item.setEnabled(false);
+
+        popup.add(item = new MenuItem("Show messages and errors"));
         item.addActionListener(reshowWindowListener);
+
+        popup.add(item = new MenuItem("Kill game"));
+        item.addActionListener(killProcessListener);
        
         trayIcon.setPopupMenu(popup);
        

@@ -8,6 +8,7 @@ import java.io.PrintStream;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import javax.swing.SwingUtilities;
@@ -20,10 +21,13 @@ import com.sk89q.mclauncher.config.Configuration;
 import com.sk89q.mclauncher.config.Def;
 import com.sk89q.mclauncher.config.SettingsList;
 import com.sk89q.mclauncher.util.ConsoleFrame;
+import com.sk89q.mclauncher.util.JavaRuntimeFinder;
 import com.sk89q.mclauncher.util.Util;
 
 public class LaunchProcessBuilder {
     
+    private static final Logger logger = Logger.getLogger(
+            LaunchProcessBuilder.class.getCanonicalName());
     private static final Pattern maxPermGenPattern = 
             Pattern.compile("^-XX:MaxPermSize=.*$", Pattern.CASE_INSENSITIVE);
 
@@ -119,14 +123,15 @@ public class LaunchProcessBuilder {
     }
     
     public void launch() throws IOException {
-        String validatedRuntimePath = "";
+        String effectiveRuntimePath = "";
         
         // Figure out what to use for the Java runtime
         if (runtimePath != null) {
             File test = new File(runtimePath);
             // Try the parent directory
             if (!test.exists()) {
-                throw new IOException("The configured Java runtime path '" + runtimePath + "' doesn't exist.");
+                throw new IOException(
+                        "The configured Java runtime path '" + runtimePath + "' doesn't exist.");
             } else if (test.isFile()) {
                 test = test.getParentFile();
             }
@@ -134,7 +139,14 @@ public class LaunchProcessBuilder {
             if (test2.isDirectory()) {
                 test = test2;
             }
-            validatedRuntimePath = test.getAbsolutePath() + File.separator;
+            effectiveRuntimePath = test.getAbsolutePath() + File.separator;
+            logger.info("Using JRE at " + effectiveRuntimePath);
+        } else {
+            File foundPath = JavaRuntimeFinder.findBestJavaPath();
+            if (foundPath != null) {
+                logger.info("Detected JRE at " + foundPath.getAbsolutePath());
+                effectiveRuntimePath = foundPath.getAbsolutePath() + File.separator;
+            }
         }
         
         // Set some things straight
@@ -164,7 +176,7 @@ public class LaunchProcessBuilder {
         }
         
         // Choose the java version that we want
-        params.add(validatedRuntimePath + "java");
+        params.add(effectiveRuntimePath + "java");
         
         // Add memory options
         if (minMem > 0) {
