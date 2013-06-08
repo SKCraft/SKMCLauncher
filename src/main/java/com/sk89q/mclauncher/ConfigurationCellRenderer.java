@@ -55,7 +55,7 @@ public class ConfigurationCellRenderer implements ListCellRenderer {
         
         String infoText;
         if (configuration.isUsingDefaultPath()) {
-            infoText = "Mojang's Latest Release";
+            infoText = "Normal installation";
         } else if (configuration.getUpdateUrl() != null) {
             infoText = "via " + configuration.getUpdateUrl().getHost();
         } else {
