@@ -26,6 +26,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -223,6 +224,8 @@ public class LauncherFrame extends JFrame implements ListSelectionListener {
 
             private void maybeShowPopup(MouseEvent e) {
                 if (e.isPopupTrigger()) {
+                    configurationList.setSelectedIndex(
+                            configurationList.locationToIndex(e.getPoint()));
                     popupConfigurationMenu(e.getComponent(), e.getX(), e.getY());
                 }
             }
@@ -371,6 +374,27 @@ public class LauncherFrame extends JFrame implements ListSelectionListener {
                     
                     options.getConfigurations().remove(configuration);
                     options.save();
+                }
+            });
+            popup.add(menuItem);
+            
+            menuItem = new JMenuItem("Open Minecraft data folder...");
+            menuItem.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    UIUtil.browse(configuration.getMinecraftDir(), self);
+                }
+            });
+            popup.add(menuItem);
+
+            menuItem = new JMenuItem("Open texture packs folder...");
+            menuItem.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    File f = new File(configuration.getMinecraftDir(),
+                            "texturepacks");
+                    f.mkdirs();
+                    UIUtil.browse(f, self);
                 }
             });
             popup.add(menuItem);
