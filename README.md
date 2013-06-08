@@ -9,8 +9,14 @@ Building a Mod Pack
 -------------------
 
 1. Build a folder with all the mods/ config/ etc. files for the package.
-2. Make a copy of `sample_builder_config.xml`, read through it, and edit it.
+2. Make a copy of `sample_builder_config_minimal.xml` and edit the ID and
+    name inside the file.
 3. Run the command: `java -cp SKMCLauncher.jar com.sk89q.lpbuilder.UpdateBuilder -dir "/path/to/files/" -out "/path/to/www/" -config "/path/to/sample_builder_config.xml"`
+
+You do NOT need to list every file in the modpack. That's what the tool is for!
+You can, however, set patterns on certain files to put them into an
+"optional component" or into a .zip. See `sample_builder_config.xml`
+for a more advanced version.
 
 After that's done, just give the URL to users of update.xml! They can use
 "Install from URL..." in the launcher.
