@@ -16,6 +16,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
+
 import com.sk89q.mclauncher.config.Configuration;
 
 public class ConfigurationCellRenderer implements ListCellRenderer {
@@ -54,7 +55,7 @@ public class ConfigurationCellRenderer implements ListCellRenderer {
         
         String infoText;
         if (configuration.isUsingDefaultPath()) {
-            infoText = "Default Minecraft installation";
+            infoText = "Mojang's Latest Release";
         } else if (configuration.getUpdateUrl() != null) {
             infoText = "via " + configuration.getUpdateUrl().getHost();
         } else {

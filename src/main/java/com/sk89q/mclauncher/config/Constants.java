@@ -69,7 +69,7 @@ public class Constants {
      *            configurations manager
      */
     public static void register(ConfigurationList configsManager) {
-        configsManager.registerBuiltIn("minecraft", "Default", null, null);
+        configsManager.registerBuiltIn("minecraft", "Latest Minecraft", null, null);
     }
 
     /**
