@@ -17,4 +17,5 @@
     <setting key="window.fullscreen">false</setting>
     <setting key="window.height">480</setting>
     <setting key="window.width">854</setting>
+    <setting key="launcher.reopen-after-close">true</setting>
 </settings>

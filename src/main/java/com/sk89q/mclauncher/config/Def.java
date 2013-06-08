@@ -32,7 +32,7 @@ public class Def {
     public static final String LAUNCHER_NO_NEWS = "launcher.newsless";
     public static final String LAUNCHER_HIDE_NEWS = "launcher.hidenews";
     public static final String LAUNCHER_ALWAYS_MORE_OPTIONS = "launcher.always-more-options";
-    public static final String LAUNCHER_REOPEN = "launcher.reopen";
+    public static final String LAUNCHER_REOPEN = "launcher.reopen-after-close";
     public static final String WINDOW_WIDTH = "window.width";
     public static final String WINDOW_HEIGHT = "window.height";
     public static final String WINDOW_FULLSCREEN = "window.fullscreen";
