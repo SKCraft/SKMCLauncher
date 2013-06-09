@@ -88,7 +88,7 @@ Sample command:
 
     java -cp SKMCLauncher.jar com.sk89q.lpbuilder.UpdateBuilder -dir "/path/to/files/" -out "/path/to/www/" -config "/path/to/sample_builder_config.xml"`
 
-**Tip:** If you use combine this tool with Git (or SVN, etc.) and a continuous
+**Tip:** If you combine this tool with Git (or SVN, etc.) and a continuous
 integration server (Jenkins, TeamCity, Bamboo, etc.), you can push updates to
 your server's players by just pushing to your repository!
     
