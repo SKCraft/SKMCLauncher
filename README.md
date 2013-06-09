@@ -48,27 +48,35 @@ Building a Mod Pack
 6. Upload the contents of the output directory to your website.
 
 Now that you have a URL to update.xml (like 
-*http://example.com/modpack/update.xml*), give people that link and they can put it in "Install from URL..." to automatically download!
+*http://example.com/modpack/update.xml*), give people that link and they can 
+put it in "Install from URL..." to automatically download!
 
 When you need to update, just upload the new files to the same place. The 
-launcher will know how to update, and *will only download changed files!* (except for config/ -- that entire folder gets updated at once).
+launcher will *know to only download changed files!* 
+(except for config/ -- that entire folder gets updated at once).
 
 Advanced Building
 -----------------
 
 There are some features not supported by the above GUI process.
 
-* The builder tool lets you zip up config/ so that all the configuration files are in one .zip, which is faster to download. You can't setup your own settings for other folders with the GUI.
-* You can't set some files to not overwrite on update. You might do that for "default configuration" files like a list of world waypoints.
-* You can't make parts of the update "optional" where players can turn that part on or off.
+* The builder tool lets you zip up config/ so that all the configuration 
+  files download as one file (which is faster). You can't setup your own 
+  settings for other folders with the GUI.
+* You can't set some files to not overwrite on update. You would do that for 
+  "default configuration" files like a list of minimap waypoints.
+* You can't make parts of the update "optional" that players can choose
+  to install or not.
 
 ### How to Make More Advanced Updates ###
 
-You can actually still use the GUI. You just need to make a "builder configuration" (see below) and input into the GUI.
+You can actually still use the GUI. You just need to make a "builder 
+configuration" and input into the GUI.
 
 1. Make a copy of [sample_builder_config.xml](sample_builder_config.xml).
 2. Edit the file as needed.
-3. In the GUI, click "Use Builder Configuration" at the top and select your configuration.
+3. In the GUI, click "Use Builder Configuration" at the top and select your 
+   configuration.
 4. Build as normal.
 
 Command Line
@@ -80,7 +88,9 @@ Sample command:
 
     java -cp SKMCLauncher.jar com.sk89q.lpbuilder.UpdateBuilder -dir "/path/to/files/" -out "/path/to/www/" -config "/path/to/sample_builder_config.xml"`
 
-**Tip:** If you use this with Git and a continuous integration server (Jenkins, TeamCity, Bamboo, etc.), you can push updates to your server's player by just pushing to Git!
+**Tip:** If you use combine this tool with Git (or SVN, etc.) and a continuous
+integration server (Jenkins, TeamCity, Bamboo, etc.), you can push updates to
+your server's players by just pushing to your repository!
     
 * `-dir path_of_client_files`
 * `-out output_dir`
@@ -97,6 +107,10 @@ Compiling
 
 ### With Eclipse ###
 
+**Tip:** You should try to set up m2eclipse as outlined below, as m2eclipse
+will automatically download other projects that SKMCLauncher needs. If not,
+you have to manually collect all the dependencies!
+
 If you want to open this project in Eclipse:
 
 1. Download the source code. Use Git if you can, so updating is easier.
@@ -105,9 +119,9 @@ If you want to open this project in Eclipse:
    haven't already. Make sure to set JAVA_HOME and the path to Maven if you
    need to do that.
 4. Setup a new project in Eclipse, and make sure to enable Maven support (right 
-   click the project, look at the bottom).
-5. m2eclipse will download everything you need. Just run the main class to run
-   the launcher from Eclipse!
+   click the project, and select "Convert to Maven Project").
+5. m2eclipse will download everything you need. Just run the main class
+   from Eclipse!
 
 ### Command Line ###
 
