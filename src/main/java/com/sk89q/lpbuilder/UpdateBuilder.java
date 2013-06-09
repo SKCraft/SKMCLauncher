@@ -487,7 +487,7 @@ public class UpdateBuilder implements Runnable {
         }
     }
     
-    public static void clean(File dir) {
+    public static void clean(File dir) throws InterruptedException {
         logger.info("");
         logger.info("---------------------------------------------------");
         logger.info("Cleaning target directory");

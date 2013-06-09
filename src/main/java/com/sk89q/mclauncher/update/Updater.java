@@ -570,7 +570,10 @@ public class Updater implements DownloadListener {
         
         if (forced) {
             // Clean the download cache directory if we are force downloading
-            Util.cleanDir(downloadDir);
+            try {
+                Util.cleanDir(downloadDir);
+            } catch (InterruptedException e) {
+            }
         }
         
         logger.info("Downloading files...");
@@ -605,7 +608,10 @@ public class Updater implements DownloadListener {
         }
 
         // Make sure to delete all the downloads if we're succeessful
-        Util.cleanDir(downloadDir);
+        try {
+            Util.cleanDir(downloadDir);
+        } catch (InterruptedException e) {
+        }
         downloadDir.delete();
     }
     

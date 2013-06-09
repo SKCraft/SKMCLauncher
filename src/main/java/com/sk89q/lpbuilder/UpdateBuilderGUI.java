@@ -139,11 +139,11 @@ public class UpdateBuilderGUI extends JFrame {
         String name = validate("Name", nameText.getText(), false, null);
         String version = validate("Version", versionText.getText(), false, null);
         File sourceDir = validateDirectory("Source directory", sourceField.getPath(), false);
-        File outputDir = validateDirectory("Output directory", outputField.getPath(), true);
+        final File outputDir = validateDirectory("Output directory", outputField.getPath(), true);
         String packageFilename = validate("Package filename", packageText.getText(), true, null);
         String updateFilename = validate("Update filename", updateText.getText(), true, null);
         boolean includeLibs = includeLibsCheck.isSelected();
-        boolean clean = cleanCheck.isSelected();
+        final boolean clean = cleanCheck.isSelected();
         boolean zipConfigs = zipConfigsCheck.isSelected();
         
         // Check if source == output
@@ -159,11 +159,6 @@ public class UpdateBuilderGUI extends JFrame {
                         "Continue and delete everything in " + outputDir.getAbsolutePath() + "?",
                         "Clean Directory", JOptionPane.YES_NO_OPTION) != 0) {
             return;
-        }
-        
-        // Clean
-        if (clean) {
-            UpdateBuilder.clean(outputDir);
         }
 
         final UpdateBuilder builder = new UpdateBuilder(sourceDir, outputDir);
@@ -226,7 +221,12 @@ public class UpdateBuilderGUI extends JFrame {
             @Override
             public void run() {
                 try {
+                    if (clean) {
+                        UpdateBuilder.clean(outputDir);
+                    }
+                    
                     builder.run();
+                } catch (InterruptedException e) {
                 } finally {
                     setBuilding(false);
                 }

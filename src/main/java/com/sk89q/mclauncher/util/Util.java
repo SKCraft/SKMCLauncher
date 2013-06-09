@@ -345,8 +345,13 @@ public final class Util {
      * Delete everything inside a directory.
      * 
      * @param dir the directory
+     * @throws InterruptedException on interruption
      */
-    public static void cleanDir(File dir) {
+    public static void cleanDir(File dir) throws InterruptedException {
+        if (Thread.interrupted()) {
+            throw new InterruptedException();
+        }
+        
         if (!dir.exists()) {
             return;
         }
