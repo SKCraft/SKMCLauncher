@@ -86,7 +86,7 @@ public class LauncherFrame extends JFrame implements ListSelectionListener {
 
         addComponents();
         setLocationRelativeTo(null);
-
+        
         // Select the initial configuration
         ListModel model = configurationList.getModel();
         Configuration startupConfiguration = options.getConfigurations()
@@ -128,6 +128,7 @@ public class LauncherFrame extends JFrame implements ListSelectionListener {
         if (!hideNews) {
             boolean lazyLoad = options.getSettings().getBool(Def.LAUNCHER_NO_NEWS, false);
             WebpagePanel newsPanel = WebpagePanel.forURL(Constants.NEWS_URL, lazyLoad);
+            newsPanel.setBorder(BorderFactory.createEmptyBorder(PAD, 0, PAD, PAD));
             add(newsPanel, BorderLayout.CENTER);
         }
         

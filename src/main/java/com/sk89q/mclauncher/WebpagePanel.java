@@ -52,7 +52,6 @@ public final class WebpagePanel extends JPanel {
     private static final Logger logger = 
             Logger.getLogger(WebpagePanel.class.getCanonicalName());
     private static final long serialVersionUID = -1280532243823315833L;
-    private static final int PAD = 12;
     
     private final WebpagePanel self = this;
     private final URL url;
@@ -93,7 +92,6 @@ public final class WebpagePanel extends JPanel {
     private void setDocument() {
         JLayeredPane panel = new JLayeredPane();
         panel.setLayout(new NewsLayoutManager());
-        panel.setBorder(BorderFactory.createEmptyBorder(PAD, 0, PAD, PAD));
         
         documentView = new JEditorPane();
         documentView.setEditable(false);
@@ -118,10 +116,9 @@ public final class WebpagePanel extends JPanel {
     
     private void setPlaceholder() {
         JLayeredPane panel = new JLayeredPane();
-        panel.setBorder(new CompoundBorder(BorderFactory
-                .createEmptyBorder(PAD, 0, PAD, PAD), new CompoundBorder(
+        panel.setBorder(new CompoundBorder(
                 BorderFactory.createEtchedBorder(), BorderFactory
-                        .createEmptyBorder(4, 4, 4, 4))));
+                        .createEmptyBorder(4, 4, 4, 4)));
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         
         final JButton showButton = new JButton("Load page");
