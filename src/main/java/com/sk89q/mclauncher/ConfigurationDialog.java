@@ -40,19 +40,18 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
-import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.filechooser.FileFilter;
 
 import com.sk89q.mclauncher.config.Configuration;
 import com.sk89q.mclauncher.config.ConfigurationList;
 import com.sk89q.mclauncher.config.LauncherOptions;
 import com.sk89q.mclauncher.config.SettingsList;
+import com.sk89q.mclauncher.util.DirectoryField;
 import com.sk89q.mclauncher.util.UIUtil;
 
 /**
@@ -68,9 +67,8 @@ public class ConfigurationDialog extends JDialog {
     private final ConfigurationList configsManager;
     private final SettingsList settings;
     private Configuration configuration;
-    private JButton browseBtn;
     private JTextField nameText;
-    private JTextField pathText;
+    private DirectoryField pathField;
     private JCheckBox customPathCheck;
     private JTextField urlText;
     private JCheckBox customUpdateCheck;
@@ -127,12 +125,12 @@ public class ConfigurationDialog extends JDialog {
             nameText.setText(configuration.getName());
             if (configuration.isBuiltIn()) {
                 customPathCheck.setSelected(true);
-                pathText.setText(configuration.getBaseDir().getPath());
+                pathField.setPath(configuration.getBaseDir().getPath());
             } else {
                 boolean usingDefault = configuration.isUsingDefaultPath();
                 customPathCheck.setSelected(!usingDefault);
                 if (!usingDefault) {
-                    pathText.setText(configuration.getDirForOptions());
+                    pathField.setPath(configuration.getDirForOptions());
                 }
             }
             URL updateUrl = configuration.getUpdateUrl();
@@ -143,10 +141,9 @@ public class ConfigurationDialog extends JDialog {
             if (configuration.isBuiltIn()) {
                 nameText.setEnabled(false);
                 customPathCheck.setEnabled(false);
-                pathText.setEnabled(false);
+                pathField.setEnabled(false);
                 customUpdateCheck.setEnabled(false);
                 urlText.setEnabled(false);
-                browseBtn.setEnabled(false);
             }
         }
     }
@@ -247,19 +244,10 @@ public class ConfigurationDialog extends JDialog {
         customPathCheck.setBorder(null);
         panel.add(customPathCheck, fieldConstraints);
         panel.add(Box.createGlue(), labelConstraints);
-        JPanel pathPanel = new JPanel();
-        pathPanel.setLayout(new BoxLayout(pathPanel, BoxLayout.X_AXIS));
-        pathText = new JTextField(30);
-        pathText.setMaximumSize(pathText.getPreferredSize());
-        nameLabel.setLabelFor(pathText);
-        browseBtn = new JButton("Browse...");
-        browseBtn.setPreferredSize(new Dimension(
-                browseBtn.getPreferredSize().width,
-                pathText.getPreferredSize().height));
-        pathPanel.add(pathText);
-        pathPanel.add(Box.createHorizontalStrut(3));
-        pathPanel.add(browseBtn);
-        panel.add(pathPanel, fieldConstraints);
+        pathField = new DirectoryField();
+        pathField.getTextField().setMaximumSize(pathField.getTextField().getPreferredSize());
+        nameLabel.setLabelFor(pathField.getTextField());
+        panel.add(pathField, fieldConstraints);
 
         panel.add(Box.createVerticalStrut(10), fullFieldConstraints);
 
@@ -272,21 +260,12 @@ public class ConfigurationDialog extends JDialog {
         urlText = new JTextField("http://");
         urlLabel.setLabelFor(urlText);
         panel.add(urlText, fieldConstraints);
-        
-        browseBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                openPathBrowser();
-            }
-        });
 
-        pathText.setEnabled(false);
-        browseBtn.setEnabled(false);
+        pathField.setEnabled(false);
         customPathCheck.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                pathText.setEnabled(((JCheckBox) e.getSource()).isSelected());
-                browseBtn.setEnabled(((JCheckBox) e.getSource()).isSelected());
+                pathField.setEnabled(((JCheckBox) e.getSource()).isSelected());
             }
         });
         
@@ -315,7 +294,7 @@ public class ConfigurationDialog extends JDialog {
         boolean builtIn = configuration != null && configuration.isBuiltIn();
 
         String name = nameText.getText().trim();
-        String pathStr = customPathCheck.isSelected() ? pathText.getText().trim() : null;
+        String pathStr = customPathCheck.isSelected() ? pathField.getPath().trim() : null;
         String updateURLStr = customUpdateCheck.isSelected() ? urlText.getText() : null;
         URL updateUrl = null;
         
@@ -376,33 +355,6 @@ public class ConfigurationDialog extends JDialog {
         options.save();
         
         return true;
-    }
-    
-    /**
-     * Open the path browser.
-     */
-    private void openPathBrowser() {
-        JFileChooser chooser = new JFileChooser();
-        chooser.setDialogTitle("Select folder");
-        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        chooser.setFileFilter(new FileFilter() {
-            @Override
-            public boolean accept(File pathname) {
-                if (pathname.isDirectory()) return true;
-                return false;
-            }
-
-            @Override
-            public String getDescription() {
-                return "Directories";
-            }
-        });
-        
-        int returnVal = chooser.showOpenDialog(this);
-        
-        if (returnVal == JFileChooser.APPROVE_OPTION) {
-            pathText.setText(chooser.getSelectedFile().getPath());
-        }
     }
 
 }

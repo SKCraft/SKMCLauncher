@@ -247,7 +247,7 @@ public abstract class Task implements Runnable {
     /**
      * Thrown on an error.
      */
-    protected static class ExecutionException extends Exception {
+    public static class ExecutionException extends Exception {
         private static final long serialVersionUID = 7477571317146886480L;
         
         public ExecutionException() {
@@ -265,7 +265,7 @@ public abstract class Task implements Runnable {
     /**
      * Thrown to indicate a cancel that is propagating.
      */
-    protected static class CancelledExecutionException extends ExecutionException {
+    public static class CancelledExecutionException extends ExecutionException {
         private static final long serialVersionUID = 6214758720774734786L;
     }
     

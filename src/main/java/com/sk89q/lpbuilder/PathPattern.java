@@ -26,14 +26,18 @@ import javax.xml.bind.annotation.XmlValue;
 import util.FnMatch;
 import util.FnMatch.Flag;
 
-abstract class PathPattern {
+public abstract class PathPattern {
     
     private static EnumSet<FnMatch.Flag> fnMatchFlags = 
             EnumSet.of(Flag.CASEFOLD, Flag.PERIOD);
     
     private String value;
     
-    private PathPattern() {
+    public PathPattern() {
+    }
+    
+    public PathPattern(String value) {
+        this.value = value;
     }
 
     @XmlValue
@@ -62,9 +66,23 @@ abstract class PathPattern {
     }
 
     public static class Include extends PathPattern {
+        public Include() {
+            super();
+        }
+
+        public Include(String value) {
+            super(value);
+        }
     }
 
     public static class Exclude extends PathPattern {
+        public Exclude() {
+            super();
+        }
+
+        public Exclude(String value) {
+            super(value);
+        }
     }
     
 }

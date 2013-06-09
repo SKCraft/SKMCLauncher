@@ -54,6 +54,7 @@
           <include>sk89q.cer</include>
           <include>update.xml</include>
           <include>defaults.xml</include>
+          <include>libs_builder_config.xml</include>
           <include>*.png</include>
         </includes>
       </resource>

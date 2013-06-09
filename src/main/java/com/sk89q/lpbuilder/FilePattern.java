@@ -29,7 +29,7 @@ import javax.xml.bind.annotation.XmlElements;
 import com.sk89q.mclauncher.model.PackageFile;
 import com.sk89q.mclauncher.update.UninstallLog;
 
-class FilePattern extends PackageFile {
+public class FilePattern extends PackageFile {
 
     private String archiveName;
     private List<PathPattern> pathPatterns = new ArrayList<PathPattern>();

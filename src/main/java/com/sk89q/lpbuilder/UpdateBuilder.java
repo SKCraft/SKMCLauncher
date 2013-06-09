@@ -34,6 +34,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.xml.bind.JAXBContext;
@@ -58,7 +59,7 @@ import com.sk89q.mclauncher.util.Util;
 /**
  * Builds an update package for SKMCLauncher.
  */
-public class UpdateBuilder {
+public class UpdateBuilder implements Runnable {
 
     private static final Logger logger = Logger.getLogger(UpdateBuilder.class
             .getCanonicalName());
@@ -163,8 +164,9 @@ public class UpdateBuilder {
      * <p>Call this once.</p>
      * 
      * @throws IOException on I/O error
+     * @throws InterruptedException on interruption
      */
-    private void collectFiles() throws IOException {
+    private void collectFiles() throws IOException, InterruptedException {
         collectFiles(updateDir);
     }
 
@@ -173,8 +175,9 @@ public class UpdateBuilder {
      * 
      * @param dir the directory
      * @throws IOException on I/O error
+     * @throws InterruptedException on interruption
      */
-    private void collectFiles(File dir) throws IOException {
+    private void collectFiles(File dir) throws IOException, InterruptedException {
         String relative = getRelative(updateDir, dir);
         
         logger.info("Collecting files in '" + dir.getAbsolutePath() + "'");
@@ -184,6 +187,10 @@ public class UpdateBuilder {
         group.setSource(relative);
         
         for (File f : dir.listFiles()) {
+            if (Thread.interrupted()) {
+                throw new InterruptedException();
+            }
+            
             if (f.isDirectory()) {
                 collectFiles(f);
             } else {
@@ -267,8 +274,9 @@ public class UpdateBuilder {
      * <p>Call this once.</p>
      * 
      * @throws IOException on I/O error
+     * @throws InterruptedException on interruption
      */
-    private void commitBuckets() throws IOException {
+    private void commitBuckets() throws IOException, InterruptedException {
         logger.info("Writing ZIPs that are to be extracted later...");
         
         FileGroup group = new FileGroup();
@@ -276,6 +284,10 @@ public class UpdateBuilder {
         group.setSource("");
         
         for (Map.Entry<String, ZipBucket> entry : buckets.entrySet()) {
+            if (Thread.interrupted()) {
+                throw new InterruptedException();
+            }
+            
             String filename = entry.getKey();
             File target = new File(outputDir, filename);
             logger.info("-> " + filename);
@@ -352,8 +364,9 @@ public class UpdateBuilder {
      * 
      * @throws JAXBException on XML error
      * @throws IOException on I/O error
+     * @throws InterruptedException on interruption
      */
-    public void build() throws JAXBException, IOException {
+    public void build() throws JAXBException, IOException, InterruptedException {
         logger.info("Output directory: " + outputDir.getAbsolutePath());
         
         collectFiles();
@@ -365,6 +378,10 @@ public class UpdateBuilder {
                 PackageManifest.class, UpdateManifest.class);
         Marshaller m = context.createMarshaller();
         m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+
+        if (Thread.interrupted()) {
+            throw new InterruptedException();
+        }
         
         File packageFile = new File(outputDir, getPackageFilename());
         File updateFile = new File(outputDir, getUpdateFilename());
@@ -383,6 +400,17 @@ public class UpdateBuilder {
         logger.info("    http://YOUR_DOMAIN.com/WHERE_YOU_UPLOADED_IT/" + updateFilename);
 
         logger.info("------------------------------------------------------------------------");
+    }
+
+    @Override
+    public void run() {
+        try {
+            build(this);
+        } catch (InterruptedException e) {
+            logger.log(Level.WARNING, "Build cancelled!", e);
+        } catch (Throwable e) {
+            logger.log(Level.SEVERE, "An error has occurred: " + e.getMessage(), e);
+        }
     }
     
     private void marshal(Marshaller m, Object object, File file) 
@@ -459,6 +487,27 @@ public class UpdateBuilder {
         }
     }
     
+    public static void clean(File dir) {
+        logger.info("");
+        logger.info("---------------------------------------------------");
+        logger.info("Cleaning target directory");
+        logger.info("---------------------------------------------------");
+        
+        Util.cleanDir(dir);
+
+        logger.info("Deleted the contents of " + dir.getAbsolutePath());
+    }
+
+    public static void build(UpdateBuilder builder) 
+            throws JAXBException, IOException, InterruptedException {
+        logger.info("");
+        logger.info("---------------------------------------------------");
+        logger.info("Building update package");
+        logger.info("---------------------------------------------------");
+        
+        builder.build();
+    }
+    
     public static void main(String[] args) throws Throwable {
         SimpleLogFormatter.setAsFormatter();
 
@@ -507,14 +556,7 @@ public class UpdateBuilder {
         }
         
         if (context.has("clean")) {
-            logger.info("");
-            logger.info("---------------------------------------------------");
-            logger.info("Cleaning target directory");
-            logger.info("---------------------------------------------------");
-            
-            Util.cleanDir(outputDir);
-
-            logger.info("Deleted the contents of " + outputDir.getAbsolutePath());
+            clean(outputDir);
         }
         
         UpdateBuilder builder = new UpdateBuilder(updateDir, outputDir);
@@ -566,12 +608,7 @@ public class UpdateBuilder {
             updateManifest.setLatestVersion((new Date()).toString());
         }
 
-        logger.info("");
-        logger.info("---------------------------------------------------");
-        logger.info("Building update package");
-        logger.info("---------------------------------------------------");
-        
-        builder.build();
+        build(builder);
     }
 
 }

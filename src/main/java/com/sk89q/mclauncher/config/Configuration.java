@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
 import javax.xml.bind.annotation.XmlElement;
@@ -49,7 +50,10 @@ import com.sk89q.mclauncher.util.Util;
  */
 public class Configuration implements Comparable<Configuration> {
     
-    private static final Logger logger = Logger.getLogger(Configuration.class.getCanonicalName());
+    private static final Logger logger = 
+            Logger.getLogger(Configuration.class.getCanonicalName());
+    public static final Pattern ID_PATTERN = Pattern.compile(
+            "^[A-Za-z0-9\\-_\\.]+{1,64}$");
     
     private String id;
     private String customBasePath;
@@ -384,7 +388,7 @@ public class Configuration implements Comparable<Configuration> {
     }
     
     public static boolean isValidId(String id) {
-        return id.matches("^[A-Za-z0-9\\-_\\.]+{1,64}$");
+        return ID_PATTERN.matcher(id).matches();
     }
 
     @Override

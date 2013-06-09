@@ -125,6 +125,10 @@ public class MessageLog extends JPanel {
         text = text.replaceAll("Session ID is [A-Fa-f0-9]+", "Session ID is [redacted]");
         return text;
     }
+
+    public void clear() {
+        textComponent.setText("");
+    }
     
     /**
      * Log a message given the {@link AttributeSet}.
@@ -255,7 +259,7 @@ public class MessageLog extends JPanel {
     /**
      * Detach the handler on the global logger.
      */
-    protected void detachGlobalHandler() {
+    public void detachGlobalHandler() {
         if (loggerHandler != null) {
             rootLogger.removeHandler(loggerHandler);
             loggerHandler = null;

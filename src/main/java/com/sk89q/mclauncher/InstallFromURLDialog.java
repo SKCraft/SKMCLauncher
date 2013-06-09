@@ -20,7 +20,6 @@ package com.sk89q.mclauncher;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.HeadlessException;
@@ -33,14 +32,19 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
 import com.sk89q.mclauncher.config.LauncherOptions;
+import com.sk89q.mclauncher.util.UIUtil;
 
 public class InstallFromURLDialog extends JDialog {
 
@@ -113,14 +117,26 @@ public class InstallFromURLDialog extends JDialog {
         container.add(infoLabel, BorderLayout.NORTH);
         
         JPanel buttonsPanel = new JPanel();
-        buttonsPanel.setLayout(new FlowLayout(FlowLayout.RIGHT, 5, 5));
-        JButton okBtn = new JButton("OK");
+        buttonsPanel.setBorder(BorderFactory.createEmptyBorder(16, 0, 0, 0));
+        buttonsPanel.setLayout(new BoxLayout(buttonsPanel, BoxLayout.LINE_AXIS));
+        LinkButton createButton = new LinkButton("Build your own package...");
+        JButton okBtn = new JButton("Install");
         JButton cancelBtn = new JButton("Cancel");
         cancelBtn.setPreferredSize(new Dimension(70, (int) cancelBtn.getPreferredSize().getHeight()));
         okBtn.setPreferredSize(cancelBtn.getPreferredSize());
+        buttonsPanel.add(createButton);
+        buttonsPanel.add(Box.createHorizontalGlue());
         buttonsPanel.add(okBtn);
+        buttonsPanel.add(Box.createHorizontalStrut(6));
         buttonsPanel.add(cancelBtn);
         container.add(buttonsPanel, BorderLayout.SOUTH);
+        
+        createButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                openBuilder();
+            }
+        });
 
         okBtn.addActionListener(new ActionListener() {
             @Override
@@ -143,6 +159,28 @@ public class InstallFromURLDialog extends JDialog {
         urlText.requestFocus();
         
         add(container, BorderLayout.CENTER);
+    }
+    
+    private void openBuilder() {
+        try {
+            Class<?> cls = Class.forName("com.sk89q.lpbuilder.UpdateBuilderGUI");
+            if (cls != null) {
+                final JFrame frame = (JFrame) cls.newInstance();
+                frame.setVisible(true);
+                dispose();
+                
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        frame.requestFocus();
+                    }
+                });
+            } else {
+                throw new Exception();
+            }
+        } catch (Throwable t) {
+            UIUtil.showError(this, "Error", "Couldn't open builder GUI.");
+        }
     }
     
     private String getURLFromClipboard() {
