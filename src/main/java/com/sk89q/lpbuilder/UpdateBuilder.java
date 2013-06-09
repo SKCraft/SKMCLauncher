@@ -26,10 +26,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.channels.FileChannel;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -67,6 +64,7 @@ public class UpdateBuilder implements Runnable {
     private final File updateDir;
     private final File outputDir;
     private final Map<String, ZipBucket> buckets = new HashMap<String, ZipBucket>();
+    private final FileSignatureBuilder versionBuilder = new FileSignatureBuilder();
     
     private UpdateManifest updateManifest;
     private PackageManifest packageManifest;
@@ -200,7 +198,7 @@ public class UpdateBuilder implements Runnable {
                 SingleFile singleFile = createSingleFile(f);
                 if (singleFile != null) {
                     singleFile.setSize(f.length());
-                    singleFile.setVersion(getVersionString(f));
+                    singleFile.setVersion(versionBuilder.smartFromFile(f));
                     singleFile.setFilename(f.getName());
                     copyFile(f, new File(outputDir, fileRelative));
                     group.getFiles().add(singleFile);
@@ -293,7 +291,7 @@ public class UpdateBuilder implements Runnable {
             logger.info("-> " + filename);
             
             ZipBucket bucket = entry.getValue();
-            bucket.writeContents(updateDir, target); // This also sets a version
+            bucket.writeContents(versionBuilder, updateDir, target);
             bucket.setSize(target.length());;
             bucket.setFilename(filename);
 
@@ -314,49 +312,6 @@ public class UpdateBuilder implements Runnable {
         if (group.getFiles().size() > 0) {
             packageManifest.getFileGroups().add(group);
         }
-    }
-
-    /**
-     * Generate the version digest for a file.
-     * 
-     * <p>Currently, this generates an MD5 digest.</p>
-     * 
-     * @param file the file
-     * @return a version digest
-     * @throws IOException on I/O exception
-     */
-    public static byte[] getVersionDigest(File file) throws IOException {
-        InputStream fis = null;
-        try {
-            fis = new FileInputStream(file);
-            byte[] buffer = new byte[1024];
-            MessageDigest complete = MessageDigest.getInstance("MD5");
-            int numRead;
-            do {
-                numRead = fis.read(buffer);
-                if (numRead > 0) {
-                    complete.update(buffer, 0, numRead);
-                }
-            } while (numRead != -1);
-            return complete.digest();
-        } catch (NoSuchAlgorithmException e) {
-            throw new IOException(e);
-        } finally {
-            Util.close(fis);
-        }
-    }
-
-    /**
-     * Generate the version string for a file.
-     * 
-     * <p>Currently, this generates an MD5 hash.</p>
-     * 
-     * @param file the file
-     * @return a version string
-     * @throws IOException on I/O exception
-     */
-    public static String getVersionString(File file) throws IOException {
-        return Util.getHexString(getVersionDigest(file));
     }
     
     /**

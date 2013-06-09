@@ -36,6 +36,7 @@ import com.sk89q.mclauncher.Launcher;
 import com.sk89q.mclauncher.Platform;
 import com.sk89q.mclauncher.update.FileStreamFilters;
 import com.sk89q.mclauncher.update.UninstallLog;
+import com.sk89q.mclauncher.util.Util;
 
 public abstract class PackageFile {
     
@@ -159,6 +160,10 @@ public abstract class PackageFile {
 
     public void setVersion(String version) {
         this.version = version;
+    }
+
+    public void setVersion(byte[] digest) {
+        this.version = Util.getHexString(digest);
     }
 
     @XmlAttribute
