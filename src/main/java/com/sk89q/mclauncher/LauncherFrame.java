@@ -20,7 +20,6 @@ package com.sk89q.mclauncher;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -29,29 +28,23 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JEditorPane;
 import javax.swing.JFrame;
-import javax.swing.JLayeredPane;
 import javax.swing.JList;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
-import javax.swing.border.CompoundBorder;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import com.sk89q.mclauncher.config.Configuration;
+import com.sk89q.mclauncher.config.Constants;
 import com.sk89q.mclauncher.config.Def;
 import com.sk89q.mclauncher.config.Identity;
 import com.sk89q.mclauncher.config.IdentityList;
@@ -130,46 +123,17 @@ public class LauncherFrame extends JFrame implements ListSelectionListener {
 
     private void addComponents() {
         setLayout(new BorderLayout(0, 0));
-        boolean hidenews = options.getSettings().getBool(Def.LAUNCHER_HIDE_NEWS, false);
         
-        if (!hidenews) {
-            if (options.getSettings().getBool(Def.LAUNCHER_NO_NEWS, false)) {
-                final JLayeredPane newsPanel = new JLayeredPane();
-                
-                newsPanel.setBorder(new CompoundBorder(BorderFactory
-                        .createEmptyBorder(PAD, 0, PAD, PAD), new CompoundBorder(
-                        BorderFactory.createEtchedBorder(), BorderFactory
-                                .createEmptyBorder(4, 4, 4, 4))));
-                newsPanel.setLayout(new BoxLayout(newsPanel, BoxLayout.Y_AXIS));
-                
-                final JButton showNews = new JButton("Show news");
-                showNews.setAlignmentX(Component.CENTER_ALIGNMENT);
-                showNews.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        showNews.setVisible(false);
-                        showNews(newsPanel);
-                    }
-                });
-                
-                // Center the button vertically.
-                newsPanel.add(new Box.Filler(new Dimension(0,0), 
-                        new Dimension(0,0), new Dimension(1000,1000)));
-                newsPanel.add(showNews);
-                newsPanel.add(new Box.Filler(new Dimension(0,0), 
-                        new Dimension(0,0), new Dimension(1000,1000)));
-                
-                add(newsPanel, BorderLayout.CENTER);
-            } else {
-                JLayeredPane newsPanel = new JLayeredPane();
-                showNews(newsPanel);
-                add(newsPanel, BorderLayout.CENTER);
-            }
+        boolean hideNews = options.getSettings().getBool(Def.LAUNCHER_HIDE_NEWS, false);
+        if (!hideNews) {
+            boolean lazyLoad = options.getSettings().getBool(Def.LAUNCHER_NO_NEWS, false);
+            WebpagePanel newsPanel = WebpagePanel.forURL(Constants.NEWS_URL, lazyLoad);
+            add(newsPanel, BorderLayout.CENTER);
         }
         
         JPanel leftPanel = new JPanel();
         leftPanel.setLayout(new BorderLayout());
-        if (!hidenews) {
+        if (!hideNews) {
             add(leftPanel, BorderLayout.LINE_START);
         } else {
             add(leftPanel, BorderLayout.CENTER);
@@ -277,7 +241,7 @@ public class LauncherFrame extends JFrame implements ListSelectionListener {
             }
         });
         
-        if (hidenews) {
+        if (hideNews) {
             setSize(300, 500);
         }
     }
@@ -303,29 +267,6 @@ public class LauncherFrame extends JFrame implements ListSelectionListener {
         InstallFromURLDialog dialog = new InstallFromURLDialog(this, options);
         dialog.setVisible(true);
         return dialog;
-    }
-    
-    private void showNews(JLayeredPane newsPanel) {
-        final LauncherFrame self = this;
-        newsPanel.setLayout(new NewsLayoutManager());
-        newsPanel
-            .setBorder(BorderFactory.createEmptyBorder(PAD, 0, PAD, PAD));
-        JEditorPane newsView = new JEditorPane();
-        newsView.setEditable(false);
-        newsView.addHyperlinkListener(new HyperlinkListener() {
-            @Override
-            public void hyperlinkUpdate(HyperlinkEvent e) {
-                if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-                    UIUtil.openURL(e.getURL(), self);
-                }
-            }
-        });
-        JScrollPane newsScroll = new JScrollPane(newsView);
-        newsPanel.add(newsScroll, new Integer(1));
-        JProgressBar newsProgress = new JProgressBar();
-        newsProgress.setIndeterminate(true);
-        newsPanel.add(newsProgress, new Integer(2));
-        NewsFetcher.update(newsView, newsProgress);
     }
     
     /**
