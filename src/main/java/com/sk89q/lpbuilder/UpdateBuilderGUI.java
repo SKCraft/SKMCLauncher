@@ -53,6 +53,7 @@ import com.sk89q.mclauncher.config.Configuration;
 import com.sk89q.mclauncher.model.FileGroup;
 import com.sk89q.mclauncher.model.PackageManifest;
 import com.sk89q.mclauncher.model.UpdateManifest;
+import com.sk89q.mclauncher.util.ActionListeners;
 import com.sk89q.mclauncher.util.DirectoryField;
 import com.sk89q.mclauncher.util.FileField;
 import com.sk89q.mclauncher.util.MessageLog;
@@ -419,13 +420,9 @@ public class UpdateBuilderGUI extends JFrame {
         buttonsPanel.add(closeButton);
         add(buttonsPanel, BorderLayout.SOUTH);
         
-        helpButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                UIUtil.openURL(
-                        "https://github.com/sk89q/skmclauncher/blob/master/README.md", self);
-            }
-        });
+        helpButton.addActionListener(
+                ActionListeners.openURL(
+                        this, "https://github.com/sk89q/skmclauncher/blob/master/README.md"));
         
         buildButton.addActionListener(new ActionListener() {
             @Override
@@ -441,13 +438,7 @@ public class UpdateBuilderGUI extends JFrame {
             }
         });
         
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                idText.selectAll();
-                idText.requestFocusInWindow();
-            }
-        });
+        UIUtil.focus(idText);
     }
     
     public static void main(String[] args) {

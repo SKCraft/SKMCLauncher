@@ -21,8 +21,6 @@ package com.sk89q.mclauncher;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -41,6 +39,7 @@ import javax.swing.table.TableCellRenderer;
 import com.sk89q.mclauncher.model.Component;
 import com.sk89q.mclauncher.model.ComponentTableModel;
 import com.sk89q.mclauncher.model.PackageManifest;
+import com.sk89q.mclauncher.util.ActionListeners;
 
 public class SelectComponentsDialog extends JDialog {
 
@@ -137,12 +136,7 @@ public class SelectComponentsDialog extends JDialog {
         buttonsPanel.add(installButton);
         bottomPanel.add(buttonsPanel, BorderLayout.SOUTH);
 
-        installButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-            }
-        });
+        installButton.addActionListener(ActionListeners.dipose(this));
     }
 
 }

@@ -34,16 +34,16 @@ import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.text.JTextComponent;
 
 import com.sk89q.mclauncher.Launcher;
 
 /**
  * UI utility methods.
- * 
- * @author sk89q
  */
-public class UIUtil {
+public final class UIUtil {
 
     private static String[] monospaceFontNames = {
         "Consolas", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Lucida Console"};
@@ -204,6 +204,25 @@ public class UIUtil {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) {
         }
+    }
+    
+    /**
+     * Focus a component.
+     * 
+     * <p>The focus call happens in {@link SwingUtilities#invokeLater(Runnable)}.</p>
+     * 
+     * @param component the component
+     */
+    public static void focus(final Component component) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                if (component instanceof JTextComponent) {
+                    ((JTextComponent) component).selectAll();
+                }
+                component.requestFocusInWindow();
+            }
+        });
     }
     
 }

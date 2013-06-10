@@ -8,7 +8,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 import javax.swing.BorderFactory;
@@ -35,6 +34,7 @@ import com.sk89q.mclauncher.config.Identity;
 import com.sk89q.mclauncher.config.IdentityList;
 import com.sk89q.mclauncher.config.LauncherOptions;
 import com.sk89q.mclauncher.config.MinecraftJar;
+import com.sk89q.mclauncher.util.PopupMouseAdapter;
 import com.sk89q.mclauncher.util.UIUtil;
 
 public class LaunchOptions extends JPanel implements ListSelectionListener {
@@ -177,21 +177,10 @@ public class LaunchOptions extends JPanel implements ListSelectionListener {
             }
         });
     
-        userText.getEditor().getEditorComponent().addMouseListener(new MouseAdapter() {
+        userText.getEditor().getEditorComponent().addMouseListener(new PopupMouseAdapter() {
             @Override
-            public void mousePressed(MouseEvent e) {
-                maybeShowPopup(e);
-            }
-
-            @Override
-            public void mouseReleased(MouseEvent e) {
-                maybeShowPopup(e);
-            }
-
-            private void maybeShowPopup(MouseEvent e) {
-                if (e.isPopupTrigger()) {
-                    popupIdentityMenu(e.getComponent(), e.getX(), e.getY());
-                }
+            protected void showPopup(MouseEvent e) {
+                popupIdentityMenu(e.getComponent(), e.getX(), e.getY());
             }
         });
     

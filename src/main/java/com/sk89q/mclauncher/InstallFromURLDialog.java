@@ -44,6 +44,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
 import com.sk89q.mclauncher.config.LauncherOptions;
+import com.sk89q.mclauncher.util.ActionListeners;
 import com.sk89q.mclauncher.util.UIUtil;
 
 public class InstallFromURLDialog extends JDialog {
@@ -80,8 +81,6 @@ public class InstallFromURLDialog extends JDialog {
      * Build the UI.
      */
     private void buildUI() {
-        final InstallFromURLDialog self = this;
-        
         JPanel container = new JPanel();
         container.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
         container.setLayout(new BorderLayout(3, 3));
@@ -149,12 +148,7 @@ public class InstallFromURLDialog extends JDialog {
             }
         });
         
-        cancelBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                self.dispose();
-            }
-        });
+        cancelBtn.addActionListener(ActionListeners.dipose(this));
         
         urlText.requestFocus();
         

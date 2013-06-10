@@ -52,6 +52,7 @@ import com.sk89q.mclauncher.config.LauncherOptions;
 import com.sk89q.mclauncher.config.MinecraftJar;
 import com.sk89q.mclauncher.config.ServerEntry;
 import com.sk89q.mclauncher.config.ServerList;
+import com.sk89q.mclauncher.util.ActionListeners;
 import com.sk89q.mclauncher.util.UIUtil;
 
 /**
@@ -321,12 +322,9 @@ public class LauncherFrame extends JFrame implements ListSelectionListener {
             popup.add(menuItem);
             
             menuItem = new JMenuItem("Open Minecraft data folder...");
-            menuItem.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    UIUtil.browse(configuration.getMinecraftDir(), self);
-                }
-            });
+            menuItem.addActionListener(
+                    ActionListeners.browseDir(
+                            this, configuration.getMinecraftDir(), false));
             popup.add(menuItem);
 
             menuItem = new JMenuItem("Open texture packs folder...");

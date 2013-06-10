@@ -47,6 +47,7 @@ import javax.swing.text.DefaultCaret;
 import com.sk89q.mclauncher.config.Configuration;
 import com.sk89q.mclauncher.config.ConfigurationList;
 import com.sk89q.mclauncher.config.LauncherOptions;
+import com.sk89q.mclauncher.util.ActionListeners;
 import com.sk89q.mclauncher.util.UIUtil;
 
 /**
@@ -291,8 +292,6 @@ public class OptionsDialog extends JDialog {
      * @return panel
      */
     private JPanel buildAboutPanel() {
-        final OptionsDialog self = this;
-
         JPanel panel = new JPanel();
         panel.setOpaque(false);
         panel.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
@@ -328,12 +327,7 @@ public class OptionsDialog extends JDialog {
 
         panel.add(Box.createVerticalGlue());
 
-        btn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                UIUtil.openURL("http://www.sk89q.com", self);
-            }
-        });
+        btn.addActionListener(ActionListeners.openURL(this, "http://www.sk89q.com"));
         
         // Fetch notices
         new Thread(new Runnable() {

@@ -267,6 +267,15 @@ public class Configuration implements Comparable<Configuration> {
     }
 
     /**
+     * Get the texture packs directory.
+     * 
+     * @return the directory
+     */
+    public File getTexturePacksDir() {
+        return new File(getMinecraftDir(), "texturepacks");
+    }
+
+    /**
      * Get a list of JARs.
      * 
      * @return list of jars

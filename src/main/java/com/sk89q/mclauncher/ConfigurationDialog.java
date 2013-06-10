@@ -51,6 +51,7 @@ import com.sk89q.mclauncher.config.Configuration;
 import com.sk89q.mclauncher.config.ConfigurationList;
 import com.sk89q.mclauncher.config.LauncherOptions;
 import com.sk89q.mclauncher.config.SettingsList;
+import com.sk89q.mclauncher.util.ActionListeners;
 import com.sk89q.mclauncher.util.DirectoryField;
 import com.sk89q.mclauncher.util.UIUtil;
 
@@ -193,12 +194,7 @@ public class ConfigurationDialog extends JDialog {
             }
         });
         
-        cancelBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                self.dispose();
-            }
-        });
+        cancelBtn.addActionListener(ActionListeners.dipose(this));
         
         add(container, BorderLayout.CENTER);
     }

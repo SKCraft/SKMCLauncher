@@ -58,6 +58,7 @@ import com.sk89q.mclauncher.config.Configuration;
 import com.sk89q.mclauncher.config.Def;
 import com.sk89q.mclauncher.config.MinecraftJar;
 import com.sk89q.mclauncher.config.SettingsList;
+import com.sk89q.mclauncher.util.ActionListeners;
 import com.sk89q.mclauncher.util.UIUtil;
 
 /**
@@ -279,30 +280,19 @@ public class AddonManagerDialog extends JDialog {
      *            component to open from
      */
     private void popupToolsMenu(Component component) {
-        final AddonManagerDialog self = this;
-
         JPopupMenu popup = new JPopupMenu();
         JMenuItem menuItem;
 
         menuItem = new JMenuItem("Open Minecraft data folder...");
-        menuItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                UIUtil.browse(configuration.getMinecraftDir(), self);
-            }
-        });
+        menuItem.addActionListener(
+                ActionListeners.browseDir(
+                        this, configuration.getMinecraftDir(), false));
         popup.add(menuItem);
 
         menuItem = new JMenuItem("Open texture packs folder...");
-        menuItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                File f = new File(configuration.getMinecraftDir(),
-                        "texturepacks");
-                f.mkdirs();
-                UIUtil.browse(f, self);
-            }
-        });
+        menuItem.addActionListener(
+                ActionListeners.browseDir(
+                        this, configuration.getTexturePacksDir(), true));
         popup.add(menuItem);
 
         popup.show(component, 0, component.getHeight());
