@@ -474,7 +474,7 @@ public class PackageManifestUpdater implements Updater, DownloadListener {
         
         logger.info("Downloading files...");
         fireStatusChange("Downloading files...");
-        setSubprogress(0, 0.8);
+        setSubprogress(0, 0.95);
         downloadFiles();
         
         UninstallLog oldLog = new UninstallLog();
@@ -487,7 +487,7 @@ public class PackageManifestUpdater implements Updater, DownloadListener {
 
         logger.info("Installing...");
         fireStatusChange("Installing...");
-        setSubprogress(0.8, 0.2);
+        setSubprogress(0.95, 0.05);
         deploy(newLog);
 
         logger.info("Removing old files...");
