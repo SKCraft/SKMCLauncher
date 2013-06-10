@@ -99,7 +99,9 @@ public final class WebpagePanel extends JPanel {
             @Override
             public void hyperlinkUpdate(HyperlinkEvent e) {
                 if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-                    SwingHelper.openURL(e.getURL(), self);
+                    if (e.getURL() != null) {
+                        SwingHelper.openURL(e.getURL(), self);
+                    }
                 }
             }
         });
