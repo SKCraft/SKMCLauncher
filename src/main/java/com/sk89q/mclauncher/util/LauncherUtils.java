@@ -376,4 +376,30 @@ public final class LauncherUtils {
         }
     }
 
+    /**
+     * Get a relative path to a base directory.
+     * 
+     * @param base the base directory
+     * @param path the path to make relative
+     * @return the relativized path
+     */
+    public static String getRelative(File base, File path) {
+        return base.toURI().relativize(path.toURI()).getPath();
+    }
+    
+    /**
+     * Join two paths with a forward slash (/) in between (if needed).
+     * 
+     * @param path path 1
+     * @param path2 path 2
+     * @return new path
+     */
+    public static String joinUnixPath(String path, String path2) {
+        if (!path.isEmpty()) {
+            return path + "/" + path2;
+        } else {
+            return path2;
+        }
+    }
+
 }

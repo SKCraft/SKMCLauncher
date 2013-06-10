@@ -50,8 +50,8 @@ import com.sk89q.mclauncher.model.SingleFile;
 import com.sk89q.mclauncher.model.UpdateManifest;
 import com.sk89q.mclauncher.util.BasicArgsParser;
 import com.sk89q.mclauncher.util.BasicArgsParser.ArgsContext;
-import com.sk89q.mclauncher.util.SimpleLogFormatter;
 import com.sk89q.mclauncher.util.LauncherUtils;
+import com.sk89q.mclauncher.util.SimpleLogFormatter;
 
 /**
  * Builds an update package for SKMCLauncher.
@@ -66,6 +66,7 @@ public class UpdateBuilder implements Runnable {
     private final Map<String, ZipBucket> buckets = new HashMap<String, ZipBucket>();
     private final FileSignatureBuilder versionBuilder = new FileSignatureBuilder();
     
+    private Role role = Role.CLIENT;
     private UpdateManifest updateManifest;
     private PackageManifest packageManifest;
     private UpdateBuilderConfig config = new UpdateBuilderConfig();
@@ -73,7 +74,7 @@ public class UpdateBuilder implements Runnable {
     private String packageFilename = "package.xml";
 
     /**
-     * Create a new buidler with the given source directory and output directory.
+     * Create a new builder with the given source directory and output directory.
      * 
      * @param updateDir the directory with the source files
      * @param outputDir the output directory
@@ -88,6 +89,36 @@ public class UpdateBuilder implements Runnable {
         setPackageManifest(new PackageManifest());
     }
     
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
+    
+    private boolean isForCurrentRole(File dir) {
+        if (role == null) {
+            return false;
+        }
+        
+        return dir.getName().equals(role.getDirectoryName());
+    }
+    
+    private boolean shouldRoleIgnore(File dir) {
+        for (Role role : Role.values()) {
+            if (this.role != null && role.equals(this.role)) {
+                continue;
+            }
+            
+            if (role.getDirectoryName().equals(dir.getName())) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
     public String getUpdateFilename() {
         return updateFilename;
     }
@@ -165,24 +196,32 @@ public class UpdateBuilder implements Runnable {
      * @throws InterruptedException on interruption
      */
     private void collectFiles() throws IOException, InterruptedException {
-        collectFiles(updateDir);
+        collectFiles(updateDir, "", updateDir, null);
     }
 
     /**
      * Collect all the files needed for this update in the given folder.
      * 
-     * @param dir the directory
+     * @param baseDir the base directory
+     * @param relativeDir the relative directory
+     * @param dir the actual directory with files
+     * @param group file group to use, or null to create one
      * @throws IOException on I/O error
      * @throws InterruptedException on interruption
      */
-    private void collectFiles(File dir) throws IOException, InterruptedException {
-        String relative = getRelative(updateDir, dir);
-        
+    private void collectFiles(
+            File baseDir, String relativeDir, File dir, FileGroup group) 
+            throws IOException, InterruptedException {
         logger.info("Collecting files in '" + dir.getAbsolutePath() + "'");
         
-        FileGroup group = new FileGroup();
-        group.setDest(relative);
-        group.setSource(relative);
+        boolean addGroup = false;
+        
+        if (group == null) {
+            group = new FileGroup();
+            group.setDest(relativeDir);
+            group.setSource(relativeDir);
+            addGroup = true;
+        }
         
         for (File f : dir.listFiles()) {
             if (Thread.interrupted()) {
@@ -190,12 +229,21 @@ public class UpdateBuilder implements Runnable {
             }
             
             if (f.isDirectory()) {
-                collectFiles(f);
+                if (shouldRoleIgnore(f)) {
+                    continue;
+                } else if (isForCurrentRole(f)) {
+                    collectFiles(baseDir, relativeDir, f, group);
+                } else {
+                    collectFiles(baseDir, 
+                            LauncherUtils.joinUnixPath(relativeDir, f.getName()),
+                            f, null);
+                }
             } else {
-                String fileRelative = getRelative(updateDir, f);
-                logger.info("-> " + fileRelative);
+                String fileRelative = LauncherUtils.joinUnixPath(
+                        relativeDir, f.getName());
+                logger.info("-> " + LauncherUtils.getRelative(baseDir, f));
                 
-                SingleFile singleFile = createSingleFile(f);
+                SingleFile singleFile = createSingleFile(fileRelative, f);
                 if (singleFile != null) {
                     singleFile.setSize(f.length());
                     singleFile.setVersion(versionBuilder.smartFromFile(f));
@@ -206,7 +254,7 @@ public class UpdateBuilder implements Runnable {
             }
         }
         
-        if (group.getFiles().size() > 0) {
+        if (addGroup && group.getFiles().size() > 0) {
             packageManifest.getFileGroups().add(group);
         }
     }
@@ -215,12 +263,11 @@ public class UpdateBuilder implements Runnable {
      * Create the {@link SingleFile} for a given file, otherwise return null if the
      * file needs to go into an archive.
      * 
-     * @param path the path
+     * @param path the relative path
+     * @param file the file
      * @return a package file, or null if it's not a {@link SingleFile}
      */
-    private SingleFile createSingleFile(File file) {
-        String path = getRelative(updateDir, file);
-        
+    private SingleFile createSingleFile(String path, File file) {
         SingleFile singleFile = new SingleFile();
         String archiveName = null;
 
@@ -241,7 +288,7 @@ public class UpdateBuilder implements Runnable {
         
         // We are .zipping this file up, so we do things differently
         if (archiveName != null) {
-            storeFileInArchive(archiveName, file, singleFile);
+            storeFileInArchive(path, archiveName, file, singleFile);
             return null;
         } else {
             return singleFile;
@@ -252,10 +299,12 @@ public class UpdateBuilder implements Runnable {
      * Store a file into an archive.
      * 
      * @param archiveName the archive name
+     * @param path the relative path
      * @param file the file
      * @param packageFile file to inherit archive properties from
      */
-    private void storeFileInArchive(String archiveName, File file, PackageFile packageFile) {
+    private void storeFileInArchive(
+            String archiveName, String path, File file, PackageFile packageFile) {
         archiveName = archiveName.trim().toLowerCase();
         ZipBucket bucket = buckets.get(archiveName);
         if (bucket == null) {
@@ -263,7 +312,7 @@ public class UpdateBuilder implements Runnable {
             buckets.put(archiveName, bucket);
         }
         bucket.inheritGenericProperties(packageFile);
-        bucket.queue(file);
+        bucket.queue(path, file);
     }
 
     /**
@@ -429,10 +478,6 @@ public class UpdateBuilder implements Runnable {
             LauncherUtils.close(source);
             LauncherUtils.close(destination);
         }
-    }
-
-    private static String getRelative(File base, File path) {
-        return base.toURI().relativize(path.toURI()).getPath();
     }
     
     private static void checkArgSet(Object obj, String message) {

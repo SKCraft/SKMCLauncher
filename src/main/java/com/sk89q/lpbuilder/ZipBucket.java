@@ -33,10 +33,10 @@ import com.sk89q.mclauncher.util.LauncherUtils;
 
 class ZipBucket extends Archive {
     
-    private final List<File> contents = new ArrayList<File>();
+    private final List<RelativizedFile> contents = new ArrayList<RelativizedFile>();
 
-    void queue(File file) {
-        contents.add(file);
+    void queue(String path, File file) {
+        contents.add(new RelativizedFile(path, file));
     }
 
     public void writeContents(FileSignatureBuilder builder, File baseDir, File target)
@@ -52,12 +52,11 @@ class ZipBucket extends Archive {
             fos = new FileOutputStream(target);
             zip = new ZipOutputStream(fos);
 
-            for (File file : contents) {
-                String relativePath = getRelative(baseDir, file);
-                zip.putNextEntry(new ZipEntry(relativePath));
-                list.add(relativePath, builder.fromFile(file));
+            for (RelativizedFile file : contents) {
+                zip.putNextEntry(new ZipEntry(file.getPath()));
+                list.add(file.getPath(), builder.fromFile(file.getFile()));
                 
-                fis = new FileInputStream(file);
+                fis = new FileInputStream(file.getFile());
                 int count;
                 while ((count = fis.read(buf)) > 0) {
                     zip.write(buf, 0, count);
@@ -72,10 +71,6 @@ class ZipBucket extends Archive {
             LauncherUtils.close(fos);
             LauncherUtils.close(fis);
         }
-    }
-
-    private static String getRelative(File base, File path) {
-        return base.toURI().relativize(path.toURI()).getPath();
     }
 
 }
