@@ -207,6 +207,11 @@ public class LaunchTask extends Task {
     public void checkForUpdates() throws 
             ExecutionException, InterruptedException, UpdateException {
         
+        // Don't update in offline mode
+        if (launchOptions.isPlayingOffline()) {
+            return;
+        }
+        
         // Only update if the JAR is set to <default>
         if (!activeJar.allowsUpdate()) {
             return;
