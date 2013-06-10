@@ -19,6 +19,25 @@
         <title>Music</title> <!-- Example optional component -->
         <description>Random music to sooth the heart.</description>
       </component>
+
+      <!-- Messages show HTML at specific points in the update process. They are 
+           completely optional. -->
+      <message id="optional-message-id" version="1">
+        <phase>initialize</phase> <!-- initialize,
+                                       pre-download,
+                                       post-download,
+                                       pre-install,
+                                       post-install,
+                                       finalize -->
+        <agreement>true</agreement> <!-- "Do you agree?" versus information dialog -->
+        <title>Question</title> <!-- Title of window -->
+        <type>html</type> <!-- Use 'url' to use a URL below in <content> -->
+        <content><![CDATA[
+        You are <strong>really cool</strong>, yes?
+        ]]></content>
+      </message>
+      <!-- You can have multiple messages, but don't be too annoying! You can have
+           multiple messages during the same phase too (not recommended). -->
       
       <!-- This installs some important libraries for Minecraft -->
       <!-- You should probably leave these in -->
