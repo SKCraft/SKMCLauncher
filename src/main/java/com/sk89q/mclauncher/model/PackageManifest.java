@@ -27,6 +27,8 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
+import com.sk89q.mclauncher.update.Phase;
+
 @XmlRootElement(name = "package")
 public class PackageManifest {
 
@@ -34,6 +36,7 @@ public class PackageManifest {
 
     private List<Component> components = new ArrayList<Component>();
     private List<FileGroup> fileGroups = new ArrayList<FileGroup>();
+    private List<Message> messages = new ArrayList<Message>();
 
     @XmlAttribute
     public String getVersion() {
@@ -65,6 +68,25 @@ public class PackageManifest {
 
     public void setFileGroups(List<FileGroup> fileGroups) {
         this.fileGroups = fileGroups;
+    }
+
+    @XmlElement(name = "message")
+    public List<Message> getMessages() {
+        return messages;
+    }
+
+    public void setMessages(List<Message> messages) {
+        this.messages = messages;
+    }
+    
+    public List<Message> getMessages(Phase phase) {
+        List<Message> filtered = new ArrayList<Message>();
+        for (Message message : getMessages()) {
+            if (message.getPhase().equals(phase)) {
+                filtered.add(message);
+            }
+        }
+        return filtered;
     }
 
     public long getTotalSize() {

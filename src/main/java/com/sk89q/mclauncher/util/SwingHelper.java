@@ -281,5 +281,20 @@ public final class SwingHelper {
             }
         });
     }
+
+    /**
+     * Invoke, wait, and ignore errors.
+     * 
+     * @param runnable a runnable
+     */
+    public static void invokeAndWait(Runnable runnable) {
+        try {
+            SwingUtilities.invokeAndWait(runnable);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
+    }
     
 }

@@ -47,6 +47,7 @@ import com.sk89q.mclauncher.event.TitleChangeEvent;
 import com.sk89q.mclauncher.event.ValueChangeEvent;
 import com.sk89q.mclauncher.model.Component;
 import com.sk89q.mclauncher.model.FileGroup;
+import com.sk89q.mclauncher.model.Message;
 import com.sk89q.mclauncher.model.PackageFile;
 import com.sk89q.mclauncher.model.PackageManifest;
 import com.sk89q.mclauncher.util.Downloader;
@@ -128,6 +129,30 @@ public class PackageManifestUpdater implements Updater, DownloadListener {
      */
     private boolean matchesDigest(String s1, String s2) {
         return s1.replaceAll("^0+", "").equalsIgnoreCase(s2.replaceAll("^0+", ""));
+    }
+    
+    /**
+     * Show messages for the given phase.
+     * 
+     * @param phase the phase
+     * @throws UpdateException on an error
+     * @throws InterruptedException on interruption
+     */
+    private void showMessages(Phase phase) throws UpdateException, InterruptedException {
+        for (Message message : manifest.getMessages(phase)) {
+            if (message.mark(cache)) {
+                try {
+                    if (!message.showDialog(getOwner())) {
+                        throw new UpdateException(
+                                "The update has been cancelled.");
+                    }
+                } catch (IOException e) {
+                    throw new UpdateException(
+                            "Failed to show message dialog due to error " +
+                            "in package manifest", e);
+                }
+            }
+        }
     }
     
     /**
@@ -461,7 +486,8 @@ public class PackageManifestUpdater implements Updater, DownloadListener {
         forced = type != UpdateType.INCREMENTAL;
         
         File logFile = new File(rootDir, "uninstall.dat");
-        
+
+        showMessages(Phase.INITIALIZE);
         askComponents();
         
         if (forced) {
@@ -475,7 +501,9 @@ public class PackageManifestUpdater implements Updater, DownloadListener {
         logger.info("Downloading files...");
         fireStatusChange("Downloading files...");
         setSubprogress(0, 0.95);
+        showMessages(Phase.PRE_DOWNLOAD);
         downloadFiles();
+        showMessages(Phase.POST_DOWNLOAD);
         
         UninstallLog oldLog = new UninstallLog();
         UninstallLog newLog = new UninstallLog();
@@ -488,7 +516,9 @@ public class PackageManifestUpdater implements Updater, DownloadListener {
         logger.info("Installing...");
         fireStatusChange("Installing...");
         setSubprogress(0.95, 0.05);
+        showMessages(Phase.PRE_INSTALL);
         deploy(newLog);
+        showMessages(Phase.POST_INSTALL);
 
         logger.info("Removing old files...");
         fireStatusChange("Removing old files...");
@@ -503,12 +533,14 @@ public class PackageManifestUpdater implements Updater, DownloadListener {
             		"The update has been aborted.", e);
         }
 
-        // Make sure to delete all the downloads if we're succeessful
+        // Make sure to delete all the downloads if we're successful
         try {
             LauncherUtils.cleanDir(downloadDir);
         } catch (InterruptedException e) {
         }
         downloadDir.delete();
+        
+        showMessages(Phase.FINALIZE);
 
         cache.setLastUpdateId(targetVersion);
         try {
@@ -686,7 +718,7 @@ public class PackageManifestUpdater implements Updater, DownloadListener {
     public void setOwner(Window owner) {
         this.owner = owner;
     }
-    
+
     /**
      * Parse the package file.
      * 
