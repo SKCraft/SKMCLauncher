@@ -32,6 +32,7 @@ import com.sk89q.mclauncher.WebpageDialog;
 import com.sk89q.mclauncher.WebpagePanel;
 import com.sk89q.mclauncher.update.Phase;
 import com.sk89q.mclauncher.update.UpdateCache;
+import com.sk89q.mclauncher.util.LauncherUtils;
 import com.sk89q.mclauncher.util.SwingHelper;
 
 public class Message {
@@ -157,10 +158,10 @@ public class Message {
         return true;
     }
     
-    public WebpagePanel createPanel() throws IOException {
+    public WebpagePanel createPanel(URL baseUrl) throws IOException {
         switch (getType()) {
         case URL:
-            URL url = new URL(getContent());
+            URL url = LauncherUtils.concat(baseUrl, getContent());
             return WebpagePanel.forURL(url, false);
         case HTML:
             return WebpagePanel.forHTML(getContent());
@@ -168,13 +169,13 @@ public class Message {
         throw new IOException("Invalid content type");
     }
     
-    public WebpageDialog createDialog(Window owner) throws IOException {
+    public WebpageDialog createDialog(Window owner, URL baseUrl) throws IOException {
         return new WebpageDialog(
-                owner, getValidatedTitle(), createPanel(), isAgreement());
+                owner, getValidatedTitle(), createPanel(baseUrl), isAgreement());
     }
     
-    public boolean showDialog(Window owner) throws IOException {
-        final WebpageDialog dialog = createDialog(owner);
+    public boolean showDialog(Window owner, URL baseUrl) throws IOException {
+        final WebpageDialog dialog = createDialog(owner, baseUrl);
         if (SwingUtilities.isEventDispatchThread()) {
             dialog.setVisible(true);
         } else {

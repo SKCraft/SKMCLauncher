@@ -142,7 +142,7 @@ public class PackageManifestUpdater implements Updater, DownloadListener {
         for (Message message : manifest.getMessages(phase)) {
             if (message.mark(cache)) {
                 try {
-                    if (!message.showDialog(getOwner())) {
+                    if (!message.showDialog(getOwner(), baseUrl)) {
                         throw new UpdateException(
                                 "The update has been cancelled.");
                     }
