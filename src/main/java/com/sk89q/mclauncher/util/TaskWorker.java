@@ -16,17 +16,31 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.sk89q.mclauncher;
+package com.sk89q.mclauncher.util;
 
-import javax.xml.bind.annotation.XmlEnumValue;
+public class TaskWorker extends Thread {
+    
+    private Task task;
+    
+    public TaskWorker() {
+        super();
+    }
+    
+    public TaskWorker(Task task) {
+        super(task);
+        this.task = task;
+    }
+    
+    public Task getTask() {
+        return task;
+    }
+    
+    @Override
+    public void run() {
+        try {
+            task.run();
+        } finally {
+        }
+    }
 
-/**
- * Indicates the platform.
- */
-public enum Platform {
-    @XmlEnumValue("windows") WINDOWS,
-    @XmlEnumValue("mac_os_x") MAC_OS_X,
-    @XmlEnumValue("linux") LINUX,
-    @XmlEnumValue("solaris") SOLARIS,
-    @XmlEnumValue("unknown") UNKNOWN;
 }

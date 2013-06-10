@@ -47,8 +47,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
 import com.sk89q.mclauncher.Launcher;
-import com.sk89q.mclauncher.LinkButton;
-import com.sk89q.mclauncher.Task.ExecutionException;
 import com.sk89q.mclauncher.config.Configuration;
 import com.sk89q.mclauncher.model.FileGroup;
 import com.sk89q.mclauncher.model.PackageManifest;
@@ -56,10 +54,12 @@ import com.sk89q.mclauncher.model.UpdateManifest;
 import com.sk89q.mclauncher.util.ActionListeners;
 import com.sk89q.mclauncher.util.DirectoryField;
 import com.sk89q.mclauncher.util.FileField;
+import com.sk89q.mclauncher.util.LinkButton;
 import com.sk89q.mclauncher.util.MessageLog;
 import com.sk89q.mclauncher.util.SimpleLogFormatter;
 import com.sk89q.mclauncher.util.SwingHelper;
 import com.sk89q.mclauncher.util.XmlUtils;
+import com.sk89q.mclauncher.util.Task.ExecutionException;
 
 public class UpdateBuilderGUI extends JFrame {
 

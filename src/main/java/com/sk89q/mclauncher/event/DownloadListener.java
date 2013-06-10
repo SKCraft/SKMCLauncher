@@ -16,22 +16,16 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.sk89q.mclauncher;
+package com.sk89q.mclauncher.event;
 
+import java.util.EventListener;
 import java.util.EventObject;
 
-public class StatusChangeEvent extends EventObject {
-    
-    private static final long serialVersionUID = 9166371811989025905L;
-    private String message;
+public interface DownloadListener extends EventListener {
 
-    public StatusChangeEvent(Object source, String message) {
-        super(source);
-        this.message = message;
-    }
-    
-    public String getMessage() {
-        return message;
-    }
+    public void connectionStarted(EventObject event);
+    public void lengthKnown(EventObject event);
+    public void downloadProgress(DownloadProgressEvent event);
+    public void downloadCompleted(EventObject event);
 
 }

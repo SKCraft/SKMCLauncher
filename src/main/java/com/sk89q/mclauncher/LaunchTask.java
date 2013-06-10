@@ -20,202 +20,288 @@ package com.sk89q.mclauncher;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.UnknownHostException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.net.ssl.SSLHandshakeException;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
-import com.sk89q.mclauncher.LoginSession.LoginException;
-import com.sk89q.mclauncher.LoginSession.OutdatedLauncherException;
 import com.sk89q.mclauncher.config.Configuration;
-import com.sk89q.mclauncher.config.DefaultJar;
+import com.sk89q.mclauncher.config.Identity;
 import com.sk89q.mclauncher.config.LauncherOptions;
 import com.sk89q.mclauncher.config.MinecraftJar;
 import com.sk89q.mclauncher.config.SettingsList;
+import com.sk89q.mclauncher.event.ProgressListener;
 import com.sk89q.mclauncher.launch.LaunchProcessBuilder;
-import com.sk89q.mclauncher.model.UpdateManifest;
-import com.sk89q.mclauncher.update.CancelledUpdateException;
+import com.sk89q.mclauncher.session.LoginSession;
+import com.sk89q.mclauncher.session.MinecraftSession;
+import com.sk89q.mclauncher.session.MinecraftSession.InvalidCredentialsException;
+import com.sk89q.mclauncher.session.MinecraftSession.LoginException;
+import com.sk89q.mclauncher.session.MinecraftSession.OutdatedLauncherException;
+import com.sk89q.mclauncher.session.MinecraftSession.UserNotPremiumException;
+import com.sk89q.mclauncher.session.OfflineSession;
 import com.sk89q.mclauncher.update.UpdateCache;
+import com.sk89q.mclauncher.update.UpdateCheck;
 import com.sk89q.mclauncher.update.UpdateException;
-import com.sk89q.mclauncher.update.UpdateManifestFetcher;
 import com.sk89q.mclauncher.update.Updater;
+import com.sk89q.mclauncher.update.Updater.UpdateType;
+import com.sk89q.mclauncher.util.LauncherUtils;
 import com.sk89q.mclauncher.util.SwingHelper;
+import com.sk89q.mclauncher.util.Task;
 
 /**
  * Used for launching the game.
- * 
- * @author sk89q
  */
 public class LaunchTask extends Task {
     
-    private static final Logger logger = Logger.getLogger(LaunchTask.class.getCanonicalName());
+    public enum UpdateRequirement {
+        NEVER,
+        CHECK_FOR_UPDATE,
+        NEED_UPDATE
+    }
     
-    private volatile boolean running = true;
-    
-    private JFrame frame;
-    private String username;
-    private String password;
-    private MinecraftJar activeJar;
-    private LoginSession session;
-    private Configuration configuration;
-    private File rootDir;
-    private boolean playOffline = false;
-    private boolean skipUpdateCheck = false;
-    private boolean forceUpdate = false;
-    private boolean forceIncrementalUpdate = false;
-    private boolean wantUpdate = false;
-    private boolean notInstalled = false;
-    private volatile Updater updater;
-    private boolean demo = false;
-    private boolean allowOfflineName = false;
+    private final JFrame frame;
+    private final MinecraftJar activeJar;
+    private final Configuration configuration;
+    private final LaunchOptions launchOptions;
+    private final LauncherOptions options;
+    private final Identity identity;
+    private final File minecraftDir;
 
-    private boolean forceConsole = false;
-    private String autoConnect;
+    private MinecraftSession session;
     
     /**
      * Construct the launch task.
      * 
      * @param frame starting frame
      * @param configuration workspace
-     * @param username username
-     * @param password password
-     * @param jar jar name
+     * @param launchOptions the launch options
+     * @param jar the jar to launch
      */
-    public LaunchTask(JFrame frame, Configuration configuration,
-            String username, String password, MinecraftJar jar) {
+    public LaunchTask(JFrame frame, Configuration configuration, 
+            LaunchOptions launchOptions, MinecraftJar jar) {
         this.frame = frame;
         this.configuration = configuration;
-        this.username = username;
-        this.password = password;
+        this.launchOptions = launchOptions;
         this.activeJar = jar;
-    }
-    
-    /**
-     * Set play online state.
-     * 
-     * @param playOffline true to play offline
-     */
-    public void setPlayOffline(boolean playOffline) {
-        this.playOffline = playOffline;
-    }
-
-    /**
-     * Set update force state.
-     * 
-     * @param forceUpdate true to force update
-     */
-    public void setForceUpdate(boolean forceUpdate) {
-        this.forceUpdate = forceUpdate;
-    }
-
-    /**
-     * Set update force state.
-     * 
-     * @param forceIncrementalUpdate true to force update
-     */
-    public void setForceIncrementalUpdate(boolean forceIncrementalUpdate) {
-        this.forceIncrementalUpdate = forceIncrementalUpdate;
         
+        options = Launcher.getInstance().getOptions();
+        identity = launchOptions.getIdentity();
+        minecraftDir = configuration.getMinecraftDir();
     }
     
-    /**
-     * Set to show the Java console.
-     * 
-     * @param forceConsole true to show console
-     */
-    public void setForceConsole(boolean forceConsole) {
-        this.forceConsole = forceConsole;
-    }
-    
-    /**
-     * Run Minecraft in demo mode.
-     * 
-     * @param demo true for demo mode, false for normal mode if a premium account.
-     */
-    public void setDemo(boolean demo) {
-        this.demo = demo;
-    }
-
-    /**
-     * Set the auto connect server address.
-     * 
-     * @param autoConnect address (addr:port, addr) or null
-     */
-    public void setAutoConnect(String autoConnect) {
-        this.autoConnect = autoConnect;
-    }
-    
-    /**
-     * Set the ability to use the player's username while playing offline.
-     * 
-     * @param allow address (addr:port, addr) or null
-     */
-    public void setAllowOfflineName(boolean allow) {
-        this.allowOfflineName = allow;
-    }
-
-    /**
-     * Execute the launch task.
-     */
     @Override
-    public void execute() throws ExecutionException {
-        rootDir = configuration.getMinecraftDir();
-        rootDir.mkdirs();
-        
-        session = new LoginSession(username);
-        
-        if (!playOffline) {
-            login();
-        } else {
+    public void execute() throws ExecutionException, InterruptedException {
+        createSession();
+        LauncherUtils.checkInterrupted();
+        try {
+            checkForUpdates();
+        } catch (UpdateException e) {
+            throw new ExecutionException(e.getMessage(), e);
+        }
+        LauncherUtils.checkInterrupted();
+        launch();
+    }
+    
+    /**
+     * Create a session and login as needed.
+     * 
+     * @throws ExecutionException on error while executing
+     * @throws InterruptedException on interruption
+     */
+    private void createSession() throws ExecutionException, InterruptedException {
+        if (launchOptions.isPlayingOffline()) {
+            session = new OfflineSession();
+            
+            // Check to see if the player has MC installed
+            // This check is easily bypassed, but files can easily be downloaded
             if (!Launcher.getInstance().getOptions().getIdentities().getHasLoggedIn()) {
                 throw new ExecutionException("Login once before using offline mode.");
             }
+        } else {
+            session = new LoginSession(identity.getId());
         }
+
+        LauncherUtils.checkInterrupted();
         
-        notInstalled = (activeJar instanceof DefaultJar &&
-                !(new File(rootDir, "bin/minecraft.jar").exists()));
-        
-        if (activeJar instanceof DefaultJar && !skipUpdateCheck) {
-            checkForUpdates();
+        // We may have to login!
+        if (!session.isValid()) {
+            login();
         }
+    }
+    
+    /**
+     * Try logging in.
+     * 
+     * @throws ExecutionException on error while executing
+     */
+    private void login() throws ExecutionException {
+        fireTitleChange("Logging in...");
+        fireStatusChange("Connecting to login server...");
+        fireValueChange(-1);
         
-        launch();
+        try {
+            session.login(identity.getPassword());
+            
+            // Store the fact that we've logged in successfully
+            options.getIdentities().setHasLoggedIn(true);
+            options.save();
+        
+        // Bad login
+        } catch (InvalidCredentialsException e) {
+            throw new ExecutionException(
+                    "You've entered an invalid username/password combination.");
+        
+        // This refers to the official launcher
+        } catch (OutdatedLauncherException e) {
+            throw new ExecutionException(
+                    "It looks like this launcher needs to be updated.");
+            
+        // Switch to demo mode if the user account is not paid
+        } catch (UserNotPremiumException e) {
+            if (!launchOptions.isDemoMode()) {
+                SwingHelper.showError(
+                        getComponent(), "Not Premium", 
+                        "You aren't logging in to a premium account.\n" +
+                        "Minecraft will run in demo mode.");
+            }
+            
+            launchOptions.setDemoMode(true);
+        
+        // An unknown error
+        } catch (LoginException e) {
+            throw new ExecutionException("A login error has occurred: " + e.getMessage());
+
+        // A specific type of IO error
+        } catch (SSLHandshakeException e) {
+            throw new ExecutionException(
+                    "Uh oh, couldn't confirm that the the login server " +
+                    "connected to was owned by Mojang. You probably need to " +
+                    "update your launcher.");
+        
+        // General I/O error
+        } catch (final IOException e) {
+            String message;
+            if (e instanceof UnknownHostException) {
+                message = "host is unresolved: " + e.getMessage();
+            } else {
+                message = e.getMessage();
+            }
+            
+            if (SwingHelper.confirm(getComponent(), "Login error", 
+                    "The Minecraft login server is unreachable (" + message + "). " +
+                            "Would you like to play offline?")) {
+                launchOptions.setPlayOffline(true);
+            }
+        }
+    }
+    
+    /**
+     * Check for updates.
+     * 
+     * @throws ExecutionException on error while executing
+     * @throws InterruptedException thrown on interruption
+     * @throws UpdateException on an update error
+     */
+    public void checkForUpdates() throws 
+            ExecutionException, InterruptedException, UpdateException {
+        
+        // Only update if the JAR is set to <default>
+        if (!activeJar.allowsUpdate()) {
+            return;
+        }
+
+        fireStatusChange("Checking for updates...");
+        
+        File cacheFile = new File(minecraftDir, "update_cache.xml");
+        UpdateCache cache = new UpdateCache(cacheFile);
+        UpdateCheck updateCheck = configuration.createUpdateCheck(session, cache);
+        UpdateType updateType;
+
+        // Special case update scenarios
+        if (!activeJar.isInstalled(minecraftDir)) {
+            updateType = UpdateType.FULL;
+        } else if (launchOptions.isForcingUpdate()) {
+            updateType = UpdateType.FULL;
+        } else if (launchOptions.isForcingIncrementalUpdate()) {
+            updateType = UpdateType.INCREMENTAL;
+        
+        // Otherwise check for an update
+        } else {
+            try {
+                if (!updateCheck.needsUpdate()) {
+                    return; // No update needed
+                }
+            } catch (InterruptedException e) {
+                throw new InterruptedException();
+            } catch (UpdateException e) {
+                if (!SwingHelper.confirm(getComponent(), 
+                        "Update check failed", 
+                        "The update server is unreachable (" + e.getMessage() + "). " +
+                        "Would you like to continue playing without checking for updates?")) {
+                    throw new InterruptedException();
+                }
+            }
+            
+            // Ask the user if s/he wants to update
+            if (!SwingHelper.confirm(getComponent(), 
+                    "Update available",
+                    "An update is available. Would you like to update?")) {
+                return;
+            }  
+            
+            updateType = UpdateType.INCREMENTAL;
+        }
+
+        LauncherUtils.checkInterrupted();
+
+        fireStatusChange("Creating updater...");
+        
+        // Create the updater
+        Updater updater = updateCheck.createUpdater();
+        updater.setOwner(frame);
+        
+        // Add listeners
+        for (ProgressListener listener : getProgressListenerList()) {
+            updater.addProgressListener(listener);
+        }
+
+        LauncherUtils.checkInterrupted();
+
+        fireTitleChange("Updating '" + configuration.getName() + "'...");
+        
+        try {
+            updater.update(updateType);
+        } catch (UpdateException e) {
+            throw new ExecutionException(e.getMessage(), e);
+        }
     }
     
     /**
      * Try launching.
      * 
-     * @throws ExecutionException
-     *             on error while executing
+     * @throws ExecutionException on error while executing
      */
-    public void launch() throws ExecutionException {
+    private void launch() throws ExecutionException {
         fireTitleChange("Launching...");
         fireStatusChange("Launching Minecraft...");
         fireValueChange(-1);
         
+        // Build a SettingsList used for launch settings, that is combined from the
+        // main launcher options as well as this configuration's options
         SettingsList settings = new SettingsList(
                 Launcher.getInstance().getOptions().getSettings(),
                 configuration.getSettings());
-        String username = !allowOfflineName && playOffline ? "Player" : this.username;
 
-        LaunchProcessBuilder builder = new LaunchProcessBuilder(
-                configuration, username, session);
+        LaunchProcessBuilder builder = 
+                new LaunchProcessBuilder(configuration, session);
         builder.readSettings(settings);
-        if (forceConsole) {
-            builder.setShowConsole(forceConsole);
-        }
+        builder.setShowConsole(
+                builder.getShowConsole() || launchOptions.getShowConsole());
         builder.setActiveJar(activeJar.getName());
-        builder.setDemo(demo);
-        builder.setAutoConnect(autoConnect);
+        builder.setDemo(launchOptions.isDemoMode());
+        builder.setAutoConnect(launchOptions.getAutoConnect());
         
         try {
             builder.launch();
@@ -232,289 +318,16 @@ public class LaunchTask extends Task {
             }
         });
     }
-    
-    /**
-     * Try logging in.
-     * 
-     * @throws ExecutionException on error while executing
-     */
-    public void login() throws ExecutionException {
-        fireTitleChange("Logging in...");
-        fireStatusChange("Connecting to " + session.getLoginURL().getHost() + "...");
-        fireValueChange(-1);
-        
-        try {
-            if (!session.login(password)) {
-                throw new ExecutionException("You've entered an invalid username/password combination.");
-            }
-            
-            LauncherOptions options = Launcher.getInstance().getOptions();
-            options.getIdentities().setHasLoggedIn(true);
-            options.save();
-            
-            username = session.getUsername();
-        } catch (SSLHandshakeException e) {
-            throw new ExecutionException("Uh oh, couldn't confirm that the the login server connected to was owned by Mojang. You probably need to update your launcher.");
-        } catch (OutdatedLauncherException e) {
-            throw new ExecutionException("Your launcher has to be updated.");
-        } catch (LoginException e) {
-            if (e.getMessage().equals("User not premium")) {
-                if (!demo) {
-                    SwingHelper.showError(frame, "Not Premium", "You aren't logging in to a premium account.\nMinecraft will run in demo mode.");
-                }
-                demo = true;
-            } else {
-                throw new ExecutionException("A login error has occurred: " + e.getMessage());
-            }
-        } catch (final IOException e) {
-            e.printStackTrace();
-            try {
-                SwingUtilities.invokeAndWait(new Runnable() {
-                    @Override
-                    public void run() {
-                        String message;
-                        if (e instanceof UnknownHostException) {
-                            message = "host is unresolved: " + e.getMessage();
-                        } else {
-                            message = e.getMessage();
-                        }
-                        
-                        if (JOptionPane.showConfirmDialog(getComponent(), 
-                                "The Minecraft login server is unreachable (" + message + "). " +
-                                		"Would you like to play offline?",
-                                "Login error", JOptionPane.YES_NO_OPTION) == 0) {
-                            playOffline = true;
-                        }
-                    }
-                });
-                
-                if (!playOffline) {
-                    throw new CancelledExecutionException();
-                }
-            } catch (InterruptedException e1) {
-            } catch (InvocationTargetException e1) {
-            }
-        } finally {
-            password = null;
-        }
-    }
-    
-    /**
-     * Check for updates.
-     * 
-     * @throws ExecutionException on error while executing
-     */
-    public void checkForUpdates() throws ExecutionException {
-        // Check account
-        if (!demo && !session.isValid() && !this.playOffline) {
-            throw new ExecutionException("Please login first to download Minecraft.");
-        }
-        
-        File cacheFile = new File(rootDir, "update_cache.xml");
-        UpdateCache cache = new UpdateCache(cacheFile);
-        
-        boolean updateRequired = false;
-        String ticket = "";
-        String latestVersion = "";
-        
-        // We have a download ticket!
-        if (session.isValid()) {
-            ticket = session.getDownloadTicket();
-        }
-        
-        URL updateUrl = configuration.getUpdateUrl();
-        URL packageDefUrl = null;
-        
-        // Try to import the last version from the official launcher
-        if (updateUrl == null && !cacheFile.exists()) {
-            try {
-                Launcher.getInstance().importLauncherUpdateVersion(cache);
-                cache.write();
-            } catch (IOException e) {
-                logger.log(Level.WARNING,
-                        "Failed to import version information from official launcher", e);
-            }
-        }
-        
-        // Is there a new version to update to?
-        // For vanilla Minecraft, we have that information from the login, but
-        // for custom versions, we need to check an update URL
-        if (updateUrl == null) {
-            // Default Minecraft workspace, so we already version info
-            updateRequired = (session.isValid() &&
-                    !session.getLatestVersion().equals(cache.getLastUpdateId()));
-            
-            latestVersion = session.getLatestVersion();
-        } else {
-            fireStatusChange("Checking for updates...");
-            
-            // Custom update URL, so we have to check this URL
-            UpdateManifestFetcher check = new UpdateManifestFetcher(updateUrl);
-            try {
-                check.downloadManifest();
-            } catch (final IOException e) {
-                // Uh oh, update check went wrong!
-                try {
-                    SwingUtilities.invokeAndWait(new Runnable() {
-                        @Override
-                        public void run() {
-                            String message;
-                            if (e instanceof UnknownHostException) {
-                                message = "host is unresolved: " + e.getMessage();
-                            } else {
-                                message = e.getMessage();
-                            }
-                            
-                            if (JOptionPane.showConfirmDialog(getComponent(), 
-                                    "The update server is unreachable (" + message + "). " +
-                                            "Would you like to continue playing without check for updates?",
-                                    "Login error", JOptionPane.YES_NO_OPTION) == 0) {
-                                skipUpdateCheck = true;
-                            }
-                        }
-                    });
-                } catch (InterruptedException e1) {
-                } catch (InvocationTargetException e1) {
-                }
-                
-                // Handle the end result
-                if (!skipUpdateCheck) {
-                    throw new CancelledExecutionException();
-                } else {
-                    return;
-                }
-            }
-
-            UpdateManifest manifest = check.getManifest();
-            updateRequired = (cache.getLastUpdateId() == null ||
-                    !cache.getLastUpdateId().equals(manifest.getLatestVersion()));
-            try {
-                packageDefUrl = manifest.toPackageURL(check.getUpdateURL());
-            } catch (MalformedURLException e) {
-                throw new ExecutionException("Invalid URL: " + manifest.getPackageURL());
-            }
-            latestVersion = manifest.getLatestVersion();
-        }
-        
-        // Ask the user if s/he wants to update
-        if (!forceUpdate && !forceIncrementalUpdate && updateRequired && !notInstalled) {
-            try {
-                SwingUtilities.invokeAndWait(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (JOptionPane.showConfirmDialog(getComponent(), 
-                                "An update is available. Would you like to update?",
-                                "Update available", JOptionPane.YES_NO_OPTION) == 0) {
-                            wantUpdate = true;
-                        }
-                    }
-                });
-            } catch (InterruptedException e) {
-            } catch (InvocationTargetException e) {
-            }
-        }
-        
-        // Proceed with the update
-        if (notInstalled || forceUpdate || forceIncrementalUpdate || (updateRequired && wantUpdate)) {
-            // We have a custom package definition URL that we have to fetch!
-            if (packageDefUrl != null) {
-                fireStatusChange("Downloading package definition for update...");
-                
-                HttpURLConnection conn = null;
-                
-                try {
-                    conn = (HttpURLConnection) packageDefUrl.openConnection();
-                    conn.setRequestMethod("GET");
-                    conn.setUseCaches(false);
-                    conn.setDoInput(true);
-                    conn.setDoOutput(false);
-                    conn.setReadTimeout(5000);
-
-                    conn.connect();
-                    
-                    if (conn.getResponseCode() != 200) {
-                        throw new IOException("Did not get expected 200 code");
-                    }
-                    
-                    update(packageDefUrl, rootDir, cache, conn.getInputStream(), 
-                            forceUpdate, forceIncrementalUpdate, username, ticket);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    throw new ExecutionException("Could not fetch the update package definition file (" +
-                            e.getMessage() + "). The update cannot be performed.");
-                } finally {
-                    if (conn != null) conn.disconnect();
-                    conn = null;
-                }
-            } else {
-                // For vanilla, we bundle the package
-                update(packageDefUrl, rootDir, cache,
-                        Launcher.class.getResourceAsStream("/resources/update.xml"),
-                        forceUpdate, forceIncrementalUpdate, username, ticket);
-            }
-            
-            // Check for cancel
-            if (!running) {
-                throw new CancelledExecutionException();
-            }
-            
-            cache.setLastUpdateId(latestVersion);
-
-            try {
-                cache.write();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-    
-    /**
-     * Download the updates listed in the given package .xml file and
-     * apply them.
-     * 
-     * @param baseUrl the base URL of the update package
-     * @param rootDir path to the working directory of minecraft
-     * @param packageStream input stream of the package .xml file
-     * @param forced true to force re-download
-     * @param forcedIncremental true to force an incremental update
-     * @throws ExecutionException thrown on any error
-     */
-    private void update(URL baseUrl, File rootDir, UpdateCache cache, InputStream packageStream,
-            boolean forced, boolean forcedIncremental,
-            String username, String ticket) throws ExecutionException {
-        fireTitleChange("Updating Minecraft...");
-        
-        updater = new Updater(frame, baseUrl, packageStream, rootDir, cache);
-        updater.setReinstall(forced);
-        updater.registerParameter("user", username);
-        updater.registerParameter("ticket", "deprecated"); // Now deprecated
-        for (ProgressListener listener : getProgressListenerList()) {
-            updater.addProgressListener(listener);
-        }
-        try {
-            updater.performUpdate();
-        } catch (CancelledUpdateException e) {
-            throw new CancelledExecutionException();
-        } catch (UpdateException e) {
-            throw new ExecutionException(e.getMessage(), e);
-        } catch (Throwable t) {
-            logger.log(Level.SEVERE, "Update error occurred", t);
-            throw new ExecutionException("An unknown error occurred.", t);
-        }
-    }
 
     /**
      * Request a cancel.
      */
     @Override
-    public Boolean cancel() {
-        if (JOptionPane.showConfirmDialog(getComponent(), "Are you sure you want to cancel?",
-            "Cancel", JOptionPane.YES_NO_OPTION) != 0) {
+    public boolean tryCancel() {
+        if (JOptionPane.showConfirmDialog(getComponent(), 
+                "Are you sure you want to cancel?",
+                "Cancel", JOptionPane.YES_NO_OPTION) != 0) {
             return false;
-        }
-        
-        if (updater != null) {
-            updater.cancel();
         }
         
         return true;

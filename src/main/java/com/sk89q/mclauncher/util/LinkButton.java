@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.sk89q.mclauncher;
+package com.sk89q.mclauncher.util;
 
 import java.awt.Color;
 import java.awt.Cursor;

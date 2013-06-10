@@ -14,17 +14,17 @@ import java.util.regex.Pattern;
 import javax.swing.SwingUtilities;
 
 import com.sk89q.mclauncher.Launcher;
-import com.sk89q.mclauncher.LoginSession;
 import com.sk89q.mclauncher.addons.Addon;
 import com.sk89q.mclauncher.addons.AddonsProfile;
 import com.sk89q.mclauncher.config.Configuration;
 import com.sk89q.mclauncher.config.Def;
 import com.sk89q.mclauncher.config.SettingsList;
+import com.sk89q.mclauncher.session.MinecraftSession;
 import com.sk89q.mclauncher.util.ConsoleFrame;
 import com.sk89q.mclauncher.util.GameConsoleFrame;
 import com.sk89q.mclauncher.util.JavaRuntimeFinder;
-import com.sk89q.mclauncher.util.MessageLog;
 import com.sk89q.mclauncher.util.LauncherUtils;
+import com.sk89q.mclauncher.util.MessageLog;
 
 public class LaunchProcessBuilder {
     
@@ -35,7 +35,7 @@ public class LaunchProcessBuilder {
 
     private final Configuration configuration;
     private final String username;
-    private final LoginSession session;
+    private final MinecraftSession session;
     
     private String activeJar;
     private boolean demo = false;
@@ -59,11 +59,10 @@ public class LaunchProcessBuilder {
     
     private ConsoleFrame consoleFrame;
     
-    public LaunchProcessBuilder(Configuration configuration, 
-            String username, LoginSession session) {
+    public LaunchProcessBuilder(Configuration configuration, MinecraftSession session) {
         this.configuration = configuration;
-        this.username = username;
         this.session = session;
+        this.username = session.getUsername();
     }
 
     public void readSettings(SettingsList settings) {
@@ -73,7 +72,7 @@ public class LaunchProcessBuilder {
         maxMem = settings.getInt(Def.JAVA_MAX_MEM, 1024);
         extraArgs = settings.get(Def.JAVA_ARGS, "").split(" +");
         extraClasspath = LauncherUtils.nullEmpty(settings.get(Def.JAVA_CLASSPATH));
-        showConsole = (this.showConsole || settings.getBool(Def.JAVA_CONSOLE, false));
+        showConsole = settings.getBool(Def.JAVA_CONSOLE, false);
         relaunch = settings.getBool(Def.LAUNCHER_REOPEN, false);
         coloredConsole = settings.getBool(Def.COLORED_CONSOLE, true);
         consoleKillsProcess = settings.getBool(Def.CONSOLE_KILLS_PROCESS, true);
@@ -156,8 +155,8 @@ public class LaunchProcessBuilder {
         File jarFile = new File(configuration.getMinecraftDir(), "bin/" + activeJar);
         
         if (!jarFile.exists()) {
-            throw new IOException("Launch failed -- can't find '"
-                    + jarFile.getAbsolutePath() + "'.");
+            throw new IOException("Launch failed! Can't find '"
+                    + jarFile.getAbsolutePath() + "'.\n\nMaybe force an update?");
         }
 
         // Get addons

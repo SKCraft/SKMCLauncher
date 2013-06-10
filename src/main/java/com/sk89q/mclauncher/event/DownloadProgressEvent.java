@@ -16,29 +16,22 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.sk89q.mclauncher.config;
+package com.sk89q.mclauncher.event;
 
-import java.io.File;
+import java.util.EventObject;
 
-public class DefaultJar extends MinecraftJar {
+public class DownloadProgressEvent extends EventObject {
+    
+    private static final long serialVersionUID = -2662674549687027071L;
+    private long downloaded;
 
-    public DefaultJar(File f) {
-        super(f);
+    public DownloadProgressEvent(Object source, long downloaded) {
+        super(source);
+        this.downloaded = downloaded;
     }
     
-    @Override
-    public boolean allowsUpdate() {
-        return true;
-    }
-    
-    @Override
-    public boolean isInstalled(File baseDir) {
-        return new File(baseDir, "bin/minecraft.jar").exists();
-    }
-    
-    @Override
-    public String toString() {
-        return "<default>";
+    public long getDownloadedLength() {
+        return downloaded;
     }
 
 }

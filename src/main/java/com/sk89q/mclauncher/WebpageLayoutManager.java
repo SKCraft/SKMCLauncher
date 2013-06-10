@@ -26,7 +26,7 @@ import java.awt.LayoutManager;
 
 import javax.swing.JProgressBar;
 
-public class NewsLayoutManager implements LayoutManager {
+public class WebpageLayoutManager implements LayoutManager {
 
     private static final int PROGRESS_WIDTH = 100;
     

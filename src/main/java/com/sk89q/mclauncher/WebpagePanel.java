@@ -91,7 +91,7 @@ public final class WebpagePanel extends JPanel {
     
     private void setDocument() {
         JLayeredPane panel = new JLayeredPane();
-        panel.setLayout(new NewsLayoutManager());
+        panel.setLayout(new WebpageLayoutManager());
         
         documentView = new JEditorPane();
         documentView.setEditable(false);

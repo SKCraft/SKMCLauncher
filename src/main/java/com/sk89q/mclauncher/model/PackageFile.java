@@ -33,10 +33,10 @@ import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlValue;
 
 import com.sk89q.mclauncher.Launcher;
-import com.sk89q.mclauncher.Platform;
 import com.sk89q.mclauncher.update.FileStreamFilters;
 import com.sk89q.mclauncher.update.UninstallLog;
 import com.sk89q.mclauncher.util.LauncherUtils;
+import com.sk89q.mclauncher.util.Platform;
 
 public abstract class PackageFile {
     

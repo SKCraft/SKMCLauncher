@@ -18,8 +18,28 @@
 
 package com.sk89q.mclauncher.update;
 
-public class CancelledUpdateException extends UpdateException {
-
-    private static final long serialVersionUID = 7942909975388966414L;
+/**
+ * The result of an update check.
+ */
+public interface UpdateCheck {
+    
+    /**
+     * Return whether an update is required.
+     * 
+     * <p>This method may block to perform the check.</p>
+     * 
+     * @return true if an update is required
+     * @throws InterruptedException thrown on interruption
+     * @throws UpdateException thrown if an error occurs while checking
+     */
+    boolean needsUpdate() throws InterruptedException, UpdateException;
+    
+    /**
+     * Create an updater.
+     * 
+     * @return the updater
+     * @throws UpdateException thrown if an updater can't be made
+     */
+    Updater createUpdater() throws UpdateException;
 
 }

@@ -19,9 +19,7 @@
 package com.sk89q.mclauncher;
 
 import java.io.BufferedReader;
-import java.io.DataInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -47,12 +45,12 @@ import com.sk89q.mclauncher.config.Constants;
 import com.sk89q.mclauncher.config.Def;
 import com.sk89q.mclauncher.config.LauncherOptions;
 import com.sk89q.mclauncher.security.X509KeyRing;
-import com.sk89q.mclauncher.update.UpdateCache;
 import com.sk89q.mclauncher.util.BasicArgsParser;
 import com.sk89q.mclauncher.util.BasicArgsParser.ArgsContext;
 import com.sk89q.mclauncher.util.ConsoleFrame;
-import com.sk89q.mclauncher.util.SimpleLogFormatter;
 import com.sk89q.mclauncher.util.LauncherUtils;
+import com.sk89q.mclauncher.util.Platform;
+import com.sk89q.mclauncher.util.SimpleLogFormatter;
 
 /**
  * Launcher entry point.
@@ -184,7 +182,9 @@ public class Launcher {
      * @return directory
      */
     public static File getOfficialDataDir() {
-        return getAppDataDir("minecraft");
+        File dir = getAppDataDir("minecraft");
+        // Breakpoint here to test a different directory
+        return dir;
     }
     
     /**
@@ -338,26 +338,6 @@ public class Launcher {
     public static File replacePathTokens(String path) {
         return new File(path.replace("%INSTANCEDIR%", 
                 getInstanceDataDir().getAbsolutePath() + File.separator));
-    }
-    
-    /**
-     * Import old launcher game version information.
-     * 
-     * @param cache update cache to update
-     * @throws IOException on I/O error
-     */
-    public void importLauncherUpdateVersion(UpdateCache cache) throws IOException {
-        File file = new File(getOfficialDataDir(), "bin/version");
-        if (!file.exists()) return;
-        
-        DataInputStream in = null;
-        try {
-            in = new DataInputStream(new FileInputStream(file));
-            String version = in.readUTF();
-            cache.setLastUpdateId(version);
-        } finally {
-            LauncherUtils.close(in);
-        }
     }
     
     /**

@@ -16,22 +16,17 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.sk89q.mclauncher;
+package com.sk89q.mclauncher.util;
 
-import java.util.EventObject;
+import javax.xml.bind.annotation.XmlEnumValue;
 
-public class TitleChangeEvent extends EventObject {
-    
-    private static final long serialVersionUID = 9166371811989025905L;
-    private String message;
-
-    public TitleChangeEvent(Object source, String message) {
-        super(source);
-        this.message = message;
-    }
-    
-    public String getMessage() {
-        return message;
-    }
-
+/**
+ * Indicates the platform.
+ */
+public enum Platform {
+    @XmlEnumValue("windows") WINDOWS,
+    @XmlEnumValue("mac_os_x") MAC_OS_X,
+    @XmlEnumValue("linux") LINUX,
+    @XmlEnumValue("solaris") SOLARIS,
+    @XmlEnumValue("unknown") UNKNOWN;
 }

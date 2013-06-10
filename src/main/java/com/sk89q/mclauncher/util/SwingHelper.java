@@ -26,6 +26,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -47,6 +48,8 @@ public final class SwingHelper {
 
     private static String[] monospaceFontNames = {
         "Consolas", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Lucida Console"};
+    
+    private static boolean confirmResult;
     
     private SwingHelper() {
     }
@@ -101,17 +104,71 @@ public final class SwingHelper {
     /**
      * Shows an error dialog.
      * 
+     * <p>This can be called from a different thread from the event dispatch
+     * thread, and it will be made thread-safe.</p>
+     * 
      * @param component component
      * @param title title
      * @param message message
      */
-    public static void showError(Component component, String title, String message) {
-        String escaped = message
+    public static void showError(final Component component, 
+            final String title, final String message) {
+        if (!SwingUtilities.isEventDispatchThread()) {
+            try {
+                SwingUtilities.invokeAndWait(new Runnable() {
+                    @Override
+                    public void run() {
+                        showError(component, title, message);
+                    }
+                });
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } catch (InvocationTargetException e) {
+                throw new RuntimeException(e);
+            }
+            return;
+        }
+        
+        String newMessage = message
                 .replace(">", "&gt;")
                 .replace("<", "&lt;")
                 .replace("&", "&amp;");
-        message = "<html>" + escaped;
-        JOptionPane.showMessageDialog(component, message, title, JOptionPane.ERROR_MESSAGE);
+        newMessage = "<html>" + newMessage;
+        
+        JOptionPane.showMessageDialog(
+                component, newMessage, title, 
+                JOptionPane.ERROR_MESSAGE);
+    }
+
+    /**
+     * Asks the user a yes or no question.
+     * 
+     * @param component the component
+     * @param title the title
+     * @param message the message
+     * @return true if 'yes' was selected
+     */
+    public static boolean confirm(final Component component, 
+            final String title, final String message) {
+        if (!SwingUtilities.isEventDispatchThread()) {
+            try {
+                SwingUtilities.invokeAndWait(new Runnable() {
+                    @Override
+                    public void run() {
+                        confirmResult = confirm(component, title, message);
+                    }
+                });
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } catch (InvocationTargetException e) {
+                throw new RuntimeException(e);
+            }
+            
+            return confirmResult;
+        }
+        
+        return JOptionPane.showConfirmDialog(
+                component, message, title, JOptionPane.YES_NO_OPTION) == 0;
     }
     
     /**

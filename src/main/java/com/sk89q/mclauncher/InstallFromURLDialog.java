@@ -45,7 +45,10 @@ import javax.swing.WindowConstants;
 
 import com.sk89q.mclauncher.config.LauncherOptions;
 import com.sk89q.mclauncher.util.ActionListeners;
+import com.sk89q.mclauncher.util.LinkButton;
 import com.sk89q.mclauncher.util.SwingHelper;
+import com.sk89q.mclauncher.util.Task;
+import com.sk89q.mclauncher.util.TaskWorker;
 
 public class InstallFromURLDialog extends JDialog {
 

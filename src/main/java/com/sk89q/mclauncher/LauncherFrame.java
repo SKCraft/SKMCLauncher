@@ -54,6 +54,8 @@ import com.sk89q.mclauncher.config.ServerEntry;
 import com.sk89q.mclauncher.config.ServerList;
 import com.sk89q.mclauncher.util.ActionListeners;
 import com.sk89q.mclauncher.util.SwingHelper;
+import com.sk89q.mclauncher.util.Task;
+import com.sk89q.mclauncher.util.TaskWorker;
 
 /**
  * Main launcher GUI frame.
@@ -414,13 +416,7 @@ public class LauncherFrame extends JFrame implements ListSelectionListener {
         options.save();
 
         LaunchTask task = new LaunchTask(
-                this, configuration, 
-                identity.getId(), identity.getPassword(), jar);
-        task.setForceUpdate(launchOptions.isForcingUpdate());
-        task.setForceIncrementalUpdate(launchOptions.isForcingIncrementalUpdate());
-        task.setPlayOffline(launchOptions.isPlayingOffline());
-        task.setForceConsole(launchOptions.getShowConsole());
-
+                this, configuration, launchOptions, jar);
         worker = Task.startWorker(this, task);
     }
 

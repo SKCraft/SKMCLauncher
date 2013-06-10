@@ -76,7 +76,7 @@ public class URLConnectionDownloader extends AbstractDownloader {
     }
     
     @Override
-    public boolean download() throws IOException {
+    public boolean download() throws IOException, InterruptedException {
         conn = null;
         BufferedInputStream buffInput = null;
         length = -1;
@@ -90,6 +90,8 @@ public class URLConnectionDownloader extends AbstractDownloader {
             conn.setDoOutput(true);
             conn.setReadTimeout(getTimeout());
 
+            LauncherUtils.checkInterrupted();
+
             conn.connect();
             
             if (conn.getResponseCode() == 304) {
@@ -101,6 +103,8 @@ public class URLConnectionDownloader extends AbstractDownloader {
                 throw new IOException("Did not get expected 200 code, got " + 
                         conn.getResponseCode());
             }
+
+            LauncherUtils.checkInterrupted();
             
             fireConnectionStarted();
             
@@ -139,6 +143,8 @@ public class URLConnectionDownloader extends AbstractDownloader {
                         getDigest().update(data, 0, len);
                     }
                     readLength += len;
+
+                    LauncherUtils.checkInterrupted();
                 }
             } finally {
                 progressUpdater.stop();

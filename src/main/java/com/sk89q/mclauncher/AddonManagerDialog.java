@@ -60,6 +60,8 @@ import com.sk89q.mclauncher.config.MinecraftJar;
 import com.sk89q.mclauncher.config.SettingsList;
 import com.sk89q.mclauncher.util.ActionListeners;
 import com.sk89q.mclauncher.util.SwingHelper;
+import com.sk89q.mclauncher.util.Task;
+import com.sk89q.mclauncher.util.TaskWorker;
 
 /**
  * The dialog for managing addons.

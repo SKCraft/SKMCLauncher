@@ -56,6 +56,10 @@ public class UpdateManifestFetcher {
      * @throws IOException on I/O error
      */
     public void downloadManifest() throws IOException {
+        if (manifest != null) {
+            return; // Download only once
+        }
+        
         HttpURLConnection conn = null;
                 
         try {

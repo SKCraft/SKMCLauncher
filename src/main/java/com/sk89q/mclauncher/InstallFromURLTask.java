@@ -29,6 +29,8 @@ import com.sk89q.mclauncher.config.Configuration;
 import com.sk89q.mclauncher.config.LauncherOptions;
 import com.sk89q.mclauncher.model.UpdateManifest;
 import com.sk89q.mclauncher.update.UpdateManifestFetcher;
+import com.sk89q.mclauncher.util.LauncherUtils;
+import com.sk89q.mclauncher.util.Task;
 
 public class InstallFromURLTask extends Task {
     
@@ -66,6 +68,8 @@ public class InstallFromURLTask extends Task {
                         "It looks like this pack is already installed as '"
                                 + existing.getName() + "'.");
             }
+
+            LauncherUtils.checkInterrupted();
             
             Configuration configuration = 
                     Configuration.createInstance(
@@ -95,14 +99,6 @@ public class InstallFromURLTask extends Task {
             throw new ExecutionException("Unknown error", e);
         } catch (InterruptedException e) {
         }
-    }
-
-    /**
-     * Request a cancel.
-     */
-    @Override
-    public Boolean cancel() {
-        return false;
     }
 
 }

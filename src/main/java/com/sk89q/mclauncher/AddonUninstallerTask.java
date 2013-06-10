@@ -23,12 +23,13 @@ import java.util.List;
 
 import com.sk89q.mclauncher.addons.Addon;
 import com.sk89q.mclauncher.addons.AddonsProfile;
+import com.sk89q.mclauncher.util.LauncherUtils;
+import com.sk89q.mclauncher.util.Task;
 
 public class AddonUninstallerTask extends Task {
     
     private AddonsProfile addonsProfile;
     private List<Addon> addons;
-    private boolean running = true;
     
     public AddonUninstallerTask(AddonsProfile addonsProfile, List<Addon> addons) {
         this.addonsProfile = addonsProfile;
@@ -36,16 +37,14 @@ public class AddonUninstallerTask extends Task {
     }
 
     @Override
-    protected void execute() throws ExecutionException {
+    protected void execute() throws ExecutionException, InterruptedException {
         fireTitleChange("Uninstalling addons...");
         
         int i = 0;
         for (Addon addon : addons) {
             fireStatusChange("Uninstalling " + addon.getName() + "...");
             fireValueChange(i / (double) addons.size());
-            if (!running) {
-                throw new CancelledExecutionException();
-            }
+            LauncherUtils.checkInterrupted();
             
             addonsProfile.remove(addon);
             
@@ -58,12 +57,6 @@ public class AddonUninstallerTask extends Task {
             throw new ExecutionException("Failed to write the addon list to disk: " +
                     e.getMessage(), e);
         }
-    }
-
-    @Override
-    public Boolean cancel() {
-        running = false;
-        return null;
     }
 
 }

@@ -24,6 +24,7 @@ import java.lang.reflect.InvocationTargetException;
 import javax.swing.SwingUtilities;
 
 import com.sk89q.mclauncher.addons.AddonsProfile;
+import com.sk89q.mclauncher.util.Task;
 
 public class AddonsProfileLoaderTask extends Task {
     
@@ -57,11 +58,6 @@ public class AddonsProfileLoaderTask extends Task {
         } catch (InterruptedException e) {
         } catch (InvocationTargetException e) {
         }
-    }
-
-    @Override
-    public Boolean cancel() {
-        return null;
     }
 
 }

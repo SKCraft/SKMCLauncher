@@ -27,7 +27,6 @@ import java.util.List;
 import util.WinRegistry;
 
 import com.sk89q.mclauncher.Launcher;
-import com.sk89q.mclauncher.Platform;
 
 /**
  * Finds the best Java runtime to use.

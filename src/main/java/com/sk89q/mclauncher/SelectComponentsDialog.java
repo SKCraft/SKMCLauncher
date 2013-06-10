@@ -21,11 +21,11 @@ package com.sk89q.mclauncher;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Window;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -49,8 +49,8 @@ public class SelectComponentsDialog extends JDialog {
     
     private JTable table;
 
-    public SelectComponentsDialog(JFrame frame, PackageManifest manifest) {
-        super(frame, "Select Install Options", true);
+    public SelectComponentsDialog(Window owner, PackageManifest manifest) {
+        super(owner, "Select Install Options", ModalityType.DOCUMENT_MODAL);
 
         this.manifest = manifest;
 
@@ -58,7 +58,7 @@ public class SelectComponentsDialog extends JDialog {
         buildUI();
         pack();
         setSize(320, 500);
-        setLocationRelativeTo(frame);
+        setLocationRelativeTo(owner);
     }
 
     private void buildUI() {

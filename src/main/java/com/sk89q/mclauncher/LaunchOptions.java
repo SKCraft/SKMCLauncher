@@ -52,9 +52,13 @@ import com.sk89q.mclauncher.config.Identity;
 import com.sk89q.mclauncher.config.IdentityList;
 import com.sk89q.mclauncher.config.LauncherOptions;
 import com.sk89q.mclauncher.config.MinecraftJar;
+import com.sk89q.mclauncher.util.LinkButton;
 import com.sk89q.mclauncher.util.PopupMouseAdapter;
 import com.sk89q.mclauncher.util.SwingHelper;
 
+/**
+ * A set of launch options.
+ */
 public class LaunchOptions extends JPanel implements ListSelectionListener {
     
     private static final long serialVersionUID = -4971412532761639415L;
@@ -78,6 +82,7 @@ public class LaunchOptions extends JPanel implements ListSelectionListener {
     private LinkButton expandBtn;
 
     private String autoConnect;
+    private boolean demoMode;
     
     public LaunchOptions(LauncherFrame frame) {
         this.frame = frame;
@@ -378,17 +383,21 @@ public class LaunchOptions extends JPanel implements ListSelectionListener {
     public boolean isForcingUpdate() {
         return forceUpdateCheck.isSelected();
     }
+    
+    public void setForceUpdate(boolean update) {
+        forceUpdateCheck.setSelected(update);
+    }
 
     public boolean isForcingIncrementalUpdate() {
         return changeComponentsCheck.isSelected();
     }
     
-    public void focusEmptyField() {
-        if (getLoginId() == null) {
-            userText.requestFocusInWindow();
-        } else {
-            passText.requestFocusInWindow();
-        }
+    public void setForceIncrementalUpdate(boolean update) {
+        changeComponentsCheck.setSelected(update);
+    }
+
+    public boolean isUpdateRequested() {
+        return isForcingUpdate() || isForcingIncrementalUpdate();
     }
 
     public boolean hasLoginSet() {
@@ -400,6 +409,14 @@ public class LaunchOptions extends JPanel implements ListSelectionListener {
         if (options.getSettings().getBool(Def.FAST_TEST, false)) {
             setPlayOffline(true);
         }
+    }
+
+    public boolean isDemoMode() {
+        return demoMode;
+    }
+    
+    public void setDemoMode(boolean demoMode) {
+        this.demoMode = demoMode;
     }
 
     /**
@@ -419,6 +436,14 @@ public class LaunchOptions extends JPanel implements ListSelectionListener {
         }
         
         return true;
+    }
+    
+    public void focusEmptyField() {
+        if (getLoginId() == null) {
+            userText.requestFocusInWindow();
+        } else {
+            passText.requestFocusInWindow();
+        }
     }
 
     @Override

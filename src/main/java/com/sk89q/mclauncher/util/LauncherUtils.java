@@ -123,21 +123,6 @@ public final class LauncherUtils {
     }
     
     /**
-     * Sleep without throwing an exception.
-     * 
-     * @param millis time in milliseconds
-     * @return true if not interrupted
-     */
-    public static boolean sleep(long millis) {
-        try {
-            Thread.sleep(millis);
-            return true;
-        } catch (InterruptedException e) {
-            return false;
-        }
-    }
-    
-    /**
      * Copy a file from one location to the next.
      * 
      * @param from from
@@ -355,6 +340,7 @@ public final class LauncherUtils {
         if (!dir.exists()) {
             return;
         }
+        
         for (File f : dir.listFiles()) {
             if (f.isDirectory()) {
                 cleanDir(f);
@@ -362,6 +348,31 @@ public final class LauncherUtils {
             } else {
                 f.delete();
             }
+        }
+    }
+
+    /**
+     * Create a URL, and throw a {@link RuntimeException} upon failure.
+     * 
+     * @param url the URL
+     * @return the URL
+     */
+    public static URL createURL(String url) {
+        try {
+            return new URL(url);
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Check if the thread interruption flag is set.
+     * 
+     * @throws InterruptedException thrown if set
+     */
+    public static void checkInterrupted() throws InterruptedException {
+        if (Thread.interrupted()) {
+            throw new InterruptedException();
         }
     }
 

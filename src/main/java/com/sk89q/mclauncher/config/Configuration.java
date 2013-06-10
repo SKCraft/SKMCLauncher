@@ -43,6 +43,13 @@ import org.spout.nbt.stream.NBTInputStream;
 
 import com.sk89q.mclauncher.Launcher;
 import com.sk89q.mclauncher.addons.AddonsProfile;
+import com.sk89q.mclauncher.session.MinecraftSession;
+import com.sk89q.mclauncher.update.ManifestUpdateCheck;
+import com.sk89q.mclauncher.update.UpdateCache;
+import com.sk89q.mclauncher.update.UpdateCheck;
+import com.sk89q.mclauncher.update.UpdateException;
+import com.sk89q.mclauncher.update.UpdateManifestFetcher;
+import com.sk89q.mclauncher.update.VanillaUpdateCheck;
 import com.sk89q.mclauncher.util.LauncherUtils;
 
 /**
@@ -212,6 +219,25 @@ public class Configuration implements Comparable<Configuration> {
     public boolean isUsingDefaultPath() {
         return customBasePath == null && appDir == null;
     }
+    
+    /**
+     * Get an {@link UpdateCheck} that can be used to check if there's an update and
+     * to perform an update.
+     * 
+     * @param session the user session
+     * @param cache the update cache
+     * @return an update check
+     * @throws UpdateException if the check can't be created for whatever reason
+     */
+    public UpdateCheck createUpdateCheck(
+            MinecraftSession session, final UpdateCache cache) throws UpdateException {
+        if (updateUrl == null) {
+            return VanillaUpdateCheck.fromSession(this, session, cache);
+        } else {
+            UpdateManifestFetcher fetcher = new UpdateManifestFetcher(updateUrl);
+            return new ManifestUpdateCheck(this, cache, fetcher);
+        }
+    }
 
     /**
      * Shortcut method to get the base working directory.
@@ -364,6 +390,11 @@ public class Configuration implements Comparable<Configuration> {
         return this;
     }
 
+    /**
+     * Get a list of servers from the servers.dat file.
+     * 
+     * @return a list of server entries
+     */
     public List<ServerEntry> detectUserServers() {
         File file = new File(getMinecraftDir(), "servers.dat");
         List<ServerEntry> retn = new ArrayList<ServerEntry>();
@@ -396,6 +427,12 @@ public class Configuration implements Comparable<Configuration> {
         return retn;
     }
     
+    /**
+     * Check if the given ID is a valid ID for a configuration.
+     * 
+     * @param id the ID
+     * @return true if valid
+     */
     public static boolean isValidId(String id) {
         return ID_PATTERN.matcher(id).matches();
     }

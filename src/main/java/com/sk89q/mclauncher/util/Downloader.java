@@ -3,7 +3,7 @@ package com.sk89q.mclauncher.util;
 import java.io.IOException;
 import java.security.MessageDigest;
 
-import com.sk89q.mclauncher.DownloadListener;
+import com.sk89q.mclauncher.event.DownloadListener;
 
 public interface Downloader {
 
@@ -64,8 +64,9 @@ public interface Downloader {
      * 
      * @return true if the file was downloaded, false if it was cached
      * @throws IOException IO error
+     * @throws InterruptedException thrown on interruption
      */
-    public abstract boolean download() throws IOException;
+    public abstract boolean download() throws IOException, InterruptedException;
 
     /**
      * Cancel the download.

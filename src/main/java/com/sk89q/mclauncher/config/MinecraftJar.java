@@ -45,9 +45,18 @@ public class MinecraftJar {
     public String getVersion() {
         return (version == null) ? (version = LauncherUtils.getMCVersion(file)) : version;
     }
+    
+    public boolean allowsUpdate() {
+        return false;
+    }
+    
+    public boolean isInstalled(File baseDir) {
+        return true;
+    }
 
     @Override
     public String toString() {
         return file.getName() + " (" + getVersion() + ")";
     }
+    
 }

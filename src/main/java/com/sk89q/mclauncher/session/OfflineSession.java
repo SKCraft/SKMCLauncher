@@ -16,31 +16,44 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.sk89q.mclauncher;
+package com.sk89q.mclauncher.session;
 
-public class TaskWorker extends Thread {
+import java.io.IOException;
+
+/**
+ * Represents an offline session.
+ */
+public class OfflineSession implements MinecraftSession {
     
-    private Task task;
-    
-    public TaskWorker() {
-        super();
+    private final String username;
+
+    public OfflineSession(String username) {
+        this.username = username;
     }
-    
-    public TaskWorker(Task task) {
-        super(task);
-        this.task = task;
+
+    public OfflineSession() {
+        username = "Player";
     }
-    
-    public Task getTask() {
-        return task;
-    }
-    
+
     @Override
-    public void run() {
-        try {
-            task.run();
-        } finally {
-        }
+    public void login(String password) throws IOException,
+            OutdatedLauncherException, LoginException {
+        // Nothing to do!
+    }
+
+    @Override
+    public boolean isValid() {
+        return true;
+    }
+
+    @Override
+    public String getUsername() {
+        return username;
+    }
+
+    @Override
+    public String getSessionId() {
+        return null;
     }
 
 }
