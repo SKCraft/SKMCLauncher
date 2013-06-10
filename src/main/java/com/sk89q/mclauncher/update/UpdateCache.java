@@ -153,6 +153,7 @@ public class UpdateCache {
         if (hash == null) {
             hashCache.remove(path);
         } else {
+            touch(path);
             hashCache.put(path, hash);
         }
     }
