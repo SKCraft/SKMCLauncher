@@ -37,7 +37,7 @@ public class LauncherOptionsPanel extends OptionsPanel {
         addField(Def.LAUNCHER_NO_NEWS, new JCheckBox("Don't load the news"));
         addField(Def.LAUNCHER_HIDE_NEWS, new JCheckBox("Hide the news panel"));
         addField(Def.LAUNCHER_ALWAYS_MORE_OPTIONS, new JCheckBox("Start with all options shown"));
-        addField(Def.LAUNCHER_REOPEN, new JCheckBox("Show the launcher on Minecraft close"));
+        addField(Def.LAUNCHER_REOPEN, new JCheckBox("Re-launch launcher on Minecraft close"));
 
         createFieldGroup("Console");
         /*addField(Def.LOCAL_CONSOLE, new JCheckBox("Open console in launcher process"))
