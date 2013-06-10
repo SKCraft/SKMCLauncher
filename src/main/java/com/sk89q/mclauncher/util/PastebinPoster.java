@@ -1,7 +1,6 @@
-// $Id$
 /*
- * WorldGuard
- * Copyright (C) 2010 sk89q <http://www.sk89q.com>
+ * SK's Minecraft Launcher
+ * Copyright (C) 2010, 2011 Albert Pham <http://www.sk89q.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
