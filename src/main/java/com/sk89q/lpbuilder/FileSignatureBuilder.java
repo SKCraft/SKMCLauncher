@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import com.sk89q.mclauncher.util.Util;
+import com.sk89q.mclauncher.util.LauncherUtils;
 
 /**
  * Builds a signature of a file in order to give it a "version" by the update process.
@@ -56,8 +56,8 @@ public class FileSignatureBuilder {
             
             return list.toDigest();
         } finally {
-            Util.close(zip);
-            Util.close(fis);
+            LauncherUtils.close(zip);
+            LauncherUtils.close(fis);
         }
     }
 
@@ -80,8 +80,8 @@ public class FileSignatureBuilder {
             bis = new BufferedInputStream(fis);
             return fromInputStream(bis);
         } finally {
-            Util.close(bis);
-            Util.close(fis);
+            LauncherUtils.close(bis);
+            LauncherUtils.close(fis);
         }
     }
     
@@ -119,7 +119,7 @@ public class FileSignatureBuilder {
                 digest.update((byte) 0);
                 digest.update(file.digest);
                 if (DEBUG) {
-                    logger.info(Util.getHexString(file.digest) + " " + file.key);
+                    logger.info(LauncherUtils.getHexString(file.digest) + " " + file.key);
                 }
             }
             if (DEBUG) {

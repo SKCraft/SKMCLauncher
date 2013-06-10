@@ -58,7 +58,7 @@ public final class ActionListeners {
         return new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                UIUtil.openURL(url, component);
+                SwingHelper.openURL(url, component);
             }
         };
     }
@@ -79,7 +79,7 @@ public final class ActionListeners {
                 if (create) {
                     dir.mkdirs();
                 }
-                UIUtil.browse(dir, component);
+                SwingHelper.browseDir(dir, component);
             }
         };
     }

@@ -32,7 +32,7 @@ import javax.xml.bind.annotation.XmlElements;
 import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.sk89q.mclauncher.util.Util;
+import com.sk89q.mclauncher.util.LauncherUtils;
 
 @XmlRootElement(name = "filegroup")
 public class FileGroup {
@@ -95,7 +95,7 @@ public class FileGroup {
 
     public URL getURL(URL baseUrl, PackageFile file) {
         try {
-            return Util.concat(baseUrl, getSource() + file.getFilename());
+            return LauncherUtils.concat(baseUrl, getSource() + file.getFilename());
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }

@@ -29,7 +29,7 @@ import java.util.zip.ZipOutputStream;
 
 import com.sk89q.lpbuilder.FileSignatureBuilder.SignatureList;
 import com.sk89q.mclauncher.model.Archive;
-import com.sk89q.mclauncher.util.Util;
+import com.sk89q.mclauncher.util.LauncherUtils;
 
 class ZipBucket extends Archive {
     
@@ -62,15 +62,15 @@ class ZipBucket extends Archive {
                 while ((count = fis.read(buf)) > 0) {
                     zip.write(buf, 0, count);
                 }
-                Util.close(fis);
+                LauncherUtils.close(fis);
             }
             
             // Set the version
             setVersion(list.toDigest());
         } finally {
-            Util.close(zip);
-            Util.close(fos);
-            Util.close(fis);
+            LauncherUtils.close(zip);
+            LauncherUtils.close(fos);
+            LauncherUtils.close(fis);
         }
     }
 

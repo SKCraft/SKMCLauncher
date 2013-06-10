@@ -45,8 +45,8 @@ import javax.swing.UIManager;
 import com.sk89q.mclauncher.Launcher;
 import com.sk89q.mclauncher.util.BasicArgsParser;
 import com.sk89q.mclauncher.util.BasicArgsParser.ArgsContext;
-import com.sk89q.mclauncher.util.UIUtil;
-import com.sk89q.mclauncher.util.Util;
+import com.sk89q.mclauncher.util.SwingHelper;
+import com.sk89q.mclauncher.util.LauncherUtils;
 
 /**
  * Does the heavy work of actually launching the game.
@@ -204,8 +204,8 @@ public class GameLauncher  {
             frame.start(container);
         } catch (Throwable e) {
             logger.log(Level.SEVERE, "Failed to launch", e);
-            UIUtil.showError(null, "Launch error", "An error occurred while launching: " +
-                    e.getMessage() + "\n\n" + Util.getStackTrace(e));
+            SwingHelper.showError(null, "Launch error", "An error occurred while launching: " +
+                    e.getMessage() + "\n\n" + LauncherUtils.getStackTrace(e));
         }
     }
     
@@ -321,7 +321,7 @@ public class GameLauncher  {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                    UIUtil.showError(null, "Minecraft launch error", "An error occurred while launching: " +
+                    SwingHelper.showError(null, "Minecraft launch error", "An error occurred while launching: " +
                             t.getMessage());
                 }
             });
@@ -330,8 +330,8 @@ public class GameLauncher  {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                    UIUtil.showError(null, "Minecraft launch error", "An error occurred while launching: " +
-                            t.getMessage() + "\n\n" + Util.getStackTrace(t));
+                    SwingHelper.showError(null, "Minecraft launch error", "An error occurred while launching: " +
+                            t.getMessage() + "\n\n" + LauncherUtils.getStackTrace(t));
                 }
             });
         }

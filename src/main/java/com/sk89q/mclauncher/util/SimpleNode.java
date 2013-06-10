@@ -49,7 +49,7 @@ public class SimpleNode {
      * @return new node
      */
     public SimpleNode addNode(String name) {
-        return new SimpleNode(doc, XMLUtil.addNode(doc, node, name));
+        return new SimpleNode(doc, XmlUtils.addNode(doc, node, name));
     }
     
     /**
@@ -60,7 +60,7 @@ public class SimpleNode {
      */
     public SimpleNode addValue(String text) {
         if (text == null) return this;
-        XMLUtil.addText(doc, node, text);
+        XmlUtils.addText(doc, node, text);
         return this;
     }
     
@@ -84,7 +84,7 @@ public class SimpleNode {
      */
     public SimpleNode setAttr(String name, String text) {
         if (text == null) return this;
-        XMLUtil.setAttr(doc, node, name, text);
+        XmlUtils.setAttr(doc, node, name, text);
         return this;
     }
 

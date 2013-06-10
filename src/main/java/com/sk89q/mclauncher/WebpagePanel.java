@@ -45,7 +45,7 @@ import javax.swing.border.CompoundBorder;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
-import com.sk89q.mclauncher.util.UIUtil;
+import com.sk89q.mclauncher.util.SwingHelper;
 
 public final class WebpagePanel extends JPanel {
 
@@ -99,7 +99,7 @@ public final class WebpagePanel extends JPanel {
             @Override
             public void hyperlinkUpdate(HyperlinkEvent e) {
                 if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-                    UIUtil.openURL(e.getURL(), self);
+                    SwingHelper.openURL(e.getURL(), self);
                 }
             }
         });

@@ -18,7 +18,7 @@
 
 package com.sk89q.mclauncher.addons;
 
-import static com.sk89q.mclauncher.util.XMLUtil.*;
+import static com.sk89q.mclauncher.util.XmlUtils.*;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -49,7 +49,7 @@ import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
 import com.sk89q.mclauncher.util.SimpleNode;
-import com.sk89q.mclauncher.util.Util;
+import com.sk89q.mclauncher.util.LauncherUtils;
 
 /**
  * Manages the addons of a profile.
@@ -102,8 +102,8 @@ public class AddonsProfile implements TableModel {
                 if (filename == null) {
                     continue; // Skip this entry
                 }
-                String id = Util.defaultValue(getStringOrNull(node, idExpr), filename);
-                String name = Util.defaultValue(getStringOrNull(node, nameExpr), filename);
+                String id = LauncherUtils.defaultValue(getStringOrNull(node, idExpr), filename);
+                String name = LauncherUtils.defaultValue(getStringOrNull(node, nameExpr), filename);
                 String version = getStringOrNull(node, versionExpr);
                 String urlS = getStringOrNull(node, urlExpr);
                 boolean enabled = getBool(node, false, enabledExpr);
@@ -133,7 +133,7 @@ public class AddonsProfile implements TableModel {
         } catch (SAXException e) {
             throw new IOException(e);
         } finally {
-            Util.close(in);
+            LauncherUtils.close(in);
         }
     }
     

@@ -28,7 +28,7 @@ import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import javax.swing.event.EventListenerList;
 
-import com.sk89q.mclauncher.util.UIUtil;
+import com.sk89q.mclauncher.util.SwingHelper;
 
 /**
  * Used to run a task in a different thread apart from a GUI. The class has
@@ -118,7 +118,7 @@ public abstract class Task implements Runnable {
                 SwingUtilities.invokeAndWait(new Runnable() {
                     @Override
                     public void run() {
-                        UIUtil.showError(component,
+                        SwingHelper.showError(component,
                                 "Error occurred",
                                 e.getMessage());
                     }
@@ -129,7 +129,7 @@ public abstract class Task implements Runnable {
         } catch (Throwable t) {
             Launcher.showConsole();
             logger.log(Level.SEVERE, "Unexpected error occurred (please report this error in full)", t);
-            UIUtil.showError(component,
+            SwingHelper.showError(component,
                     "Error occurred", 
                     "An unexpected error has occurred. Please report the error shown in the newly-shown console.");
         }

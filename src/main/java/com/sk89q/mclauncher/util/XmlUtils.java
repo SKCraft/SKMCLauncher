@@ -51,12 +51,10 @@ import org.xml.sax.SAXException;
 
 /**
  * XML utility methods.
- * 
- * @author sk89q
  */
-public class XMLUtil {
+public final class XmlUtils {
     
-    private XMLUtil() {
+    private XmlUtils() {
     }
     
     /**
@@ -110,7 +108,7 @@ public class XMLUtil {
             writeJaxb(obj, buf, cls);
             buf.close();
         } finally {
-            Util.close(fos);
+            LauncherUtils.close(fos);
         }
     }
     

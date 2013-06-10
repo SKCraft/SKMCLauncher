@@ -33,8 +33,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
 import com.sk89q.mclauncher.Launcher;
-import com.sk89q.mclauncher.util.Util;
-import com.sk89q.mclauncher.util.XMLUtil;
+import com.sk89q.mclauncher.util.LauncherUtils;
+import com.sk89q.mclauncher.util.XmlUtils;
 
 /**
  * Stores options for the launcher.
@@ -59,12 +59,12 @@ public class LauncherOptions {
         InputStream in = Launcher.class.getResourceAsStream("/resources/defaults.xml");
         if (in != null) {
             try {
-                def = XMLUtil.parseJaxb(SettingsList.class, in);
+                def = XmlUtils.parseJaxb(SettingsList.class, in);
             } catch (JAXBException e) {
                 def = null;
                 logger.log(Level.WARNING, "Could not read default settings", e);
             } finally {
-                Util.close(in);
+                LauncherUtils.close(in);
             }
         } else {
             def = null;
@@ -157,7 +157,7 @@ public class LauncherOptions {
         try {
             fis = new FileInputStream(file);
             bis = new BufferedInputStream(fis);
-            LauncherOptions newOptions = XMLUtil.parseJaxb(LauncherOptions.class, bis);
+            LauncherOptions newOptions = XmlUtils.parseJaxb(LauncherOptions.class, bis);
             read(newOptions);
             return true;
         } catch (FileNotFoundException e) {
@@ -166,8 +166,8 @@ public class LauncherOptions {
             logger.log(Level.WARNING, "Failed to load configuration", e);
             return false;
         } finally {
-            Util.close(bis);
-            Util.close(fis);
+            LauncherUtils.close(bis);
+            LauncherUtils.close(fis);
         }
     }
 
@@ -182,7 +182,7 @@ public class LauncherOptions {
         }
         
         try {
-            XMLUtil.writeJaxb(this, file, LauncherOptions.class);
+            XmlUtils.writeJaxb(this, file, LauncherOptions.class);
             return true;
         } catch (IOException e) {
             logger.log(Level.WARNING, "Failed to save configuration", e);

@@ -18,7 +18,7 @@
 
 package com.sk89q.mclauncher.update;
 
-import static com.sk89q.mclauncher.util.XMLUtil.*;
+import static com.sk89q.mclauncher.util.XmlUtils.*;
 
 import java.io.BufferedInputStream;
 import java.io.File;

@@ -30,7 +30,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import com.sk89q.mclauncher.util.Util;
+import com.sk89q.mclauncher.util.LauncherUtils;
 
 /**
  * Holds a list of entries to uninstall.
@@ -177,7 +177,7 @@ public class UninstallLog {
                         line.substring(line.indexOf(':') + 1, line.length()));
             }
         } finally {
-            Util.close(reader);
+            LauncherUtils.close(reader);
         }
     }
 
@@ -200,7 +200,7 @@ public class UninstallLog {
                 }
             }
         } finally {
-            Util.close(writer);
+            LauncherUtils.close(writer);
         }
     }
     

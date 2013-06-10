@@ -48,7 +48,7 @@ import com.sk89q.mclauncher.config.Configuration;
 import com.sk89q.mclauncher.config.ConfigurationList;
 import com.sk89q.mclauncher.config.LauncherOptions;
 import com.sk89q.mclauncher.util.ActionListeners;
-import com.sk89q.mclauncher.util.UIUtil;
+import com.sk89q.mclauncher.util.SwingHelper;
 
 /**
  * The dialog for launcher options.
@@ -146,7 +146,7 @@ public class OptionsDialog extends JDialog {
         buttonsPanel.setLayout(new FlowLayout(FlowLayout.RIGHT, 5, 5));
         JButton okButton = new JButton("OK");
         JButton cancelButton = new JButton("Cancel");
-        UIUtil.equalWidth(okButton, cancelButton);
+        SwingHelper.equalWidth(okButton, cancelButton);
         buttonsPanel.add(okButton);
         buttonsPanel.add(cancelButton);
         container.add(buttonsPanel, BorderLayout.SOUTH);
@@ -225,12 +225,12 @@ public class OptionsDialog extends JDialog {
                 int max = configsTable.getSelectionModel()
                         .getMaxSelectionIndex();
                 if (min == -1 || max == -1) {
-                    UIUtil.showError(self, "Selection error",
+                    SwingHelper.showError(self, "Selection error",
                             "You have not selected any configurations.");
                     return;
                 }
                 if (min != max) {
-                    UIUtil.showError(self, "Selection error",
+                    SwingHelper.showError(self, "Selection error",
                             "Select one configuration at a time.");
                     return;
                 }
@@ -249,7 +249,7 @@ public class OptionsDialog extends JDialog {
                 int max = configsTable.getSelectionModel()
                         .getMaxSelectionIndex();
                 if (min == -1 || max == -1) {
-                    UIUtil.showError(self, "Selection error",
+                    SwingHelper.showError(self, "Selection error",
                             "You have not selected any configurations.");
                     return;
                 }
@@ -266,7 +266,7 @@ public class OptionsDialog extends JDialog {
                 for (int i = min; i <= max; i++) {
                     Configuration config = configsManager.getConfigurationAt(i);
                     if (config.isBuiltIn()) {
-                        UIUtil.showError(
+                        SwingHelper.showError(
                                 self,
                                 "Built-in configuration",
                                 "The configuration '"
@@ -281,7 +281,7 @@ public class OptionsDialog extends JDialog {
             }
         });
 
-        UIUtil.removeOpaqueness(buttonsPanel);
+        SwingHelper.removeOpaqueness(buttonsPanel);
 
         return panel;
     }

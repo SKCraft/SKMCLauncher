@@ -53,7 +53,7 @@ import com.sk89q.mclauncher.config.MinecraftJar;
 import com.sk89q.mclauncher.config.ServerEntry;
 import com.sk89q.mclauncher.config.ServerList;
 import com.sk89q.mclauncher.util.ActionListeners;
-import com.sk89q.mclauncher.util.UIUtil;
+import com.sk89q.mclauncher.util.SwingHelper;
 
 /**
  * Main launcher GUI frame.
@@ -79,8 +79,8 @@ public class LauncherFrame extends JFrame implements ListSelectionListener {
         setTitle("SK's Minecraft Launcher");
         setSize(620, 500);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        UIUtil.setLookAndFeel();
-        UIUtil.setIconImage(this, "/resources/icon.png");
+        SwingHelper.setLookAndFeel();
+        SwingHelper.setIconImage(this, "/resources/icon.png");
 
         options = Launcher.getInstance().getOptions();
         launchOptions = new LaunchOptions(this);
@@ -306,7 +306,7 @@ public class LauncherFrame extends JFrame implements ListSelectionListener {
                         return;
                     
                     if (configuration.isBuiltIn()) {
-                        UIUtil.showError(
+                        SwingHelper.showError(
                                 self,
                                 "Built-in configuration",
                                 "The configuration '"
@@ -334,7 +334,7 @@ public class LauncherFrame extends JFrame implements ListSelectionListener {
                     File f = new File(configuration.getMinecraftDir(),
                             "texturepacks");
                     f.mkdirs();
-                    UIUtil.browse(f, self);
+                    SwingHelper.browseDir(f, self);
                 }
             });
             popup.add(menuItem);

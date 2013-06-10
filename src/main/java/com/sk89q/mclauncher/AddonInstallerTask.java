@@ -39,7 +39,7 @@ import javax.swing.SwingUtilities;
 
 import com.sk89q.mclauncher.addons.Addon;
 import com.sk89q.mclauncher.addons.AddonsProfile;
-import com.sk89q.mclauncher.util.Util;
+import com.sk89q.mclauncher.util.LauncherUtils;
 
 public class AddonInstallerTask extends Task {
 
@@ -163,8 +163,8 @@ public class AddonInstallerTask extends Task {
         } catch (CancelledExecutionException e) {
             throw e;
         } finally {
-            Util.close(jarFile);
-            Util.close(in);
+            LauncherUtils.close(jarFile);
+            LauncherUtils.close(in);
         }
         
         if (!foundClasses) {
@@ -308,14 +308,14 @@ public class AddonInstallerTask extends Task {
             throw new ExecutionException("Failed to install the addon: "
                     + e.getMessage(), e);
         } catch (CancelledExecutionException e) {
-            Util.close(out);
+            LauncherUtils.close(out);
             target.delete();
             throw e;
         } finally {
-            Util.close(jarOut);
-            Util.close(jarIn);
-            Util.close(in);
-            Util.close(out);
+            LauncherUtils.close(jarOut);
+            LauncherUtils.close(jarIn);
+            LauncherUtils.close(in);
+            LauncherUtils.close(out);
         }
 
         Addon addon = new Addon(id, name, null, target, null);

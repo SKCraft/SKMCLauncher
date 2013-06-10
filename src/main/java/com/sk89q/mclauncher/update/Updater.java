@@ -56,8 +56,8 @@ import com.sk89q.mclauncher.model.PackageFile;
 import com.sk89q.mclauncher.model.PackageManifest;
 import com.sk89q.mclauncher.util.Downloader;
 import com.sk89q.mclauncher.util.URLConnectionDownloader;
-import com.sk89q.mclauncher.util.Util;
-import com.sk89q.mclauncher.util.XMLUtil;
+import com.sk89q.mclauncher.util.LauncherUtils;
+import com.sk89q.mclauncher.util.XmlUtils;
 
 /**
  * Downloads and applies an update.
@@ -223,7 +223,7 @@ public class Updater implements DownloadListener {
      */
     private void parsePackageFile() throws UpdateException {
         try {
-            manifest = XMLUtil.parseJaxb(PackageManifest.class, packageStream);
+            manifest = XmlUtils.parseJaxb(PackageManifest.class, packageStream);
             manifest.setDestDir(rootDir);
             totalEstimatedSize = manifest.getTotalSize();
             numFiles = manifest.getDownloadCount();
@@ -289,7 +289,7 @@ public class Updater implements DownloadListener {
                         fireDownloadStatusChange("Download failed; retrying (" + retryNum + ")...");
                         Launcher.showConsole();
                         logger.warning("Failed to download " + getURL(group, file));
-                        Util.sleep(retryDelay);
+                        LauncherUtils.sleep(retryDelay);
                     }
                 }
                 
@@ -332,7 +332,7 @@ public class Updater implements DownloadListener {
         // The file kept after the download has finished
         // To be later transformed/read to be converted into the final file
         File tempFile = new File(downloadDir, "_" + 
-                Util.getDigestAsHex(url.toExternalForm(), "MD5"));
+                LauncherUtils.getDigestAsHex(url.toExternalForm(), "MD5"));
         
         // The download file is where the data stored during the download
         // We use two different files because the system/Java can die any second and
@@ -443,7 +443,7 @@ public class Updater implements DownloadListener {
             return e;
         } finally {
             downloader = null;
-            Util.close(out);
+            LauncherUtils.close(out);
             downloadFile.delete();
         }
     }
@@ -571,7 +571,7 @@ public class Updater implements DownloadListener {
         if (forced) {
             // Clean the download cache directory if we are force downloading
             try {
-                Util.cleanDir(downloadDir);
+                LauncherUtils.cleanDir(downloadDir);
             } catch (InterruptedException e) {
             }
         }
@@ -609,7 +609,7 @@ public class Updater implements DownloadListener {
 
         // Make sure to delete all the downloads if we're succeessful
         try {
-            Util.cleanDir(downloadDir);
+            LauncherUtils.cleanDir(downloadDir);
         } catch (InterruptedException e) {
         }
         downloadDir.delete();

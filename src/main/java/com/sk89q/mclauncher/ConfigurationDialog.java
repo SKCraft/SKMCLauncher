@@ -53,7 +53,7 @@ import com.sk89q.mclauncher.config.LauncherOptions;
 import com.sk89q.mclauncher.config.SettingsList;
 import com.sk89q.mclauncher.util.ActionListeners;
 import com.sk89q.mclauncher.util.DirectoryField;
-import com.sk89q.mclauncher.util.UIUtil;
+import com.sk89q.mclauncher.util.SwingHelper;
 
 /**
  * Dialog for adding or modifying a {@link Configuration}.
@@ -277,7 +277,7 @@ public class ConfigurationDialog extends JDialog {
         container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
         container.add(panel);
         container.add(new Box.Filler(new Dimension(0, 0), new Dimension(0, 10000), new Dimension(0, 10000)));
-        UIUtil.removeOpaqueness(container);
+        SwingHelper.removeOpaqueness(container);
         return container;
     }
     
@@ -296,17 +296,17 @@ public class ConfigurationDialog extends JDialog {
         
         if (!builtIn) {
             if (name.length() == 0) {
-                UIUtil.showError(this, "No name", "A name must be entered.");
+                SwingHelper.showError(this, "No name", "A name must be entered.");
                 return false;
             }
             
             if (pathStr != null && pathStr.length() == 0) {
-                UIUtil.showError(this, "No path", "A path must be entered.");
+                SwingHelper.showError(this, "No path", "A path must be entered.");
                 return false;
             }
             
             if (updateURLStr != null && updateURLStr.length() == 0) {
-                UIUtil.showError(this, "No URL", "An update URL must be entered.");
+                SwingHelper.showError(this, "No URL", "An update URL must be entered.");
                 return false;
             }
             
@@ -314,7 +314,7 @@ public class ConfigurationDialog extends JDialog {
                 try {
                     updateUrl = new URL(updateURLStr);
                 } catch (MalformedURLException e) {
-                    UIUtil.showError(this, "Invalid URL", "The update URL that you entered is invalid.");
+                    SwingHelper.showError(this, "Invalid URL", "The update URL that you entered is invalid.");
                     return false;
                 }
             }
@@ -323,7 +323,7 @@ public class ConfigurationDialog extends JDialog {
                 File f = Launcher.replacePathTokens(pathStr);
                 f.mkdirs();
                 if (!f.isDirectory()) {
-                    UIUtil.showError(this, "Invalid path", "The path that you entered does not exist or is not a directory.");
+                    SwingHelper.showError(this, "Invalid path", "The path that you entered does not exist or is not a directory.");
                     return false;
                 }
             }

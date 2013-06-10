@@ -2,7 +2,7 @@ package com.sk89q.mclauncher.config;
 
 import java.io.File;
 
-import com.sk89q.mclauncher.util.Util;
+import com.sk89q.mclauncher.util.LauncherUtils;
 
 /**
  * Represents a jar that contains the main Minecraft game.
@@ -25,7 +25,7 @@ public class MinecraftJar {
     }
 
     public String getVersion() {
-        return (version == null) ? (version = Util.getMCVersion(file)) : version;
+        return (version == null) ? (version = LauncherUtils.getMCVersion(file)) : version;
     }
 
     @Override

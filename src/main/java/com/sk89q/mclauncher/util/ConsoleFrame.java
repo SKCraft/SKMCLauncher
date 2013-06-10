@@ -63,7 +63,7 @@ public class ConsoleFrame extends JFrame implements PasteCallback {
     public ConsoleFrame(String title, int numLines, boolean colorEnabled) {
         super(title);
         
-        UIUtil.setIconImage(this, "/resources/tray_ok.png");
+        SwingHelper.setIconImage(this, "/resources/tray_ok.png");
         
         messageLog = new MessageLog(numLines, colorEnabled);
         
@@ -143,7 +143,7 @@ public class ConsoleFrame extends JFrame implements PasteCallback {
     @Override
     public void handleSuccess(String url) {
         messageLog.log("Paste uploaded to: " + url + "\n", messageLog.asHighlighted());
-        UIUtil.openURL(url, this);
+        SwingHelper.openURL(url, this);
     }
 
     @Override

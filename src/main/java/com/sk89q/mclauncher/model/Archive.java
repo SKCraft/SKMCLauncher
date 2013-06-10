@@ -27,7 +27,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
 import com.sk89q.mclauncher.update.UninstallLog;
-import com.sk89q.mclauncher.util.Util;
+import com.sk89q.mclauncher.util.LauncherUtils;
 
 public class Archive extends PackageFile {
 
@@ -72,12 +72,12 @@ public class Archive extends PackageFile {
                             ret = zip.read(buffer, 0, buffer.length);
                         }
                     } finally {
-                        Util.close(out);
+                        LauncherUtils.close(out);
                     }
                 }
             } finally {
-                Util.close(zip);
-                Util.close(inputStream);
+                LauncherUtils.close(zip);
+                LauncherUtils.close(inputStream);
             }
             
             getTempFile().delete();

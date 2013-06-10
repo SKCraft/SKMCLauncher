@@ -58,8 +58,8 @@ import com.sk89q.mclauncher.util.DirectoryField;
 import com.sk89q.mclauncher.util.FileField;
 import com.sk89q.mclauncher.util.MessageLog;
 import com.sk89q.mclauncher.util.SimpleLogFormatter;
-import com.sk89q.mclauncher.util.UIUtil;
-import com.sk89q.mclauncher.util.XMLUtil;
+import com.sk89q.mclauncher.util.SwingHelper;
+import com.sk89q.mclauncher.util.XmlUtils;
 
 public class UpdateBuilderGUI extends JFrame {
 
@@ -87,7 +87,7 @@ public class UpdateBuilderGUI extends JFrame {
     public UpdateBuilderGUI() {
         setTitle("Update Package Builder");
         setSize(450, 600);
-        UIUtil.setIconImage(this, "/resources/icon.png");
+        SwingHelper.setIconImage(this, "/resources/icon.png");
         setLocationRelativeTo(null);
 
         messageLog = new MessageLog(1000, true);
@@ -114,9 +114,9 @@ public class UpdateBuilderGUI extends JFrame {
         try {
             completeBuild();
         } catch (ExecutionException e) {
-            UIUtil.showError(this, "Error with parameters", e.getMessage());
+            SwingHelper.showError(this, "Error with parameters", e.getMessage());
         } catch (Throwable e) {
-            UIUtil.showError(this, "Error", "Something went wrong: " + e.toString());
+            SwingHelper.showError(this, "Error", "Something went wrong: " + e.toString());
             logger.log(Level.WARNING, "Error", e);
         }
     }
@@ -199,7 +199,7 @@ public class UpdateBuilderGUI extends JFrame {
         
         // Add libraries
         if (includeLibs) {
-            PackageManifest libsManifest = XMLUtil.parseJaxb(
+            PackageManifest libsManifest = XmlUtils.parseJaxb(
                     PackageManifest.class, 
                     Launcher.class.getResourceAsStream("/resources/libs_builder_config.xml"));
             for (FileGroup group : libsManifest.getFileGroups()) {
@@ -438,7 +438,7 @@ public class UpdateBuilderGUI extends JFrame {
             }
         });
         
-        UIUtil.focus(idText);
+        SwingHelper.focusLater(idText);
     }
     
     public static void main(String[] args) {
@@ -447,7 +447,7 @@ public class UpdateBuilderGUI extends JFrame {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                UIUtil.setLookAndFeel();
+                SwingHelper.setLookAndFeel();
                 UpdateBuilderGUI gui = new UpdateBuilderGUI();
                 gui.setVisible(true);
             }

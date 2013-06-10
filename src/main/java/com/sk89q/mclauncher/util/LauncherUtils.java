@@ -46,12 +46,12 @@ import java.util.zip.ZipEntry;
  * 
  * @author sk89q
  */
-public final class Util {
+public final class LauncherUtils {
     
     private static final Pattern absoluteUrlPattern = 
             Pattern.compile("^[A-Za-z0-9\\-]+://.*$");
     
-    private Util() {
+    private LauncherUtils() {
     }
     
     /**
@@ -216,7 +216,7 @@ public final class Util {
                     }
                 } catch (IOException e) {
                 } finally {
-                    Util.close(in);
+                    LauncherUtils.close(in);
                 }
             }
         });
@@ -323,7 +323,7 @@ public final class Util {
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         } finally {
-            Util.close(fis);
+            LauncherUtils.close(fis);
         }
     }
 

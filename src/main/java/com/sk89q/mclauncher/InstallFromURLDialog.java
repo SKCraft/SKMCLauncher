@@ -45,7 +45,7 @@ import javax.swing.WindowConstants;
 
 import com.sk89q.mclauncher.config.LauncherOptions;
 import com.sk89q.mclauncher.util.ActionListeners;
-import com.sk89q.mclauncher.util.UIUtil;
+import com.sk89q.mclauncher.util.SwingHelper;
 
 public class InstallFromURLDialog extends JDialog {
 
@@ -173,7 +173,7 @@ public class InstallFromURLDialog extends JDialog {
                 throw new Exception();
             }
         } catch (Throwable t) {
-            UIUtil.showError(this, "Error", "Couldn't open builder GUI.");
+            SwingHelper.showError(this, "Error", "Couldn't open builder GUI.");
         }
     }
     

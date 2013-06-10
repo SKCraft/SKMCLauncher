@@ -28,7 +28,7 @@ import java.util.logging.Logger;
 import javax.xml.bind.JAXBException;
 
 import com.sk89q.mclauncher.model.UpdateManifest;
-import com.sk89q.mclauncher.util.XMLUtil;
+import com.sk89q.mclauncher.util.XmlUtils;
 
 /**
  * Downloads an update manifest.
@@ -72,7 +72,7 @@ public class UpdateManifestFetcher {
                 throw new IOException("Did not get expected 200 code");
             }
             
-            manifest = XMLUtil.parseJaxb(UpdateManifest.class, 
+            manifest = XmlUtils.parseJaxb(UpdateManifest.class, 
                     new BufferedInputStream(conn.getInputStream()));
         } catch (JAXBException e) {
             logger.log(Level.WARNING, "Failed to read update manifest", e);

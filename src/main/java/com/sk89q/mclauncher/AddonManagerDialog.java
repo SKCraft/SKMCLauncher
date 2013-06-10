@@ -59,7 +59,7 @@ import com.sk89q.mclauncher.config.Def;
 import com.sk89q.mclauncher.config.MinecraftJar;
 import com.sk89q.mclauncher.config.SettingsList;
 import com.sk89q.mclauncher.util.ActionListeners;
-import com.sk89q.mclauncher.util.UIUtil;
+import com.sk89q.mclauncher.util.SwingHelper;
 
 /**
  * The dialog for managing addons.
@@ -203,7 +203,7 @@ public class AddonManagerDialog extends JDialog {
      */
     private boolean checkAddonsProfileLoaded() {
         if (addonsProfile == null) {
-            UIUtil.showError(this, "Not loaded",
+            SwingHelper.showError(this, "Not loaded",
                     "The addon list could not be loaded, and so you cannot do this.");
             return false;
         }
@@ -519,7 +519,7 @@ public class AddonManagerDialog extends JDialog {
             }
         });
 
-        UIUtil.equalWidth(launchBtn, testBtn, okBtn);
+        SwingHelper.equalWidth(launchBtn, testBtn, okBtn);
 
         return panel;
     }

@@ -52,8 +52,8 @@ public class GameConsoleFrame extends ConsoleFrame {
     private boolean killProcess;
     
     static {
-        trayOkImage = UIUtil.readIconImage("/resources/tray_ok.png");
-        trayClosedImage = UIUtil.readIconImage("/resources/tray_closed.png");
+        trayOkImage = SwingHelper.readIconImage("/resources/tray_ok.png");
+        trayClosedImage = SwingHelper.readIconImage("/resources/tray_closed.png");
     }
 
     public GameConsoleFrame(
@@ -283,7 +283,7 @@ public class GameConsoleFrame extends ConsoleFrame {
                         trayIcon.setImage(trayClosedImage);
                     }
 
-                    UIUtil.setIconImage(self, "/resources/tray_closed.png");
+                    SwingHelper.setIconImage(self, "/resources/tray_closed.png");
                     reshow();
                 }
             });

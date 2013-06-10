@@ -40,7 +40,7 @@ import java.util.Set;
 
 import javax.net.ssl.X509TrustManager;
 
-import com.sk89q.mclauncher.util.Util;
+import com.sk89q.mclauncher.util.LauncherUtils;
 
 /**
  * Presents a key store.
@@ -82,7 +82,7 @@ public class X509KeyStore implements X509TrustManager {
                 addRootCertificate((X509Certificate) cert);
             }
         } finally {
-            Util.close(in);
+            LauncherUtils.close(in);
         }
     }
 
@@ -117,7 +117,7 @@ public class X509KeyStore implements X509TrustManager {
                 addIntermediateCertificate((X509Certificate) cert);
             }
         } finally {
-            Util.close(in);
+            LauncherUtils.close(in);
         }
     }
 

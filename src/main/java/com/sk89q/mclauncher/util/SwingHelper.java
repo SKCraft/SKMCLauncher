@@ -41,23 +41,23 @@ import javax.swing.text.JTextComponent;
 import com.sk89q.mclauncher.Launcher;
 
 /**
- * UI utility methods.
+ * Swing utility methods.
  */
-public final class UIUtil {
+public final class SwingHelper {
 
     private static String[] monospaceFontNames = {
         "Consolas", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Lucida Console"};
     
-    private UIUtil() {
+    private SwingHelper() {
     }
     
     /**
      * Browse to a folder.
      * 
-     * @param file
-     * @param component 
+     * @param file the path
+     * @param component the component
      */
-    public static void browse(File file, Component component) {
+    public static void browseDir(File file, Component component) {
         try {
             Desktop.getDesktop().browse(new URL("file://" + file.getAbsolutePath()).toURI());
         } catch (IOException e) {
@@ -178,7 +178,7 @@ public final class UIUtil {
             }
         } catch (IOException e) {
         } finally {
-            Util.close(in);
+            LauncherUtils.close(in);
         }
         return null;
     }
@@ -213,7 +213,7 @@ public final class UIUtil {
      * 
      * @param component the component
      */
-    public static void focus(final Component component) {
+    public static void focusLater(final Component component) {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {

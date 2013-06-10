@@ -41,7 +41,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 
 import com.sk89q.mclauncher.Launcher;
-import com.sk89q.mclauncher.util.Util;
+import com.sk89q.mclauncher.util.LauncherUtils;
 
 /**
  * Manages saved identities.
@@ -266,7 +266,7 @@ public class IdentityList implements ComboBoxModel {
             remember(username, password);
         } catch (Throwable e) {
         } finally {
-            Util.close(in);
+            LauncherUtils.close(in);
         }
     }
 

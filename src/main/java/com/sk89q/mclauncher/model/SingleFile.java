@@ -24,7 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import com.sk89q.mclauncher.update.UninstallLog;
-import com.sk89q.mclauncher.util.Util;
+import com.sk89q.mclauncher.util.LauncherUtils;
 
 public class SingleFile extends PackageFile {
     
@@ -53,8 +53,8 @@ public class SingleFile extends PackageFile {
                     ret = in.read(buffer);
                 }
             } finally {
-                Util.close(in);
-                Util.close(out);
+                LauncherUtils.close(in);
+                LauncherUtils.close(out);
                 getTempFile().delete();
             }
         } else {

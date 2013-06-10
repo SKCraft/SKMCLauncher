@@ -52,7 +52,7 @@ import com.sk89q.mclauncher.util.BasicArgsParser;
 import com.sk89q.mclauncher.util.BasicArgsParser.ArgsContext;
 import com.sk89q.mclauncher.util.ConsoleFrame;
 import com.sk89q.mclauncher.util.SimpleLogFormatter;
-import com.sk89q.mclauncher.util.Util;
+import com.sk89q.mclauncher.util.LauncherUtils;
 
 /**
  * Launcher entry point.
@@ -356,7 +356,7 @@ public class Launcher {
             String version = in.readUTF();
             cache.setLastUpdateId(version);
         } finally {
-            Util.close(in);
+            LauncherUtils.close(in);
         }
     }
     
@@ -428,7 +428,7 @@ public class Launcher {
             InputStream f = Launcher.class.getResourceAsStream("/resources/NOTICE.txt");
             if (f == null) {
                 logger.log(Level.WARNING, "Failed to read NOTICE.txt");
-                Util.close(in);
+                LauncherUtils.close(in);
                 return noticesText = "<Failed to read NOTICE.txt>";
             }
             in = new BufferedReader(new InputStreamReader(f));
@@ -442,7 +442,7 @@ public class Launcher {
             return noticesText = contents.toString();
         } catch (IOException e) {
             logger.log(Level.WARNING, "Failed to read NOTICE.txt", e);
-            Util.close(in);
+            LauncherUtils.close(in);
             return noticesText = "<Failed to read NOTICE.txt>";
         }
     }

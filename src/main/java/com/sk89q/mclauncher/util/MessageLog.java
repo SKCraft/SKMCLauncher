@@ -239,8 +239,8 @@ public class MessageLog extends JPanel {
                     }
                 } catch (IOException e) {
                 } finally {
-                    Util.close(in);
-                    Util.close(out);
+                    LauncherUtils.close(in);
+                    LauncherUtils.close(out);
                 }
             }
         });
@@ -304,7 +304,7 @@ public class MessageLog extends JPanel {
 
             log(record.getMessage() + "\n", attributes);
             if (t != null) {
-                log(Util.getStackTrace(t) + "\n", attributes);
+                log(LauncherUtils.getStackTrace(t) + "\n", attributes);
             }
         }
 

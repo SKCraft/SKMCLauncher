@@ -29,7 +29,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
-import com.sk89q.mclauncher.util.Util;
+import com.sk89q.mclauncher.util.LauncherUtils;
 
 /**
  * Stores a list of settings that can inherit from a parent settings list if
@@ -144,7 +144,7 @@ public class SettingsList {
     }
 
     public String get(String name, String def) {
-        return Util.defaultValue(get(name), def);
+        return LauncherUtils.defaultValue(get(name), def);
     }
 
     public boolean getBool(String name, boolean def) {

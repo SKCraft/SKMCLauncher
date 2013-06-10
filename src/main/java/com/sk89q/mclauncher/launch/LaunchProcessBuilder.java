@@ -24,7 +24,7 @@ import com.sk89q.mclauncher.util.ConsoleFrame;
 import com.sk89q.mclauncher.util.GameConsoleFrame;
 import com.sk89q.mclauncher.util.JavaRuntimeFinder;
 import com.sk89q.mclauncher.util.MessageLog;
-import com.sk89q.mclauncher.util.Util;
+import com.sk89q.mclauncher.util.LauncherUtils;
 
 public class LaunchProcessBuilder {
     
@@ -67,12 +67,12 @@ public class LaunchProcessBuilder {
     }
 
     public void readSettings(SettingsList settings) {
-        runtimePath = Util.nullEmpty(settings.get(Def.JAVA_RUNTIME));
-        wrapperPath = Util.nullEmpty(settings.get(Def.JAVA_WRAPPER_PROGRAM));
+        runtimePath = LauncherUtils.nullEmpty(settings.get(Def.JAVA_RUNTIME));
+        wrapperPath = LauncherUtils.nullEmpty(settings.get(Def.JAVA_WRAPPER_PROGRAM));
         minMem = settings.getInt(Def.JAVA_MIN_MEM, 128);
         maxMem = settings.getInt(Def.JAVA_MAX_MEM, 1024);
         extraArgs = settings.get(Def.JAVA_ARGS, "").split(" +");
-        extraClasspath = Util.nullEmpty(settings.get(Def.JAVA_CLASSPATH));
+        extraClasspath = LauncherUtils.nullEmpty(settings.get(Def.JAVA_CLASSPATH));
         showConsole = (this.showConsole || settings.getBool(Def.JAVA_CONSOLE, false));
         relaunch = settings.getBool(Def.LAUNCHER_REOPEN, false);
         coloredConsole = settings.getBool(Def.COLORED_CONSOLE, true);
@@ -299,8 +299,8 @@ public class LaunchProcessBuilder {
                     public void run() {
                         try {
                             if (!showConsole) {
-                                Util.consumeBlindly(proc.getInputStream());
-                                Util.consumeBlindly(proc.getErrorStream());
+                                LauncherUtils.consumeBlindly(proc.getInputStream());
+                                LauncherUtils.consumeBlindly(proc.getErrorStream());
                             }
                             proc.waitFor();
                             if (consoleFrame != null) {

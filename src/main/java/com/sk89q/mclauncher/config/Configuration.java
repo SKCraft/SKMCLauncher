@@ -43,7 +43,7 @@ import org.spout.nbt.stream.NBTInputStream;
 
 import com.sk89q.mclauncher.Launcher;
 import com.sk89q.mclauncher.addons.AddonsProfile;
-import com.sk89q.mclauncher.util.Util;
+import com.sk89q.mclauncher.util.LauncherUtils;
 
 /**
  * Represents a configuration for the game.
@@ -338,7 +338,7 @@ public class Configuration implements Comparable<Configuration> {
         } catch (IOException e) {
             logger.warning("Failed to load icon at " + iconPath);
         } finally {
-            Util.close(in);
+            LauncherUtils.close(in);
         }
         
         return this;
@@ -387,7 +387,7 @@ public class Configuration implements Comparable<Configuration> {
                         retn.add(new ServerEntry(name, ip));
                     }
                 } finally {
-                    Util.close(nbt);
+                    LauncherUtils.close(nbt);
                 }
             }
         } catch (Throwable t) {

@@ -29,7 +29,7 @@ import java.util.jar.Manifest;
 
 import com.sk89q.mclauncher.security.CertificateVerificationException;
 import com.sk89q.mclauncher.security.X509KeyStore;
-import com.sk89q.mclauncher.util.Util;
+import com.sk89q.mclauncher.util.LauncherUtils;
 
 /**
  * Verifies digital signatures.
@@ -81,7 +81,7 @@ public class SignatureVerifier {
                 throw new SecurityException("Not sure how to verify the signature for '" + ext + "'");
             }
         } finally {
-            Util.close(in);
+            LauncherUtils.close(in);
         }
     }
 
@@ -138,7 +138,7 @@ public class SignatureVerifier {
                 }
             }
         } finally {
-            Util.close(jarFile);
+            LauncherUtils.close(jarFile);
         }
     }
     

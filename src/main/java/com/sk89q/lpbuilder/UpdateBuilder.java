@@ -51,7 +51,7 @@ import com.sk89q.mclauncher.model.UpdateManifest;
 import com.sk89q.mclauncher.util.BasicArgsParser;
 import com.sk89q.mclauncher.util.BasicArgsParser.ArgsContext;
 import com.sk89q.mclauncher.util.SimpleLogFormatter;
-import com.sk89q.mclauncher.util.Util;
+import com.sk89q.mclauncher.util.LauncherUtils;
 
 /**
  * Builds an update package for SKMCLauncher.
@@ -145,7 +145,7 @@ public class UpdateBuilder implements Runnable {
             reader = new FileReader(file);
             config = (UpdateBuilderConfig) um.unmarshal(new FileReader(file));;
         } finally {
-            Util.close(reader);
+            LauncherUtils.close(reader);
         }
         
         UpdateBuilderConfig.Templates templates = config.getTemplates();
@@ -377,7 +377,7 @@ public class UpdateBuilder implements Runnable {
             m.marshal(object, buf);
             buf.close();
         } finally {
-            Util.close(fos);
+            LauncherUtils.close(fos);
         }
     }
 
@@ -404,11 +404,11 @@ public class UpdateBuilder implements Runnable {
                 compress.write(buffer, 0, length);
             }
         } finally {
-            Util.close(bis);
-            Util.close(fis);
-            Util.close(compress);
-            Util.close(bos);
-            Util.close(fos);
+            LauncherUtils.close(bis);
+            LauncherUtils.close(fis);
+            LauncherUtils.close(compress);
+            LauncherUtils.close(bos);
+            LauncherUtils.close(fos);
         }
     }
 
@@ -426,8 +426,8 @@ public class UpdateBuilder implements Runnable {
             destination = new FileOutputStream(destFile).getChannel();
             destination.transferFrom(source, 0, source.size());
         } finally {
-            Util.close(source);
-            Util.close(destination);
+            LauncherUtils.close(source);
+            LauncherUtils.close(destination);
         }
     }
 
@@ -448,7 +448,7 @@ public class UpdateBuilder implements Runnable {
         logger.info("Cleaning target directory");
         logger.info("---------------------------------------------------");
         
-        Util.cleanDir(dir);
+        LauncherUtils.cleanDir(dir);
 
         logger.info("Deleted the contents of " + dir.getAbsolutePath());
     }

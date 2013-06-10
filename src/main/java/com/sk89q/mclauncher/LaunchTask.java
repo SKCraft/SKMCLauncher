@@ -48,7 +48,7 @@ import com.sk89q.mclauncher.update.UpdateCache;
 import com.sk89q.mclauncher.update.UpdateException;
 import com.sk89q.mclauncher.update.UpdateManifestFetcher;
 import com.sk89q.mclauncher.update.Updater;
-import com.sk89q.mclauncher.util.UIUtil;
+import com.sk89q.mclauncher.util.SwingHelper;
 
 /**
  * Used for launching the game.
@@ -260,7 +260,7 @@ public class LaunchTask extends Task {
         } catch (LoginException e) {
             if (e.getMessage().equals("User not premium")) {
                 if (!demo) {
-                    UIUtil.showError(frame, "Not Premium", "You aren't logging in to a premium account.\nMinecraft will run in demo mode.");
+                    SwingHelper.showError(frame, "Not Premium", "You aren't logging in to a premium account.\nMinecraft will run in demo mode.");
                 }
                 demo = true;
             } else {

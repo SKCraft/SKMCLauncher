@@ -35,7 +35,7 @@ import com.sk89q.mclauncher.config.IdentityList;
 import com.sk89q.mclauncher.config.LauncherOptions;
 import com.sk89q.mclauncher.config.MinecraftJar;
 import com.sk89q.mclauncher.util.PopupMouseAdapter;
-import com.sk89q.mclauncher.util.UIUtil;
+import com.sk89q.mclauncher.util.SwingHelper;
 
 public class LaunchOptions extends JPanel implements ListSelectionListener {
     
@@ -391,12 +391,12 @@ public class LaunchOptions extends JPanel implements ListSelectionListener {
      */
     public boolean verifyAndNotify() {
         if (!playOfflineCheck.isSelected() && getLoginId() == null) {
-            UIUtil.showError(frame, "No username", "A username must be entered.");
+            SwingHelper.showError(frame, "No username", "A username must be entered.");
             return false;
         }
 
         if (!playOfflineCheck.isSelected() && getPassword() == null) {
-            UIUtil.showError(frame, "No password", "A password must be entered.");
+            SwingHelper.showError(frame, "No password", "A password must be entered.");
             return false;
         }
         
