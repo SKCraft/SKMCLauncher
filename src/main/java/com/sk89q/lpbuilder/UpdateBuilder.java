@@ -218,8 +218,12 @@ public class UpdateBuilder implements Runnable {
         
         if (group == null) {
             group = new FileGroup();
-            group.setDest(relativeDir);
-            group.setSource(relativeDir);
+            String withSlash = relativeDir;
+            if (!withSlash.isEmpty()) {
+                withSlash = withSlash + "/";
+            }
+            group.setDest(withSlash);
+            group.setSource(withSlash);
             addGroup = true;
         }
         
@@ -341,7 +345,7 @@ public class UpdateBuilder implements Runnable {
             
             ZipBucket bucket = entry.getValue();
             bucket.writeContents(versionBuilder, updateDir, target);
-            bucket.setSize(target.length());;
+            bucket.setSize(target.length());
             bucket.setFilename(filename);
 
             // Match patterns and apply properties
