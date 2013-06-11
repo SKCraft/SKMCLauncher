@@ -28,6 +28,7 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 import com.sk89q.mclauncher.config.Configuration;
+import com.sk89q.mclauncher.config.ConfigurationList;
 import com.sk89q.mclauncher.config.LauncherOptions;
 import com.sk89q.mclauncher.model.UpdateManifest;
 import com.sk89q.mclauncher.update.UpdateManifestFetcher;
@@ -87,9 +88,11 @@ public class InstallFromURLTask extends Task {
                         "The manfiest at the URL has an invalid news URL.");
             }
             
-            options.getConfigurations().register(configuration);
-            options.getConfigurations().sortByDate();
-
+            ConfigurationList configurations = options.getConfigurations();
+            configurations.register(configuration);
+            configurations.sortByDate();
+            configurations.update(configuration);
+            
             if (!options.save()) {
                 throw new ExecutionException(
                         "Your options could not be saved to disk.");

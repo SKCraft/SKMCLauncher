@@ -39,6 +39,8 @@ import javax.swing.JScrollPane;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -54,7 +56,8 @@ import com.sk89q.mclauncher.util.SwingHelper;
  * The classic view with a list of configurations on the left and news on
  * the right side.
  */
-public class ClassicView extends LauncherView implements ListSelectionListener {
+public class ClassicView extends LauncherView 
+        implements ListSelectionListener, ListDataListener {
 
     private static final long serialVersionUID = -2985136389385217242L;
     private static final int PAD = 12;
@@ -67,6 +70,8 @@ public class ClassicView extends LauncherView implements ListSelectionListener {
         super(frame, launchOptions);
         
         addComponents();
+        
+        configurationList.getModel().addListDataListener(this);
         
         // Select the initial configuration
         ListModel model = configurationList.getModel();
@@ -352,7 +357,8 @@ public class ClassicView extends LauncherView implements ListSelectionListener {
     }
     
     private void updateNews() {
-        Configuration configuration = (Configuration) configurationList.getSelectedValue();
+        Configuration configuration = 
+                (Configuration) configurationList.getSelectedValue();
         
         if (newsPanel != null) {
             URL url = configuration.getNewsUrl();
@@ -377,6 +383,26 @@ public class ClassicView extends LauncherView implements ListSelectionListener {
             options.getServers().add(entry);
         }
         updateNews();
+    }
+
+    @Override
+    public void intervalAdded(ListDataEvent e) {
+        updateNews();
+    }
+
+    @Override
+    public void intervalRemoved(ListDataEvent e) {
+        updateNews();
+    }
+
+    @Override
+    public void contentsChanged(ListDataEvent e) {
+        updateNews();
+    }
+    
+    @Override
+    public void cleanUp() {
+        configurationList.getModel().removeListDataListener(this);
     }
 
 }

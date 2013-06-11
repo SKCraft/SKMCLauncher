@@ -19,8 +19,11 @@
 package com.sk89q.mclauncher;
 
 import java.awt.BorderLayout;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 import javax.swing.JFrame;
+import javax.swing.WindowConstants;
 
 import com.sk89q.mclauncher.config.Configuration;
 import com.sk89q.mclauncher.config.Identity;
@@ -52,7 +55,6 @@ public class LauncherFrame extends JFrame {
     public LauncherFrame() {
         setTitle("SK's Minecraft Launcher");
         setSize(620, 500);
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         SwingHelper.setLookAndFeel();
         SwingHelper.setIconImage(this, "/resources/icon.png");
 
@@ -61,8 +63,15 @@ public class LauncherFrame extends JFrame {
 
         view = new ClassicView(this, launchOptions);
         add(view, BorderLayout.CENTER);
-        
-        setLocationRelativeTo(null);
+
+        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent event) {
+                view.cleanUp();
+                dispose();
+            }
+        });
     }
     
     /**

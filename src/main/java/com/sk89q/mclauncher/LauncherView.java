@@ -44,5 +44,9 @@ public abstract class LauncherView extends JPanel {
 
     public void selectAfterSort() {
     }
+    
+    public void cleanUp() {
+        
+    }
 
 }
