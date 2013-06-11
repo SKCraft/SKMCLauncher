@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Enumeration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -43,6 +44,7 @@ import javax.swing.JScrollPane;
 import javax.swing.border.CompoundBorder;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
+import javax.swing.text.html.HTMLDocument;
 
 import com.sk89q.mclauncher.util.LauncherUtils;
 import com.sk89q.mclauncher.util.SwingHelper;
@@ -88,7 +90,7 @@ public final class WebpagePanel extends JPanel {
         setLayout(new BorderLayout());
         
         setDocument();
-        setDisplay(documentView, progressBar, text);
+        setDisplay(text, null);
     }
     
     public WebpagePanel(boolean lazy) {
@@ -206,20 +208,29 @@ public final class WebpagePanel extends JPanel {
         thread.start();
     }
 
-    private static void setDisplay(final JEditorPane display,
-            final JProgressBar progress, final String text) {
-        progress.setVisible(false);
-        display.setContentType("text/html");
-        display.setText(text);
-        display.setCaretPosition(0);
+    private void setDisplay(String text, URL baseUrl) {
+        progressBar.setVisible(false);
+        documentView.setContentType("text/html");
+        HTMLDocument document = (HTMLDocument) documentView.getDocument();
+        
+        // Clear existing styles
+        Enumeration<?> e = document.getStyleNames();
+        while (e.hasMoreElements()) {
+            Object o = e.nextElement();
+            document.removeStyle((String) o);
+        }
+        
+        document.setBase(baseUrl);
+        documentView.setText(text);
+        
+        documentView.setCaretPosition(0);
     }
 
-    private static void setError(final JEditorPane display,
-            final JProgressBar progress, final String text) {
-        progress.setVisible(false);
-        display.setContentType("text/plain");
-        display.setText(text);
-        display.setCaretPosition(0);
+    private void setError(String text) {
+        progressBar.setVisible(false);
+        documentView.setContentType("text/plain");
+        documentView.setText(text);
+        documentView.setCaretPosition(0);
     }
     
     private class FetchWebpage implements Runnable {
@@ -265,15 +276,14 @@ public final class WebpagePanel extends JPanel {
                 
                 LauncherUtils.checkInterrupted();
 
-                setDisplay(documentView, progressBar, result);
+                setDisplay(result, LauncherUtils.concat(url, ""));
             } catch (IOException e) {
                 if (Thread.interrupted()) {
                     return;
                 }
                 
                 logger.log(Level.WARNING, "Failed to fetch page", e);
-                setError(documentView, progressBar,
-                        "Failed to fetch page: " + e.getMessage());
+                setError("Failed to fetch page: " + e.getMessage());
             } catch (InterruptedException e) {
             } finally {
                 if (conn != null)
