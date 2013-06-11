@@ -6,6 +6,8 @@
       <id>eduardo_pack</id>
       <!-- The name of the package -->
       <name>Eduardo's Contraptions</name>
+      <!-- Optional URL for your news page -->
+      <newsURL>http://example.com/</newsURL>
     </update>
     <package>
       <!-- Components let players turn on and off features but you don't
