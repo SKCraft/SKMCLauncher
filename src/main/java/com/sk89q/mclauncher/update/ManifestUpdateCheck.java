@@ -25,6 +25,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
 
+import com.sk89q.mclauncher.Launcher;
 import com.sk89q.mclauncher.config.Configuration;
 import com.sk89q.mclauncher.model.PackageManifest;
 import com.sk89q.mclauncher.model.UpdateManifest;
@@ -54,6 +55,14 @@ public class ManifestUpdateCheck implements UpdateCheck {
             throw new UpdateException("Host is unresolved: " + e.getMessage(), e);
         } catch (IOException e) {
             throw new UpdateException(e.getMessage(), e);
+        }
+        
+        // Update the configuration's news URL while we are at it
+        try {
+            configuration.setNewsUrl(
+                    fetcher.getManifest().toNewsURL(fetcher.getUpdateURL()));
+            Launcher.getInstance().getOptions().save();
+        } catch (MalformedURLException e) {
         }
         
         return cache.getLastUpdateId() == null ||

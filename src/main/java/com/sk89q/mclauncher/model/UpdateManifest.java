@@ -34,6 +34,7 @@ public class UpdateManifest {
     private String name;
     private String latestVersion;
     private String packageUrl;
+    private String newsUrl;
     
     @XmlElement
     public String getId() {
@@ -73,6 +74,22 @@ public class UpdateManifest {
 
     public URL toPackageURL(URL baseUrl) throws MalformedURLException {
         return LauncherUtils.concat(baseUrl, getPackageURL());
+    }
+
+    @XmlElement(name = "newsURL")
+    public String getNewsUrl() {
+        return newsUrl;
+    }
+
+    public void setNewsUrl(String newsUrl) {
+        this.newsUrl = newsUrl;
+    }
+
+    public URL toNewsURL(URL baseUrl) throws MalformedURLException {
+        if (getNewsUrl() == null) {
+            return null;
+        }
+        return LauncherUtils.concat(baseUrl, getNewsUrl());
     }
 
     public boolean isValidForInstall() {

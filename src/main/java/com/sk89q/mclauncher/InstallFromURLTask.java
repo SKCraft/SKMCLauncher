@@ -20,6 +20,7 @@ package com.sk89q.mclauncher;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.MalformedURLException;
 import java.net.URL;
 
 import javax.swing.JOptionPane;
@@ -74,6 +75,16 @@ public class InstallFromURLTask extends Task {
             Configuration configuration = 
                     Configuration.createInstance(
                             id, manifest.getName(), urlObject);
+
+            
+            // Update the configuration's news URL
+            try {
+                configuration.setNewsUrl(manifest.toNewsURL(urlObject));
+                Launcher.getInstance().getOptions().save();
+            } catch (MalformedURLException e) {
+                throw new ExecutionException(
+                        "The manfiest at the URL has an invalid news URL.");
+            }
             
             options.getConfigurations().register(configuration);
 
