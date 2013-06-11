@@ -72,6 +72,8 @@ public class LauncherFrame extends JFrame {
                 dispose();
             }
         });
+        
+        setLocationRelativeTo(null);
     }
     
     /**
