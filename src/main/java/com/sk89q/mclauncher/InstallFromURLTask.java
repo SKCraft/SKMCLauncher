@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Date;
 
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
@@ -75,7 +76,7 @@ public class InstallFromURLTask extends Task {
             Configuration configuration = 
                     Configuration.createInstance(
                             id, manifest.getName(), urlObject);
-
+            configuration.setLastLaunch(new Date());
             
             // Update the configuration's news URL
             try {
@@ -87,6 +88,7 @@ public class InstallFromURLTask extends Task {
             }
             
             options.getConfigurations().register(configuration);
+            options.getConfigurations().sortByDate();
 
             if (!options.save()) {
                 throw new ExecutionException(
