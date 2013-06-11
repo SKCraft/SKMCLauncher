@@ -40,7 +40,6 @@ import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
-import javax.swing.SwingUtilities;
 import javax.swing.border.CompoundBorder;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
@@ -209,28 +208,18 @@ public final class WebpagePanel extends JPanel {
 
     private static void setDisplay(final JEditorPane display,
             final JProgressBar progress, final String text) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                progress.setVisible(false);
-                display.setContentType("text/html");
-                display.setText(text);
-                display.setCaretPosition(0);
-            }
-        });
+        progress.setVisible(false);
+        display.setContentType("text/html");
+        display.setText(text);
+        display.setCaretPosition(0);
     }
 
     private static void setError(final JEditorPane display,
             final JProgressBar progress, final String text) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                progress.setVisible(false);
-                display.setContentType("text/plain");
-                display.setText(text);
-                display.setCaretPosition(0);
-            }
-        });
+        progress.setVisible(false);
+        display.setContentType("text/plain");
+        display.setText(text);
+        display.setCaretPosition(0);
     }
     
     private class FetchWebpage implements Runnable {
