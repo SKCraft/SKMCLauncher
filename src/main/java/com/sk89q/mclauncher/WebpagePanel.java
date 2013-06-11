@@ -45,6 +45,7 @@ import javax.swing.border.CompoundBorder;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
+import com.sk89q.mclauncher.util.LauncherUtils;
 import com.sk89q.mclauncher.util.SwingHelper;
 
 public final class WebpagePanel extends JPanel {
@@ -54,10 +55,12 @@ public final class WebpagePanel extends JPanel {
     private static final long serialVersionUID = -1280532243823315833L;
     
     private final WebpagePanel self = this;
-    private final URL url;
     
+    private URL url;
+    private boolean activated;
     private JEditorPane documentView;
     private JProgressBar progressBar;
+    private Thread thread;
     
     public static WebpagePanel forURL(URL url, boolean lazy) {
         return new WebpagePanel(url, lazy);
@@ -76,7 +79,7 @@ public final class WebpagePanel extends JPanel {
             setPlaceholder();
         } else {
             setDocument();
-            update(url, documentView, progressBar);
+            fetchAndDisplay(url);
         }
     }
 
@@ -89,7 +92,21 @@ public final class WebpagePanel extends JPanel {
         setDisplay(documentView, progressBar, text);
     }
     
+    public WebpagePanel(boolean lazy) {
+        this.url = null;
+        
+        setLayout(new BorderLayout());
+
+        if (lazy) {
+            setPlaceholder();
+        } else {
+            setDocument();
+        }
+    }
+
     private void setDocument() {
+        activated = true;
+        
         JLayeredPane panel = new JLayeredPane();
         panel.setLayout(new WebpageLayoutManager());
         
@@ -117,6 +134,8 @@ public final class WebpagePanel extends JPanel {
     }
     
     private void setPlaceholder() {
+        activated = false;
+        
         JLayeredPane panel = new JLayeredPane();
         panel.setBorder(new CompoundBorder(
                 BorderFactory.createEtchedBorder(), BorderFactory
@@ -130,7 +149,7 @@ public final class WebpagePanel extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 showButton.setVisible(false);
                 setDocument();
-                update(url, documentView, progressBar);
+                fetchAndDisplay(url);
             }
         });
         
@@ -147,6 +166,27 @@ public final class WebpagePanel extends JPanel {
         
         add(panel, BorderLayout.CENTER);
     }
+    
+    /**
+     * Browse to a URL.
+     * 
+     * @param url the URL
+     * @param onlyChanged true to only browse if the last URL was different
+     * @return true if only the URL was changed
+     */
+    public boolean browse(URL url, boolean onlyChanged) {
+        if (onlyChanged && this.url != null && this.url.equals(url)) {
+            return false;
+        }
+        
+        this.url = url;
+        
+        if (activated) {
+            fetchAndDisplay(url);
+        }
+        
+        return true;
+    }
 
     /**
      * Update the page. This has to be run in the Swing event thread.
@@ -155,56 +195,14 @@ public final class WebpagePanel extends JPanel {
      * @param display component to display the page inside
      * @param progress progress bar to hide or show
      */
-    private static void update(final URL url, final JEditorPane display, 
-            final JProgressBar progress) {
+    private synchronized void fetchAndDisplay(URL url) {
+        if (thread != null) {
+            thread.interrupt();
+        }
         
-        progress.setVisible(true);
+        progressBar.setVisible(true);
         
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                HttpURLConnection conn = null;
-
-                try {
-                    conn = (HttpURLConnection) url.openConnection();
-                    conn.setRequestMethod("GET");
-                    conn.setUseCaches(false);
-                    conn.setDoInput(true);
-                    conn.setDoOutput(false);
-                    conn.setReadTimeout(5000);
-
-                    conn.connect();
-
-                    if (conn.getResponseCode() != 200) {
-                        throw new IOException(
-                                "Did not get expected 200 code, got "
-                                        + conn.getResponseCode());
-                    }
-
-                    BufferedReader reader = new BufferedReader(
-                            new InputStreamReader(conn.getInputStream(),
-                                    "UTF-8"));
-
-                    StringBuilder s = new StringBuilder();
-                    char[] buf = new char[1024];
-                    int len = 0;
-                    while ((len = reader.read(buf)) != -1) {
-                        s.append(buf, 0, len);
-                    }
-                    String result = s.toString();
-
-                    setDisplay(display, progress, result);
-                } catch (IOException e) {
-                    logger.log(Level.WARNING, "Failed to fetch page", e);
-                    setError(display, progress,
-                            "Failed to fetch page: " + e.getMessage());
-                } finally {
-                    if (conn != null)
-                        conn.disconnect();
-                    conn = null;
-                }
-            }
-        });
+        thread = new Thread(new FetchWebpage(url));
         thread.setDaemon(true);
         thread.start();
     }
@@ -233,6 +231,67 @@ public final class WebpagePanel extends JPanel {
                 display.setCaretPosition(0);
             }
         });
+    }
+    
+    private class FetchWebpage implements Runnable {
+        private URL url;
+        
+        public FetchWebpage(URL url) {
+            this.url = url;
+        }
+        
+        @Override
+        public void run() {
+            HttpURLConnection conn = null;
+
+            try {
+                conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                conn.setUseCaches(false);
+                conn.setDoInput(true);
+                conn.setDoOutput(false);
+                conn.setReadTimeout(5000);
+
+                conn.connect();
+                
+                LauncherUtils.checkInterrupted();
+
+                if (conn.getResponseCode() != 200) {
+                    throw new IOException(
+                            "Did not get expected 200 code, got "
+                                    + conn.getResponseCode());
+                }
+
+                BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(conn.getInputStream(),
+                                "UTF-8"));
+
+                StringBuilder s = new StringBuilder();
+                char[] buf = new char[1024];
+                int len = 0;
+                while ((len = reader.read(buf)) != -1) {
+                    s.append(buf, 0, len);
+                }
+                String result = s.toString();
+                
+                LauncherUtils.checkInterrupted();
+
+                setDisplay(documentView, progressBar, result);
+            } catch (IOException e) {
+                if (Thread.interrupted()) {
+                    return;
+                }
+                
+                logger.log(Level.WARNING, "Failed to fetch page", e);
+                setError(documentView, progressBar,
+                        "Failed to fetch page: " + e.getMessage());
+            } catch (InterruptedException e) {
+            } finally {
+                if (conn != null)
+                    conn.disconnect();
+                conn = null;
+            }
+        }
     }
 
 }

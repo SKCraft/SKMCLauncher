@@ -26,6 +26,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.net.URL;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -60,6 +61,7 @@ public class ClassicView extends LauncherView implements ListSelectionListener {
 
     private JList configurationList;
     private JButton playBtn;
+    private WebpagePanel newsPanel;
     
     public ClassicView(LauncherFrame frame, final LaunchOptions launchOptions) {
         super(frame, launchOptions);
@@ -98,7 +100,7 @@ public class ClassicView extends LauncherView implements ListSelectionListener {
         boolean hideNews = options.getSettings().getBool(Def.LAUNCHER_HIDE_NEWS, false);
         if (!hideNews) {
             boolean lazyLoad = options.getSettings().getBool(Def.LAUNCHER_NO_NEWS, false);
-            WebpagePanel newsPanel = WebpagePanel.forURL(Constants.NEWS_URL, lazyLoad);
+            newsPanel = new WebpagePanel(lazyLoad);
             newsPanel.setBorder(BorderFactory.createEmptyBorder(PAD, 0, PAD, PAD));
             add(newsPanel, BorderLayout.CENTER);
         }
@@ -349,6 +351,18 @@ public class ClassicView extends LauncherView implements ListSelectionListener {
         popup.show(component, x, y);
     }
     
+    private void updateNews() {
+        Configuration configuration = (Configuration) configurationList.getSelectedValue();
+        
+        if (newsPanel != null) {
+            URL url = configuration.getNewsUrl();
+            if (url == null) {
+                url = Constants.NEWS_URL;
+            }
+            newsPanel.browse(url, true);
+        }
+    }
+    
     @Override
     public void selectAfterSort() {
         configurationList.setSelectedIndex(0);
@@ -362,6 +376,7 @@ public class ClassicView extends LauncherView implements ListSelectionListener {
             entry.setTemporary(true);
             options.getServers().add(entry);
         }
+        updateNews();
     }
 
 }

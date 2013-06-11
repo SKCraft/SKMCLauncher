@@ -66,6 +66,7 @@ public class Configuration implements Comparable<Configuration> {
     private String customBasePath;
     private String appDir;
     private String name;
+    private URL newsUrl;
     private URL updateUrl;
     private String lastJar;
     private SettingsList settings = new SettingsList();
@@ -160,6 +161,15 @@ public class Configuration implements Comparable<Configuration> {
             return;
         }
         this.customBasePath = customBasePath;
+    }
+
+    @XmlElement(name = "newsURL")
+    public URL getNewsUrl() {
+        return newsUrl;
+    }
+
+    public void setNewsUrl(URL newsUrl) {
+        this.newsUrl = newsUrl;
     }
 
     @XmlElement(name = "updateURL")
