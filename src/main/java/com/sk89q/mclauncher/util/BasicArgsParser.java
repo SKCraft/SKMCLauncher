@@ -42,19 +42,12 @@ public class BasicArgsParser {
         List<String> leftOver = new ArrayList<String>();
         Set<String> flags = new HashSet<String>();
         Map<String, String> values = new HashMap<String, String>();
-        
-        boolean processingFlags = true;
+
         String wantingFlag = null;
-        
+
         for (int i = 0; i < args.length; i++) {
             String arg = args[i];
             if (arg.startsWith("-")) {
-                if (!processingFlags) {
-                    throw new IllegalArgumentException("Flags must come first");
-                }
-                if (arg.length() == 1) {
-                    throw new IllegalArgumentException("Flag with no name");
-                }
                 String flag = arg.substring(1);
                 if (valueArgs.contains(flag)) {
                     wantingFlag = flag;
@@ -67,7 +60,6 @@ public class BasicArgsParser {
                 values.put(wantingFlag, arg);
                 wantingFlag = null;
             } else {
-                processingFlags = false;
                 leftOver.add(arg);
             }
         }
