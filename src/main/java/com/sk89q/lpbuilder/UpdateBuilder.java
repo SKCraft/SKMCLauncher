@@ -341,6 +341,7 @@ public class UpdateBuilder implements Runnable {
             
             String filename = entry.getKey();
             File target = new File(outputDir, filename);
+            target.getParentFile().mkdirs();
             logger.info("-> " + filename);
             
             ZipBucket bucket = entry.getValue();
