@@ -48,6 +48,9 @@ public class BasicArgsParser {
         for (int i = 0; i < args.length; i++) {
             String arg = args[i];
             if (arg.startsWith("-")) {
+				if (arg.length() == 1) {
+					throw new IllegalArgumentException("Flag with no name");
+				}
                 String flag = arg.substring(1);
                 if (valueArgs.contains(flag)) {
                     wantingFlag = flag;
