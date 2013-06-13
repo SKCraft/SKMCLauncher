@@ -9,7 +9,7 @@ SK's Minecraft Launcher is a custom Minecraft launcher.
 * Maintained by the creator of WorldEdit, WorldGuard, and more!
 * With history going back to 2010!
 
-**Download Latest Version:** http://build.sk89q.com/job/SKMCLauncher/
+**Download Latest Version:** http://builds.enginehub.org/job/skmclauncher/last-successful/
 
 Screenshots
 -----------
