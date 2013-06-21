@@ -292,7 +292,7 @@ public class UpdateBuilder implements Runnable {
         
         // We are .zipping this file up, so we do things differently
         if (archiveName != null) {
-            storeFileInArchive(path, archiveName, file, singleFile);
+            storeFileInArchive(archiveName, path, file, singleFile);
             return null;
         } else {
             return singleFile;
@@ -309,7 +309,7 @@ public class UpdateBuilder implements Runnable {
      */
     private void storeFileInArchive(
             String archiveName, String path, File file, PackageFile packageFile) {
-        archiveName = archiveName.trim().toLowerCase();
+        archiveName = archiveName.trim();
         ZipBucket bucket = buckets.get(archiveName);
         if (bucket == null) {
             bucket = new ZipBucket();
