@@ -96,7 +96,11 @@ public class Launcher {
      * 
      * @return instance of launcher
      */
-    public static Launcher getInstance() {
+    public static synchronized Launcher getInstance() {
+        if (instance == null) {
+            instance = new Launcher();
+        }
+
         return instance;
     }
     
@@ -445,7 +449,8 @@ public class Launcher {
         final String password = context.get("password");
         final boolean autoLaunch = context.has("launch");
 
-        new Launcher();
+        Launcher.getInstance(); // Load the launcher object
+
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
