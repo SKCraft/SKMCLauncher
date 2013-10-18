@@ -22,9 +22,6 @@ import java.io.IOException;
 
 /**
  * Represents a Minecraft session.
- * 
- * @see LoginSession the authenticated session
- * @see OfflineSession the offline session
  */
 public interface MinecraftSession {
 

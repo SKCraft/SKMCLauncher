@@ -18,20 +18,7 @@
 
 package com.sk89q.mclauncher.util;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.Closeable;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.io.Writer;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.MessageDigest;
@@ -400,6 +387,27 @@ public final class LauncherUtils {
         } else {
             return path2;
         }
+    }
+
+    /**
+     * Read an {@link InputStream} to a string.
+     *
+     * @param is the input stream
+     * @param encoding the encoding to read with
+     * @return the string
+     * @throws IOException on I/O error
+     */
+    public static String toString(InputStream is, String encoding) throws IOException {
+        BufferedReader reader = new BufferedReader(
+                new InputStreamReader(is, encoding));
+
+        StringBuilder s = new StringBuilder();
+        char[] buf = new char[1024];
+        int len = 0;
+        while ((len = reader.read(buf)) != -1) {
+            s.append(buf, 0, len);
+        }
+        return s.toString();
     }
 
 }

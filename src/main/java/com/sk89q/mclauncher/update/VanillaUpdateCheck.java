@@ -30,7 +30,7 @@ import java.util.logging.Logger;
 import com.sk89q.mclauncher.Launcher;
 import com.sk89q.mclauncher.config.Configuration;
 import com.sk89q.mclauncher.model.PackageManifest;
-import com.sk89q.mclauncher.session.LoginSession;
+import com.sk89q.mclauncher.session.LegacySession;
 import com.sk89q.mclauncher.session.MinecraftSession;
 import com.sk89q.mclauncher.util.LauncherUtils;
 
@@ -47,7 +47,7 @@ public class VanillaUpdateCheck implements UpdateCheck {
     
     private final Configuration configuration;
     private final UpdateCache cache;
-    private final LoginSession session;
+    private final LegacySession session;
     
     /**
      * Create a new configuration.
@@ -57,7 +57,7 @@ public class VanillaUpdateCheck implements UpdateCheck {
      * @param cache the update cache
      */
     public VanillaUpdateCheck(Configuration configuration, 
-            LoginSession session, UpdateCache cache) {
+            LegacySession session, UpdateCache cache) {
         this.configuration = configuration;
         this.session = session;
         this.cache = cache;
@@ -140,11 +140,11 @@ public class VanillaUpdateCheck implements UpdateCheck {
     public static UpdateCheck fromSession(Configuration configuration,
             MinecraftSession session, UpdateCache cache) throws UpdateException {
         
-        if (!(session instanceof LoginSession)) {
+        if (!(session instanceof LegacySession)) {
             throw new UpdateException("An update is not possible when in offline mode.");
         }
         
-        return new VanillaUpdateCheck(configuration,  (LoginSession) session, cache);
+        return new VanillaUpdateCheck(configuration,  (LegacySession) session, cache);
     }
 
 }

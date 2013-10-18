@@ -34,7 +34,7 @@ import com.sk89q.mclauncher.config.MinecraftJar;
 import com.sk89q.mclauncher.config.SettingsList;
 import com.sk89q.mclauncher.event.ProgressListener;
 import com.sk89q.mclauncher.launch.LaunchProcessBuilder;
-import com.sk89q.mclauncher.session.LoginSession;
+import com.sk89q.mclauncher.session.LegacySession;
 import com.sk89q.mclauncher.session.MinecraftSession;
 import com.sk89q.mclauncher.session.MinecraftSession.InvalidCredentialsException;
 import com.sk89q.mclauncher.session.MinecraftSession.LoginException;
@@ -120,7 +120,7 @@ public class LaunchTask extends Task {
                 throw new ExecutionException("Login once before using offline mode.");
             }
         } else {
-            session = new LoginSession(identity.getId());
+            session = new LegacySession(identity.getId());
         }
 
         LauncherUtils.checkInterrupted();

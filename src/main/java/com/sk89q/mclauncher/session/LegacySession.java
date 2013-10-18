@@ -38,7 +38,7 @@ import com.sk89q.mclauncher.security.X509KeyRing.Ring;
 /**
  * Manages a login session.
  */
-public class LoginSession implements MinecraftSession {
+public class LegacySession implements MinecraftSession {
 
     private static final String MINECRAFT_LOGIN_URL = "https://login.minecraft.net/";
     private static final String LAUNCHER_VERSION = "13";
@@ -55,7 +55,7 @@ public class LoginSession implements MinecraftSession {
      * 
      * @param username username
      */
-    public LoginSession(String username) {
+    public LegacySession(String username) {
         this.username = username;
         try {
             this.loginURL = new URL(MINECRAFT_LOGIN_URL);
