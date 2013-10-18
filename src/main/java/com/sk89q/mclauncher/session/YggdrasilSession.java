@@ -18,93 +18,86 @@
 
 package com.sk89q.mclauncher.session;
 
-import com.google.gson.Gson;
-import com.sk89q.mclauncher.Launcher;
-import com.sk89q.mclauncher.security.X509KeyRing;
+import com.sk89q.mclauncher.util.HttpRequest;
 import com.sk89q.mclauncher.util.LauncherUtils;
 
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
 import java.io.*;
+import java.net.MalformedURLException;
 import java.net.URL;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
 
 /**
- * Implements the newer Yggdrasil authentication scheme used since the
- * Minecraft 1.6 update.
+ * Implements the newer Yggdrasil authentication scheme used since the 1.6 update.
+ * <p/>
+ * <p>The new protocol uses JSON for payloads and can return an access token to be used
+ * in place of the password.</p>
  */
 public class YggdrasilSession implements MinecraftSession {
 
-    private static final int READ_TIMEOUT = 1000 * 60 * 10;
-    private final Gson gson = new Gson();
-
-    private String username;
+    private final String id;
+    private URL url;
     private String accessToken;
     private String clientToken;
 
     /**
-     * Construct the session.
+     * Construct a login session using the given login ID.
+     * <p/>
+     * <p>The ID is an email address for migrated and newer accounts, whereas it is a
+     * username for older non-migrated accounts (as of 2013).</p>
      *
-     * @param username username
+     * @param id id
      */
-    public YggdrasilSession(String username) {
-        this.username = username;
+    public YggdrasilSession(String id) {
+        this.id = id;
+
+        try {
+            url = new URL("https://authserver.mojang.com/authenticate");
+        } catch (MalformedURLException e) {
+            throw new RuntimeException("Unexpected error when setting URL");
+        }
+    }
+
+    /**
+     * Get the URL used to authenticate.
+     *
+     * @return the URL
+     */
+    public URL getUrl() {
+        return url;
+    }
+
+    /**
+     * Set the URL used to authenticate.
+     *
+     * @param url the URL
+     */
+    public void setUrl(URL url) {
+        if (url == null) {
+            throw new NullPointerException();
+        }
+        this.url = url;
     }
 
     @Override
     public void login(String password) throws IOException, LoginException {
-        HttpsURLConnection conn = null;
-        URL url = new URL("https://authserver.mojang.com/authenticate");
-        String payload = gson.toJson(new AuthenticatePayload(username, password));
-
-        // Get trust chain
-        TrustManager[] trustManagers = new TrustManager[] {
-                Launcher.getInstance().getKeyRing().getKeyStore(
-                        X509KeyRing.Ring.MINECRAFT_LOGIN)};
+        HttpRequest request = null;
+        Object payload = new AuthenticatePayload(id, password);
 
         try {
-            conn = (HttpsURLConnection) url.openConnection();
-            SSLContext ctx = SSLContext.getInstance("TLS");
-            ctx.init(null, trustManagers, null);
-            conn.setSSLSocketFactory(ctx.getSocketFactory());
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("Content-Type", "application/json");
-            conn.setRequestProperty("Content-Length",
-                    Integer.toString(payload.getBytes().length));
-            conn.setRequestProperty("Content-Language", "en-US");
-            conn.setUseCaches(false);
-            conn.setDoInput(true);
-            conn.setDoOutput(true);
-            conn.setReadTimeout(READ_TIMEOUT);
+            request = HttpRequest
+                    .post(url)
+                    .bodyJson(payload)
+                    .execute();
 
-            conn.connect();
-
-            DataOutputStream out = new DataOutputStream(conn.getOutputStream());
-            out.writeBytes(payload);
-            out.flush();
-            out.close();
-
-            InputStream is = conn.getResponseCode() == 200 ?
-                    conn.getInputStream() : conn.getErrorStream();
-            String result = LauncherUtils.toString(is, "UTF-8");
-
-            if (conn.getResponseCode() != 200) {
-                ErrorResponse error = gson.fromJson(result, ErrorResponse.class);
-                throw new LoginException(error.getErrorMessage());
+            if (request.getResponseCode() != 200) {
+                throw new LoginException(
+                        request.asJson(ErrorResponse.class).getErrorMessage());
             } else {
-                AuthenticateResponse response = gson.fromJson(result, AuthenticateResponse.class);
+                AuthenticateResponse response = request.asJson(AuthenticateResponse.class);
                 accessToken = response.getAccessToken();
                 clientToken = response.getClientToken();
             }
-        } catch (KeyManagementException e) {
-            throw new LoginException("Failed to process PKI keys: " + e.getMessage(), e);
-        } catch (NoSuchAlgorithmException e) {
-            throw new LoginException("Failed to initiate TLS: " + e.getMessage(), e);
         } finally {
-            if (conn != null) conn.disconnect();
-            conn = null;
+            LauncherUtils.close(request);
         }
     }
 
@@ -115,23 +108,30 @@ public class YggdrasilSession implements MinecraftSession {
 
     @Override
     public String getUsername() {
-        return username;
+        return id;
     }
 
     @Override
     public String getSessionId() {
         return clientToken;
     }
-    
+
+    @Override
     public String getAccessToken() {
         return accessToken;
     }
 
+    /**
+     * User agent to identify the originator of requests.
+     */
     private static class Agent {
         private final String name = "SKMCLauncher";
         private final int version = 1;
     }
 
+    /**
+     * Request payload sent to authenticate.
+     */
     private static class AuthenticatePayload {
         private final Agent agent = new Agent();
         private final String username;
@@ -143,33 +143,44 @@ public class YggdrasilSession implements MinecraftSession {
         }
     }
 
+    /**
+     * Resposne payload for authentication success.
+     */
     private static class AuthenticateResponse {
         private String accessToken;
         private String clientToken;
 
-        private String getAccessToken() {
+        public String getAccessToken() {
             return accessToken;
         }
 
-        private String getClientToken() {
+        public String getClientToken() {
             return clientToken;
         }
     }
 
+    /**
+     * Response payload for errors.
+     */
     private static class ErrorResponse {
         private String error;
         private String errorMessage;
         private String cause;
 
-        private String getError() {
+        public String getError() {
             return error;
         }
 
-        private String getErrorMessage() {
+        public String getErrorMessage() {
             return errorMessage;
         }
 
-        private String getCause() {
+        /**
+         * The cause of the error.
+         *
+         * @return may be null or an empty string
+         */
+        public String getCause() {
             return cause;
         }
     }

@@ -27,22 +27,22 @@ public interface MinecraftSession {
 
     /**
      * Attempt to perform a login.
-     * 
+     *
      * @param password plain text password
-     * @throws IOException throw on an IO error
-     * @throws LoginException on a login exception
+     * @throws IOException               throw on an IO error
+     * @throws LoginException            on a login exception
      * @throws OutdatedLauncherException thrown if the launcher is 'out of date'
-     * @throws UserNotPremiumException thrown if the user is not premium
+     * @throws UserNotPremiumException   thrown if the user is not premium
      */
     void login(String password) throws IOException,
             LoginException, OutdatedLauncherException, UserNotPremiumException;
 
     /**
      * Returns whether the session can be used in its current state.
-     * 
+     * <p/>
      * <p>For authenticated sessions, this would return true if the login is successful.
      * For offline sessions, they may always return true.</p>
-     * 
+     *
      * @return true is valid
      */
     boolean isValid();
@@ -50,28 +50,37 @@ public interface MinecraftSession {
     /**
      * Get the username. If a login was successful, this will be the correct
      * form of the username.
-     * 
+     *
      * @return username
      */
     String getUsername();
 
     /**
      * Get a session ID.
-     * 
+     *
      * @return session ID, or null
      */
     String getSessionId();
+
+    /**
+     * Get an access token that will identify the user in place of the password.
+     * <p/>
+     * Access tokens may or may not be available.
+     *
+     * @return an access token, or null
+     */
+    String getAccessToken();
 
     /**
      * Thrown on a login error.
      */
     public static class LoginException extends Exception {
         private static final long serialVersionUID = 3704469434921739106L;
-        
+
         public LoginException(String message) {
             super(message);
         }
-        
+
         public LoginException(String message, Throwable t) {
             super(message, t);
         }

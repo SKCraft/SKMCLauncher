@@ -56,4 +56,9 @@ public class OfflineSession implements MinecraftSession {
         return null;
     }
 
+    @Override
+    public String getAccessToken() {
+        return null;
+    }
+
 }
