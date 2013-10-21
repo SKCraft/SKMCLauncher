@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.sk89q.skmcl.util.Platform;
 import util.WinRegistry;
 
 import com.sk89q.mclauncher.Launcher;

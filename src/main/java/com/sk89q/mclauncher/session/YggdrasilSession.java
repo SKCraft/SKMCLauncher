@@ -18,7 +18,7 @@
 
 package com.sk89q.mclauncher.session;
 
-import com.sk89q.mclauncher.util.HttpRequest;
+import com.sk89q.skmcl.util.HttpRequest;
 import com.sk89q.mclauncher.util.LauncherUtils;
 
 import java.io.*;
@@ -89,10 +89,11 @@ public class YggdrasilSession implements MinecraftSession {
                     .execute();
 
             if (request.getResponseCode() != 200) {
-                throw new LoginException(
-                        request.asJson(ErrorResponse.class).getErrorMessage());
+                ErrorResponse error = request.returnContent().asJson(ErrorResponse.class);
+                throw new LoginException(error.getErrorMessage());
             } else {
-                AuthenticateResponse response = request.asJson(AuthenticateResponse.class);
+                AuthenticateResponse response =
+                        request.returnContent().asJson(AuthenticateResponse.class);
                 accessToken = response.getAccessToken();
                 clientToken = response.getClientToken();
             }

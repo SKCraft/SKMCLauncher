@@ -24,6 +24,7 @@ import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.jar.JarFile;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -408,6 +409,16 @@ public final class LauncherUtils {
             s.append(buf, 0, len);
         }
         return s.toString();
+    }
+
+    /**
+     * Get a logger for a given class.
+     *
+     * @param cls the class
+     * @return a logger
+     */
+    public static Logger getLogger(Class<?> cls) {
+        return Logger.getLogger(cls.getCanonicalName());
     }
 
 }

@@ -36,7 +36,7 @@ import com.sk89q.mclauncher.Launcher;
 import com.sk89q.mclauncher.update.FileStreamFilters;
 import com.sk89q.mclauncher.update.UninstallLog;
 import com.sk89q.mclauncher.util.LauncherUtils;
-import com.sk89q.mclauncher.util.Platform;
+import com.sk89q.skmcl.util.Platform;
 
 public abstract class PackageFile {
     

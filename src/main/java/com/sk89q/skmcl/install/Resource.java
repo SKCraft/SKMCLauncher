@@ -16,17 +16,17 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.sk89q.mclauncher.util;
+package com.sk89q.skmcl.install;
 
-import javax.xml.bind.annotation.XmlEnumValue;
+import java.io.IOException;
+import java.io.InputStream;
 
-/**
- * Indicates the platform.
- */
-public enum Platform {
-    @XmlEnumValue("windows") WINDOWS,
-    @XmlEnumValue("mac_os_x") MAC_OS_X,
-    @XmlEnumValue("linux") LINUX,
-    @XmlEnumValue("solaris") SOLARIS,
-    @XmlEnumValue("unknown") UNKNOWN;
+public interface Resource {
+
+    void setInstaller(InstallerRuntime installer);
+
+    InputStream getInputStream() throws IOException;
+
+    void cleanup();
+
 }

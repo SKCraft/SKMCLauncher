@@ -49,7 +49,7 @@ import com.sk89q.mclauncher.util.BasicArgsParser;
 import com.sk89q.mclauncher.util.BasicArgsParser.ArgsContext;
 import com.sk89q.mclauncher.util.ConsoleFrame;
 import com.sk89q.mclauncher.util.LauncherUtils;
-import com.sk89q.mclauncher.util.Platform;
+import com.sk89q.skmcl.util.Platform;
 import com.sk89q.mclauncher.util.SimpleLogFormatter;
 
 /**
