@@ -23,12 +23,16 @@
       <id>spout-repo</id>
       <url>http://repo.spout.org</url>
     </repository>
+    <repository>
+      <id>sonatype-repo</id>
+      <url>https://oss.sonatype.org/content/groups/public/</url>
+    </repository>
   </repositories>
   <dependencies>
     <dependency>
       <groupId>org.spout</groupId>
       <artifactId>simplenbt</artifactId>
-      <version>1.0.4-SNAPSHOT</version>
+      <version>1.0.5-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.github.jponge</groupId>
