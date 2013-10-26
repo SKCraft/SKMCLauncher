@@ -34,16 +34,16 @@ means that if you are using an IDE like NetBeans, Eclipse, or IDEA, you should
 install a Project Lombok plugin so that your IDE knows about these automatic
 methods.
 
-* IDEA: In *Settings*, under *Plugins*, click *Browse repositories...* and
+* IntelliJ IDEA: In *Settings*, under *Plugins*, click *Browse repositories...* and
 search for a Project Lombok plugin.
 * Eclipse, NetBrains, other IDEs: See http://projectlombok.org/download.html
 
-### With IDEA ####
+### With IntelliJ IDEA ####
 
 IntelliJ IDEA is recommended because it has built-in in support for Maven and
 other necessary features to make your life easier.
 
-1. [IntelliJ IDEA Community Edition](Get http://www.jetbrains.com/idea/download/)
+1. [Get IntelliJ IDEA Community Edition](http://www.jetbrains.com/idea/download/)
    for free from the website.
 2. Install the Project Lombok support as indicated above.
 3. Download the project with Git.
