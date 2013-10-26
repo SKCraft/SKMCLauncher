@@ -18,20 +18,28 @@
 
 package com.sk89q.skmcl.minecraft;
 
+import com.sk89q.mclauncher.util.LauncherUtils;
 import com.sk89q.skmcl.application.Instance;
 import com.sk89q.skmcl.application.Version;
 import com.sk89q.skmcl.install.HttpResource;
 import com.sk89q.skmcl.install.InstallerRuntime;
+import com.sk89q.skmcl.minecraft.model.AWSBucket;
 import com.sk89q.skmcl.minecraft.model.Library;
 import com.sk89q.skmcl.minecraft.model.ReleaseManifest;
 import com.sk89q.skmcl.util.Environment;
 import com.sk89q.skmcl.util.HttpRequest;
 import com.sk89q.skmcl.util.ProgressEvent;
+import org.apache.commons.codec.digest.DigestUtils;
 
 import javax.swing.*;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.URL;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import static com.sk89q.skmcl.util.HttpRequest.Form.form;
 import static com.sk89q.skmcl.util.HttpRequest.url;
 
 /**
@@ -39,7 +47,15 @@ import static com.sk89q.skmcl.util.HttpRequest.url;
  */
 class MinecraftUpdater extends SwingWorker<Instance, ProgressEvent> {
 
+    private static final String VERSION_MANIFEST_URL =
+            "http://s3.amazonaws.com/Minecraft.Download/versions/%s/%s.json";
+    private static final String ASSETS_URL =
+            "https://s3.amazonaws.com/Minecraft.Resources/";
+
+    private static final Logger logger = LauncherUtils.getLogger(MinecraftUpdater.class);
     private final MinecraftInstall instance;
+    private final Environment environment;
+    private final InstallerRuntime installer;
 
     /**
      * Create a new instance.
@@ -48,41 +64,79 @@ class MinecraftUpdater extends SwingWorker<Instance, ProgressEvent> {
      */
     public MinecraftUpdater(MinecraftInstall instance) {
         this.instance = instance;
+        this.environment = instance.getEnvironment();
+
+        File temporaryDir = instance.getProfile().getTemporaryDir();
+
+        installer = new InstallerRuntime(environment);
+        installer.setTemporaryDir(temporaryDir);
     }
 
     /**
-     * Get the URL of the JSON file containing information about the libraries for
-     * the given Minecraft version.
+     * Get the URL of the JSON file that tells information about the desired version.
      *
      * @return the URL
      */
-    private URL getUpdateUrl() {
+    private URL getManifestUrl() {
         Version version = instance.getVersion();
 
         return url(String.format(
-                "http://s3.amazonaws.com/Minecraft.Download/versions/%s/%s.json",
+                VERSION_MANIFEST_URL,
                 version.getId(), version.getId()));
+    }
+
+    /**
+     * Get the URL where assets can be found.
+     *
+     * @param marker the bucket marker indicating the entry to start at
+     * @return the URL
+     */
+    private URL getAssetsUrl(String marker) {
+        if (marker.length() == 0) {
+            return getAssetsUrl();
+        } else {
+            return url(ASSETS_URL + "?" + form().add("marker", marker).toString());
+        }
+    }
+
+    /**
+     * Get the base URL where assets can be found.
+     *
+     * @return the URL
+     */
+    private URL getAssetsUrl() {
+        return url(ASSETS_URL);
     }
 
     @Override
     protected Instance doInBackground() throws Exception {
-        Version version = instance.getVersion();
-        Environment environment = Environment.getInstance();
+        installGame();
+        installAssets();
 
-        File temporaryDir = instance.getProfile().getTemporaryDir();
+        logger.log(Level.INFO, "Install tasks enumerated; now installing...");
+
+        installer.run();
+        installer.get();
+
+        return instance;
+    }
+
+    /**
+     * Install the game.
+     *
+     * @throws IOException thrown on I/O error
+     * @throws InterruptedException thrown on interruption
+     */
+    protected void installGame() throws IOException, InterruptedException {
+        logger.log(Level.INFO, "Checking for game updates...");
+
         File contentDir = instance.getProfile().getContentDir();
-
-        // The files that go into versions/$version/$version
-        String versionPath = String.format("versions/%1$s/%1$s", version.getId());
-        File jarPath = new File(contentDir, versionPath + ".jar");
-        File manifestPath = new File(contentDir, versionPath + ".json");
-
-        InstallerRuntime installer = new InstallerRuntime(environment);
-        installer.setTemporaryDir(temporaryDir);
+        File jarPath = instance.getJarPath();
+        File manifestPath = instance.getManifestPath();
 
         // Obtain the release manifest, save it, and parse it
         ReleaseManifest manifest = HttpRequest
-                .get(getUpdateUrl())
+                .get(getManifestUrl())
                 .execute()
                 .expectResponseCode(200)
                 .returnContent()
@@ -105,10 +159,73 @@ class MinecraftUpdater extends SwingWorker<Instance, ProgressEvent> {
                 }
             }
         }
-
-        installer.run();
-        installer.get();
-
-        return instance;
     }
+
+    /**
+     * Add shared Minecraft assets to the installer.
+     *
+     * @throws IOException on I/O error
+     */
+    protected void installAssets() throws IOException {
+        logger.log(Level.INFO, "Checking for asset downloads...");
+
+        File assetsDir = instance.getAssetsDir();
+        String marker = "";
+
+        while (marker != null) {
+            URL bucketUrl = getAssetsUrl(marker);
+            logger.log(Level.INFO, "Enumerating assets from {0}...", bucketUrl);
+
+            // Obtain the assets manifest
+            AWSBucket bucket = HttpRequest
+                    .get(bucketUrl)
+                    .execute()
+                    .returnContent()
+                    .asXml(AWSBucket.class);
+
+            // Install all the missing assets
+            for (AWSBucket.Item item : bucket.getContents()) {
+                String key = item.getKey();
+                String hash = item.getEtag();
+
+                if (item.isDirectory()) {
+                    continue; // skip directories
+                }
+
+                URL url = item.getUrl(getAssetsUrl());
+                File file = new File(assetsDir, key);
+
+                if (!file.exists() || !getFileETag(file).equals(hash)) {
+                    String id = hash + file.toString();
+                    installer.copyTo(new HttpResource(url).withId(id), file).skipLog();
+                }
+
+                marker = item.getKey();
+            }
+
+            // If the last bucket list is not truncated, then we're done
+            if (!bucket.isTruncated()) {
+                marker = null;
+            }
+        }
+    }
+
+    /**
+     * Generate the Etag hash string that is returned by the assets location.
+     *
+     * @param file the file
+     * @return the etag hash string
+     */
+    protected String getFileETag(File file) {
+        FileInputStream is = null;
+        try {
+            is = new FileInputStream(file);
+            return "\"" + DigestUtils.md5Hex(is) + "\"";
+        } catch (IOException e) {
+            return "";
+        } finally {
+            LauncherUtils.close(is);
+        }
+    }
+
 }

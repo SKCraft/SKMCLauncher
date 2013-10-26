@@ -18,22 +18,22 @@
 
 package com.sk89q.skmcl.install;
 
+import lombok.Getter;
+import lombok.ToString;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
+@ToString
 public class FileResource implements Resource {
 
-    private final File file;
+    @Getter private final File file;
     private boolean delete = false;
 
     public FileResource(File file) {
         this.file = file;
-    }
-
-    public File getFile() {
-        return file;
     }
 
     public FileResource deleteOnCleanup() {
@@ -57,12 +57,5 @@ public class FileResource implements Resource {
         }
     }
 
-    @Override
-    public String toString() {
-        return "FileResource{" +
-                "file=" + file +
-                ", delete=" + delete +
-                '}';
-    }
 }
 

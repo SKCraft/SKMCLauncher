@@ -18,10 +18,13 @@
 
 package com.sk89q.skmcl.install;
 
+import lombok.ToString;
+
 import java.io.*;
 
 import static com.sk89q.mclauncher.util.LauncherUtils.close;
 
+@ToString
 public class FileCopy implements Runnable {
 
     private final InstallerRuntime runtime;
@@ -71,14 +74,6 @@ public class FileCopy implements Runnable {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    @Override
-    public String toString() {
-        return "FileCopy{" +
-                "resource=" + resource +
-                ", destination=" + destination +
-                '}';
     }
 
 }

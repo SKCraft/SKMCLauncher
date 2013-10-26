@@ -18,18 +18,13 @@
 
 package com.sk89q.skmcl.install;
 
+import lombok.Data;
+
 import java.util.Map;
 
+@Data
 public class InstallLog {
 
     private Map<String, String> installed;
-
-    public Map<String, String> getInstalled() {
-        return installed;
-    }
-
-    public void setInstalled(Map<String, String> installed) {
-        this.installed = installed;
-    }
 
 }

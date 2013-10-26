@@ -19,29 +19,27 @@
 package com.sk89q.skmcl.profile;
 
 import com.sk89q.skmcl.application.Application;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
 
 import java.io.File;
 
 public class SimpleProfile implements Profile {
 
     private Application application;
+    @Getter @Setter
     private File baseDir;
+    @Getter @Setter
+    private File sharedDir;
 
     public Application getApplication() {
         return application;
     }
 
-    public void setApplication(Application application) {
+    public void setApplication(@NonNull Application application) {
         this.application = application;
         application.setProfile(this);
-    }
-
-    public File getBaseDir() {
-        return baseDir;
-    }
-
-    public void setBaseDir(File baseDir) {
-        this.baseDir = baseDir;
     }
 
     public File getContentDir() {

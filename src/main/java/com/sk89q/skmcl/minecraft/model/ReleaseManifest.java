@@ -19,6 +19,7 @@
 package com.sk89q.skmcl.minecraft.model;
 
 import com.sk89q.skmcl.util.HttpRequest;
+import lombok.Data;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 
@@ -26,6 +27,7 @@ import java.net.URL;
 import java.util.Date;
 import java.util.List;
 
+@Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ReleaseManifest {
 
@@ -45,81 +47,4 @@ public class ReleaseManifest {
                 getId(), getId()));
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public Date getTime() {
-        return time;
-    }
-
-    public void setTime(Date time) {
-        this.time = time;
-    }
-
-    public Date getReleaseTime() {
-        return releaseTime;
-    }
-
-    public void setReleaseTime(Date releaseTime) {
-        this.releaseTime = releaseTime;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getMinecraftArguments() {
-        return minecraftArguments;
-    }
-
-    public void setMinecraftArguments(String minecraftArguments) {
-        this.minecraftArguments = minecraftArguments;
-    }
-
-    public String getMainClass() {
-        return mainClass;
-    }
-
-    public void setMainClass(String mainClass) {
-        this.mainClass = mainClass;
-    }
-
-    public int getMinimumLauncherVersion() {
-        return minimumLauncherVersion;
-    }
-
-    public void setMinimumLauncherVersion(int minimumLauncherVersion) {
-        this.minimumLauncherVersion = minimumLauncherVersion;
-    }
-
-    public List<Library> getLibraries() {
-        return libraries;
-    }
-
-    public void setLibraries(List<Library> libraries) {
-        this.libraries = libraries;
-    }
-
-    @Override
-    public String toString() {
-        return "ReleaseManifest{" +
-                "id='" + id + '\'' +
-                ", time=" + time +
-                ", releaseTime=" + releaseTime +
-                ", type='" + type + '\'' +
-                ", minecraftArguments='" + minecraftArguments + '\'' +
-                ", mainClass='" + mainClass + '\'' +
-                ", minimumLauncherVersion=" + minimumLauncherVersion +
-                ", libraries=" + libraries +
-                '}';
-    }
 }

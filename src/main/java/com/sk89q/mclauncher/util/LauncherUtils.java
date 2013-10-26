@@ -18,12 +18,15 @@
 
 package com.sk89q.mclauncher.util;
 
+import org.codehaus.jackson.map.ObjectMapper;
+
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.jar.JarFile;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -35,11 +38,75 @@ import java.util.zip.ZipEntry;
  * @author sk89q
  */
 public final class LauncherUtils {
-    
+
+    private static final Logger logger = getLogger(LauncherUtils.class);
     private static final Pattern absoluteUrlPattern = 
             Pattern.compile("^[A-Za-z0-9\\-]+://.*$");
+    private static final ObjectMapper mapper = new ObjectMapper();
     
     private LauncherUtils() {
+    }
+
+    /**
+     * Return the global JSON object mapper.
+     *
+     * @return the global JSON object mapper
+     */
+    public static ObjectMapper getJsonMapper() {
+        return mapper;
+    }
+
+    /**
+     * Read a JSON file and parse it.
+     *
+     * @param file the file
+     * @param cls the class
+     * @param <T> the type of class
+     * @return an instance of the given class
+     * @throws IOException on I/O error
+     */
+    public static <T> T readJson(File file, Class<T> cls) throws IOException {
+        return getJsonMapper().readValue(file, cls);
+    }
+
+    /**
+     * Write an object to disk as a JSON file.
+     *
+     * @param file the file
+     * @param obj the object
+     * @throws IOException on I/O error
+     */
+    public static void writeJson(File file, Object obj) throws IOException {
+        file.getParentFile().mkdirs();
+        getJsonMapper().writeValue(file, obj);
+    }
+
+    /**
+     * Read a JSON file and parse it.
+     *
+     * <p>If it fails, just return a new instance.</p>
+     *
+     * @param file the file
+     * @param cls the class
+     * @param <T> the type of class
+     * @return an instance of the given class
+     */
+    public static <T> T readJsonSafely(File file, Class<T> cls) {
+        if (file.exists()) {
+            try {
+                return getJsonMapper().readValue(file, cls);
+            } catch (IOException e) {
+                logger.log(Level.WARNING, "Failed to read JSON file as class", e);
+            }
+        }
+
+        try {
+            return cls.newInstance();
+        } catch (InstantiationException e) {
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
     
     /**

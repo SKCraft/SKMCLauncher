@@ -18,9 +18,11 @@
 
 package com.sk89q.skmcl.application;
 
+import com.sk89q.skmcl.launch.LaunchEnvironment;
 import com.sk89q.skmcl.util.ProgressEvent;
 
 import javax.swing.*;
+import java.io.IOException;
 
 /**
  * An installed application instance.
@@ -42,10 +44,11 @@ public interface Instance {
     SwingWorker<Instance, ProgressEvent> getUpdater();
 
     /**
-     * Get a worker to launch the instance.
+     * Launch this instance.
      *
-     * @return a launch worker
+     * @param environment the launch environment
+     * @return the launched process
      */
-    SwingWorker<Instance, ProgressEvent> getLauncher();
+    Process launch(LaunchEnvironment environment) throws IOException;
 
 }

@@ -22,9 +22,11 @@ import com.sk89q.skmcl.util.Environment;
 import com.sk89q.mclauncher.util.LauncherUtils;
 import com.sk89q.skmcl.util.HttpDownloader;
 import com.sk89q.skmcl.util.ProgressEvent;
+import lombok.Getter;
 
 import javax.swing.*;
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,13 +40,16 @@ public class InstallerRuntime extends SwingWorker<InstallerRuntime, ProgressEven
 
     private static final Logger logger = LauncherUtils.getLogger(InstallerRuntime.class);
 
+    @Getter
     private final Environment environment;
     private final InstallLog previousLog;
     private final InstallLog newLog = new InstallLog();
     private final HttpDownloader httpDownloader = new HttpDownloader();
     private final List<Runnable> tasks = new ArrayList<Runnable>();
 
-    private File tempDir;
+    @Getter
+    private File temporaryDir;
+    private File downloadDir;
 
     /**
      * Create a new installer runtime.
@@ -67,15 +72,6 @@ public class InstallerRuntime extends SwingWorker<InstallerRuntime, ProgressEven
     }
 
     /**
-     * Get the environment.
-     *
-     * @return the environment
-     */
-    public Environment getEnvironment() {
-        return environment;
-    }
-
-    /**
      * Get the log for installation changes.
      *
      * @return the log
@@ -85,21 +81,13 @@ public class InstallerRuntime extends SwingWorker<InstallerRuntime, ProgressEven
     }
 
     /**
-     * Get the directory to store temporary files.
-     *
-     * @return the directory
-     */
-    public File getTemporaryDir() {
-        return tempDir;
-    }
-
-    /**
      * Set the directory to store temporary files.
      *
      * @param tempDir the directory
      */
     public void setTemporaryDir(File tempDir) {
-        this.tempDir = tempDir;
+        this.temporaryDir = tempDir;
+        this.downloadDir = new File(tempDir, "download");
     }
 
     /**
@@ -117,14 +105,37 @@ public class InstallerRuntime extends SwingWorker<InstallerRuntime, ProgressEven
     }
 
     /**
-     * Fetch the given URL and return the file where the contents will be put.
+     * Write a version cache file.
      *
-     * @param url the url
-     * @return the file where the contents will be put
+     * @param cache version cache
+     * @param file the file to write to
+     * @return the given version cache file
      */
+    public VersionCache write(final VersionCache cache, final File file) {
+        tasks.add(new Runnable() {
+            @Override
+            public void run() {
+                logger.log(Level.INFO, "Writing version cache to {}", file);
+
+                try {
+                    cache.removeOldEntries();
+                    LauncherUtils.writeJson(file, cache);
+                } catch (IOException e) {
+                    logger.log(Level.WARNING, "Failed to write version cache to {}", file);
+                }
+            }
+        });
+
+        return cache;
+    }
+
     File fetch(URL url) {
+        return fetch(url, null);
+    }
+
+    File fetch(URL url, String hash) {
         if (url.getProtocol().toLowerCase().matches("^https?")) {
-            return httpDownloader.submit(getTemporaryDir(), url);
+            return httpDownloader.submit(downloadDir, url, hash);
         } else {
             throw new IllegalArgumentException("Not sure how to download " + url);
         }

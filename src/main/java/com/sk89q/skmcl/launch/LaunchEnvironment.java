@@ -16,29 +16,14 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.sk89q.skmcl.minecraft;
+package com.sk89q.skmcl.launch;
 
-import com.sk89q.skmcl.application.Version;
+import com.sk89q.skmcl.util.Environment;
 import lombok.Data;
 
-import java.util.Date;
-
-/**
- * A version of Minecraft.
- */
 @Data
-public class Release implements Version {
+public class LaunchEnvironment {
 
-    private String id;
-    private Date time;
-    private Date releaseTime;
-    private String type;
-
-    public Release() {
-    }
-
-    public Release(String id) {
-        this.id = id;
-    }
+    private final Environment environment;
 
 }

@@ -22,6 +22,9 @@ import com.sk89q.mclauncher.util.LauncherUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import javax.net.ssl.HttpsURLConnection;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -401,6 +404,23 @@ public class HttpRequest implements Closeable {
         }
 
         /**
+         * Return the result as an instance of the given class that has been
+         * deserialized from a XML payload.
+         *
+         * @return the object
+         * @throws IOException on I/O error
+         */
+        public <T> T asXml(Class<T> cls) throws IOException {
+            try {
+                JAXBContext context = JAXBContext.newInstance(cls);
+                Unmarshaller um = context.createUnmarshaller();
+                return (T) um.unmarshal(new ByteArrayInputStream(data));
+            } catch (JAXBException e) {
+                throw new IOException(e);
+            }
+        }
+
+        /**
          * Save the result to a file.
          *
          * @param file the file
@@ -411,6 +431,8 @@ public class HttpRequest implements Closeable {
         public BufferedResponse saveContent(File file) throws IOException, InterruptedException {
             FileOutputStream fos = null;
             BufferedOutputStream bos = null;
+
+            file.getParentFile().mkdirs();
 
             try {
                 fos = new FileOutputStream(file);

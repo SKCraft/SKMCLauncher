@@ -18,26 +18,33 @@
 
 package com.sk89q.skmcl.install;
 
+import lombok.Getter;
+import lombok.ToString;
+
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.URL;
 
+@ToString
 public class HttpResource implements Resource {
 
+    @Getter
     private final URL url;
     private FileResource resource;
+    private String versionId;
 
     public HttpResource(URL url) {
         this.url = url;
     }
 
-    public URL getUrl() {
-        return url;
+    public HttpResource withId(String versionId) {
+        this.versionId = versionId;
+        return this;
     }
 
     @Override
     public void setInstaller(InstallerRuntime installer) {
-        resource = new FileResource(installer.fetch(url)).deleteOnCleanup();
+        resource = new FileResource(installer.fetch(url, versionId)).deleteOnCleanup();
     }
 
     @Override
@@ -50,10 +57,4 @@ public class HttpResource implements Resource {
         resource.cleanup();
     }
 
-    @Override
-    public String toString() {
-        return "HttpResource{" +
-                "url=" + url +
-                '}';
-    }
 }

@@ -18,42 +18,16 @@
 
 package com.sk89q.skmcl.util;
 
+import lombok.Data;
+
 /**
  * Represents information about the current environment.
  */
+@Data
 public class Environment {
 
     private final Platform platform;
     private final String platformVersion;
-
-    /**
-     * Create a new environment instance.
-     *
-     * @param platform the platform
-     * @param platformVersion the platform version, such as that of os.version
-     */
-    public Environment(Platform platform, String platformVersion) {
-        this.platform = platform;
-        this.platformVersion = platformVersion;
-    }
-
-    /**
-     * Get the platform.
-     *
-     * @return the platform
-     */
-    public Platform getPlatform() {
-        return platform;
-    }
-
-    /**
-     * Get the platform version.
-     *
-     * @return the platform version, such as that of os.version
-     */
-    public String getPlatformVersion() {
-        return platformVersion;
-    }
 
     /**
      * Get an instance of the current environment.

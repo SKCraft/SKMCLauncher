@@ -18,6 +18,7 @@
 
 package com.sk89q.skmcl.minecraft;
 
+import com.sk89q.skmcl.util.Environment;
 import com.sk89q.skmcl.util.HttpRequest;
 import com.sk89q.skmcl.application.Application;
 import com.sk89q.skmcl.application.Instance;
@@ -81,9 +82,9 @@ public class Minecraft implements Application {
     }
 
     @Override
-    public Instance getInstance(Version version) {
+    public Instance getInstance(Version version, Environment environment) {
         if (version instanceof Release) {
-            return new MinecraftInstall(getProfile(), (Release) version);
+            return new MinecraftInstall(getProfile(), (Release) version, environment);
         } else {
             throw new IllegalArgumentException("Must be a Release");
         }

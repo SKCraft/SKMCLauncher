@@ -20,6 +20,7 @@ package com.sk89q.skmcl.application;
 
 import com.sk89q.skmcl.minecraft.Minecraft;
 import com.sk89q.skmcl.profile.Profile;
+import com.sk89q.skmcl.util.Environment;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
@@ -70,9 +71,10 @@ public interface Application {
      * that version.
      *
      * @param version the version
+     * @param environment the environment
      * @param <T> the version type
      * @return an instance
      */
-    <T extends Version> Instance getInstance(T version);
+    <T extends Version> Instance getInstance(T version, Environment environment);
 
 }

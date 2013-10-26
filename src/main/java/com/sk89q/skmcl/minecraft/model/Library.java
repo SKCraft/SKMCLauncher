@@ -21,6 +21,7 @@ package com.sk89q.skmcl.minecraft.model;
 import com.sk89q.skmcl.util.Environment;
 import com.sk89q.skmcl.util.HttpRequest;
 import com.sk89q.skmcl.util.Platform;
+import lombok.Data;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
@@ -31,19 +32,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+@Data
 public class Library {
 
-    public static final String BASE_URL = "https://s3.amazonaws.com/Minecraft.Download/libraries/";
-
-    private enum Action {
-        ALLOW,
-        DISALLOW;
-
-        @JsonCreator
-        public static Action fromJson(String text) {
-            return valueOf(text.toUpperCase());
-        }
-    }
+    public static final String BASE_URL =
+            "https://s3.amazonaws.com/Minecraft.Download/libraries/";
 
     private String name;
     private transient String group;
@@ -52,10 +45,6 @@ public class Library {
     private Map<String, String> natives;
     private Extract extract;
     private List<Rule> rules;
-
-    public String getName() {
-        return name;
-    }
 
     public void setName(String name) {
         this.name = name;
@@ -70,30 +59,6 @@ public class Library {
             this.artifact = null;
             this.version = null;
         }
-    }
-
-    public Map<String, String> getNatives() {
-        return natives;
-    }
-
-    public void setNatives(Map<String, String> natives) {
-        this.natives = natives;
-    }
-
-    public Extract getExtract() {
-        return extract;
-    }
-
-    public void setExtract(Extract extract) {
-        this.extract = extract;
-    }
-
-    public List<Rule> getRules() {
-        return rules;
-    }
-
-    public void setRules(List<Rule> rules) {
-        this.rules = rules;
     }
 
     public boolean matches(Environment environment) {
@@ -173,35 +138,10 @@ public class Library {
         return HttpRequest.url(builder.toString());
     }
 
-    @Override
-    public String toString() {
-        return "Library{" +
-                "name='" + name + '\'' +
-                ", natives=" + natives +
-                ", extract=" + extract +
-                ", rules=" + rules +
-                '}';
-    }
-
+    @Data
     public static class Rule {
         private Action action;
         private OS os;
-
-        public Action getAction() {
-            return action;
-        }
-
-        public void setAction(Action action) {
-            this.action = action;
-        }
-
-        public OS getOs() {
-            return os;
-        }
-
-        public void setOs(OS os) {
-            this.os = os;
-        }
 
         public boolean matches(Environment environment) {
             if (getOs() == null) {
@@ -210,16 +150,9 @@ public class Library {
                 return getOs().matches(environment);
             }
         }
-
-        @Override
-        public String toString() {
-            return "Rule{" +
-                    "action=" + action +
-                    ", os=" + os +
-                    '}';
-        }
     }
 
+    @Data
     public static class OS {
         private Platform platform;
         private Pattern version;
@@ -230,48 +163,24 @@ public class Library {
             return platform;
         }
 
-        public void setPlatform(Platform platform) {
-            this.platform = platform;
-        }
-
-        public Pattern getVersion() {
-            return version;
-        }
-
-        public void setVersion(Pattern version) {
-            this.version = version;
-        }
-
         public boolean matches(Environment environment) {
             return getPlatform().equals(environment.getPlatform()) &&
                     getVersion().matcher(environment.getPlatformVersion()).matches();
         }
-
-        @Override
-        public String toString() {
-            return "OS{" +
-                    "platform=" + platform +
-                    ", version=" + version +
-                    '}';
-        }
     }
 
+    @Data
     public static class Extract {
         private List<String> exclude;
+    }
 
-        public List<String> getExclude() {
-            return exclude;
-        }
+    private enum Action {
+        ALLOW,
+        DISALLOW;
 
-        public void setExclude(List<String> exclude) {
-            this.exclude = exclude;
-        }
-
-        @Override
-        public String toString() {
-            return "Extract{" +
-                    "exclude=" + exclude +
-                    '}';
+        @JsonCreator
+        public static Action fromJson(String text) {
+            return valueOf(text.toUpperCase());
         }
     }
 

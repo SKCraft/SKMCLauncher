@@ -58,6 +58,25 @@ public interface Profile {
     void setBaseDir(File baseDir);
 
     /**
+     * Get the directory that is shared between profiles.
+     *
+     * <p>This directory can be used to store shared assets.</p>
+     *
+     * @return the shared directory
+     */
+    @JsonIgnore
+    File getSharedDir();
+
+    /**
+     * Set the directory that is shared between profiles.
+     *
+     * <p>This directory can be used to store shared assets.</p>
+     *
+     * @param sharedDir the shared directory
+     */
+    void setSharedDir(File sharedDir);
+
+    /**
      * Get the directory where application files should be stored.
      *
      * @return the content directory

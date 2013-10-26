@@ -19,50 +19,20 @@
 package com.sk89q.skmcl.minecraft.model;
 
 import com.sk89q.skmcl.minecraft.Release;
+import lombok.Data;
 
 import java.util.List;
 
+@Data
 public class ReleaseList {
 
     private LatestReleases latest;
     private List<Release> versions;
 
-    public LatestReleases getLatest() {
-        return latest;
-    }
-
-    public void setLatest(LatestReleases latest) {
-        this.latest = latest;
-    }
-
-    public List<Release> getVersions() {
-        return versions;
-    }
-
-    public void setVersions(List<Release> versions) {
-        this.versions = versions;
-    }
-
+    @Data
     public static class LatestReleases {
-
         private String snapshot;
         private String release;
-
-        public String getSnapshot() {
-            return snapshot;
-        }
-
-        public void setSnapshot(String snapshot) {
-            this.snapshot = snapshot;
-        }
-
-        public String getRelease() {
-            return release;
-        }
-
-        public void setRelease(String release) {
-            this.release = release;
-        }
     }
 
 }
