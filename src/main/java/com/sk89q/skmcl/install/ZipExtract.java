@@ -18,8 +18,8 @@
 
 package com.sk89q.skmcl.install;
 
-import com.sun.istack.internal.NotNull;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 import org.apache.commons.io.IOUtils;
 
@@ -48,7 +48,7 @@ public class ZipExtract implements Runnable {
      * @param resource the resource to read from
      * @param destination the destination directory
      */
-    public ZipExtract(@NotNull Resource resource, @NotNull File destination) {
+    public ZipExtract(@NonNull Resource resource, @NonNull File destination) {
         this.resource = resource;
         this.destination = destination;
     }

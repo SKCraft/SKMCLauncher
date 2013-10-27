@@ -31,8 +31,8 @@ import com.sk89q.skmcl.session.Session;
 import com.sk89q.skmcl.util.Environment;
 import com.sk89q.skmcl.util.Operation;
 import com.sk89q.skmcl.util.Platform;
-import com.sun.istack.internal.NotNull;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.ToString;
 import org.apache.commons.io.FileUtils;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -64,9 +64,9 @@ public class MinecraftInstall implements Instance {
      * @param version the version
      * @param environment the environment
      */
-    public MinecraftInstall(@NotNull final Profile profile,
-                            @NotNull final Release version,
-                            @NotNull final Environment environment) {
+    public MinecraftInstall(@NonNull final Profile profile,
+                            @NonNull final Release version,
+                            @NonNull final Environment environment) {
         this.profile = profile;
         this.version = version;
         this.environment = environment;

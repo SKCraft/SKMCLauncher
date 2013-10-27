@@ -36,7 +36,7 @@ methods.
 
 * IntelliJ IDEA: In *Settings*, under *Plugins*, click *Browse repositories...* and
 search for a Project Lombok plugin.
-* Eclipse, NetBrains, other IDEs: See http://projectlombok.org/download.html
+* Eclipse, NetBeans, other IDEs: See http://projectlombok.org/download.html
 
 ### With IntelliJ IDEA ####
 
