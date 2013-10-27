@@ -35,6 +35,7 @@ public class ReleaseManifest {
     private Date time;
     private Date releaseTime;
     private String type;
+    private String processArguments;
     private String minecraftArguments;
     private String mainClass;
     private int minimumLauncherVersion;
