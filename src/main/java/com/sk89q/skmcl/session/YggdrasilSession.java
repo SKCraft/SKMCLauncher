@@ -65,7 +65,7 @@ public class YggdrasilSession implements Session {
     }
 
     @Override
-    public Boolean call() throws Exception {
+    public YggdrasilSession call() throws Exception {
         HttpRequest request = null;
         Object payload = new AuthenticatePayload(id, password);
 
@@ -83,7 +83,7 @@ public class YggdrasilSession implements Session {
                         request.returnContent().asJson(AuthenticateResponse.class);
                 accessToken = response.getAccessToken();
                 sessionId = response.getClientToken();
-                return true;
+                return this;
             }
         } finally {
             LauncherUtils.close(request);

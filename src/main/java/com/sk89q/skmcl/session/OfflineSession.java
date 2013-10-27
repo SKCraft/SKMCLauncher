@@ -53,8 +53,8 @@ public class OfflineSession implements Session {
     }
 
     @Override
-    public Boolean call() throws Exception {
-        return true;
+    public OfflineSession call() throws Exception {
+        return this;
     }
 
 }

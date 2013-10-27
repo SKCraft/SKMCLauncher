@@ -27,7 +27,7 @@ import java.util.concurrent.Callable;
  * returned by the {@link Callable} will always be a boolean true, because errors will
  * be thrown with an {@link AuthenticationException}.</p>
  */
-public interface Session extends Callable<Boolean> {
+public interface Session extends Callable<Session> {
 
     /**
      * Returns whether the session can be used in its current state.
