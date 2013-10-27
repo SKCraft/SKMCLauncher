@@ -21,6 +21,7 @@ package com.sk89q.skmcl.launch;
 import lombok.Getter;
 
 import java.io.Closeable;
+import java.io.IOException;
 
 /**
  * An application that has been launched.
@@ -35,7 +36,7 @@ public abstract class LaunchedProcess implements Closeable {
     }
 
     @Override
-    public void close() {
+    public void close() throws IOException {
 
     }
 

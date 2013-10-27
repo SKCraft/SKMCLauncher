@@ -167,11 +167,8 @@ public class MinecraftInstall implements Instance {
         // Return the process
         return new LaunchedProcess(builder.start()) {
             @Override
-            public void close() {
-                try {
-                    FileUtils.deleteDirectory(extractDir);
-                } catch (IOException e) {
-                }
+            public void close() throws IOException {
+                FileUtils.deleteDirectory(extractDir);
             }
         };
     }
