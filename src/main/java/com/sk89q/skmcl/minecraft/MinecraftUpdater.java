@@ -145,7 +145,7 @@ class MinecraftUpdater extends SwingWorker<Instance, ProgressEvent> {
 
         // If the JAR does not exist, install it
         if (!jarPath.exists()) {
-            installer.copyTo(new HttpResource(manifest.getJarUrl()), jarPath).skipLog();
+            installer.copyTo(new HttpResource(manifest.getJarUrl()), jarPath);
         }
 
         // Install all the missing libraries
@@ -155,7 +155,7 @@ class MinecraftUpdater extends SwingWorker<Instance, ProgressEvent> {
                 File file = new File(contentDir, "libraries/" + library.getPath(environment));
 
                 if (!file.exists()) {
-                    installer.copyTo(new HttpResource(url), file).skipLog();
+                    installer.copyTo(new HttpResource(url), file);
                 }
             }
         }
@@ -197,7 +197,7 @@ class MinecraftUpdater extends SwingWorker<Instance, ProgressEvent> {
 
                 if (!file.exists() || !getFileETag(file).equals(hash)) {
                     String id = hash + file.toString();
-                    installer.copyTo(new HttpResource(url).withId(id), file).skipLog();
+                    installer.copyTo(new HttpResource(url).withId(id), file);
                 }
 
                 marker = item.getKey();

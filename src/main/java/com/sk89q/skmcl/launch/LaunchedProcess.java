@@ -18,12 +18,25 @@
 
 package com.sk89q.skmcl.launch;
 
-import com.sk89q.skmcl.util.Environment;
-import lombok.Data;
+import lombok.Getter;
 
-@Data
-public class LaunchEnvironment {
+import java.io.Closeable;
 
-    private final Environment environment;
+/**
+ * An application that has been launched.
+ */
+public abstract class LaunchedProcess implements Closeable {
+
+    @Getter
+    private final Process process;
+
+    public LaunchedProcess(Process process) {
+        this.process = process;
+    }
+
+    @Override
+    public void close() {
+
+    }
 
 }

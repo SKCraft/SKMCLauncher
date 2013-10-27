@@ -18,7 +18,8 @@
 
 package com.sk89q.skmcl.application;
 
-import com.sk89q.skmcl.launch.LaunchEnvironment;
+import com.sk89q.skmcl.launch.LaunchContext;
+import com.sk89q.skmcl.launch.LaunchedProcess;
 import com.sk89q.skmcl.util.ProgressEvent;
 
 import javax.swing.*;
@@ -46,9 +47,9 @@ public interface Instance {
     /**
      * Launch this instance.
      *
-     * @param environment the launch environment
+     * @param context the launch context
      * @return the launched process
      */
-    Process launch(LaunchEnvironment environment) throws IOException;
+    LaunchedProcess launch(LaunchContext context) throws IOException;
 
 }

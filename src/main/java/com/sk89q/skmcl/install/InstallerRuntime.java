@@ -98,7 +98,7 @@ public class InstallerRuntime extends SwingWorker<InstallerRuntime, ProgressEven
      * @return the copy object
      */
     public FileCopy copyTo(Resource source, File file) {
-        FileCopy copy = new FileCopy(this, source, file);
+        FileCopy copy = new FileCopy(source, file);
         source.setInstaller(this);
         tasks.add(copy);
         return copy;
