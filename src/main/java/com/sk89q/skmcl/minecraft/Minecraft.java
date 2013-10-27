@@ -35,7 +35,7 @@ import java.util.List;
 import static com.sk89q.skmcl.util.HttpRequest.url;
 
 /**
- * Installs, upates, and launches Minecraft.
+ * Installs, updates, and launches Minecraft.
  */
 public class Minecraft implements Application {
 
