@@ -18,10 +18,9 @@
     <signerAlias />
   </properties>
   <repositories>
-    <!-- Provides us with Simple NBT -->
     <repository>
-      <id>spout-repo</id>
-      <url>http://repo.spout.org</url>
+      <id>maven.sk89q.com</id>
+      <url>http://maven.sk89q.com/repo/</url>
     </repository>
   </repositories>
   <dependencies>
