@@ -18,30 +18,29 @@
 
 package com.sk89q.skmcl.install;
 
+import lombok.Getter;
+import lombok.NonNull;
 import lombok.ToString;
+import org.apache.commons.io.IOUtils;
 
 import java.io.*;
 
-import static com.sk89q.mclauncher.util.LauncherUtils.close;
+import static org.apache.commons.io.IOUtils.closeQuietly;
 
+/**
+ * Copies a file to another location.
+ */
 @ToString
 public class FileCopy implements Runnable {
 
-    private final InstallerRuntime runtime;
+    @Getter
     private final Resource resource;
+    @Getter
     private final File destination;
 
-    private boolean logInstall = true;
-
-    FileCopy(InstallerRuntime runtime, Resource resource, File destination) {
-        this.runtime = runtime;
+    public FileCopy(@NonNull Resource resource, @NonNull File destination) {
         this.resource = resource;
         this.destination = destination;
-    }
-
-    public FileCopy skipLog() {
-        logInstall = false;
-        return this;
     }
 
     @Override
@@ -56,18 +55,11 @@ public class FileCopy implements Runnable {
             try {
                 fos = new FileOutputStream(destination);
                 bos = new BufferedOutputStream(fos);
-
-                byte[] buffer = new byte[16384];
-
-                int ret = is.read(buffer);
-                while (ret >= 1) {
-                    bos.write(buffer, 0, ret);
-                    ret = is.read(buffer);
-                }
+                IOUtils.copy(is, bos);
             } finally {
-                close(is);
-                close(bos);
-                close(fos);
+                closeQuietly(is);
+                closeQuietly(bos);
+                closeQuietly(fos);
             }
 
             resource.cleanup();
