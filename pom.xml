@@ -175,7 +175,7 @@
           <jvmVersion>1.6+</jvmVersion>
           <zipFile>${project.build.directory}/${project.build.finalName}.app.zip</zipFile>
           <diskImageFile>${project.build.directory}/${project.build.finalName}.dmg</diskImageFile>
-          <iconFile>icon.icns</iconFile>
+          <iconFile>resources/icon.icns</iconFile>
         </configuration>
         <executions>
           <execution>
@@ -205,7 +205,7 @@
               <classPath>
                 <mainClass>com.sk89q.mclauncher.Launcher</mainClass>
               </classPath>
-              <icon>${basedir}/icon.ico</icon>
+              <icon>${basedir}/resources/icon.ico</icon>
               <jre>
                 <minVersion>1.6.0</minVersion>
                 <initialHeapSize>32</initialHeapSize>
