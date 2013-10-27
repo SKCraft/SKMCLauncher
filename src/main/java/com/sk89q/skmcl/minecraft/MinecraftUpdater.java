@@ -19,7 +19,6 @@
 package com.sk89q.skmcl.minecraft;
 
 import com.sk89q.mclauncher.util.LauncherUtils;
-import com.sk89q.skmcl.application.Instance;
 import com.sk89q.skmcl.application.Version;
 import com.sk89q.skmcl.install.HttpResource;
 import com.sk89q.skmcl.install.InstallerRuntime;
@@ -28,10 +27,9 @@ import com.sk89q.skmcl.minecraft.model.Library;
 import com.sk89q.skmcl.minecraft.model.ReleaseManifest;
 import com.sk89q.skmcl.util.Environment;
 import com.sk89q.skmcl.util.HttpRequest;
-import com.sk89q.skmcl.util.ProgressEvent;
+import com.sk89q.skmcl.util.Operation;
 import org.apache.commons.codec.digest.DigestUtils;
 
-import javax.swing.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -45,7 +43,7 @@ import static com.sk89q.skmcl.util.HttpRequest.url;
 /**
  * Updates an installation of Minecraft.
  */
-class MinecraftUpdater extends SwingWorker<Instance, ProgressEvent> {
+class MinecraftUpdater extends Operation<MinecraftInstall> {
 
     private static final String VERSION_MANIFEST_URL =
             "http://s3.amazonaws.com/Minecraft.Download/versions/%s/%s.json";
@@ -109,14 +107,13 @@ class MinecraftUpdater extends SwingWorker<Instance, ProgressEvent> {
     }
 
     @Override
-    protected Instance doInBackground() throws Exception {
+    public MinecraftInstall call() throws Exception {
         installGame();
         installAssets();
 
         logger.log(Level.INFO, "Install tasks enumerated; now installing...");
 
-        installer.run();
-        installer.get();
+        installer.call();
 
         return instance;
     }

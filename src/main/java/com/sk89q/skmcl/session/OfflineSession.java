@@ -38,11 +38,6 @@ public class OfflineSession implements Session {
     }
 
     @Override
-    public String getUsername() {
-        return username;
-    }
-
-    @Override
     public String getSessionId() {
         return "offline";
     }

@@ -18,13 +18,12 @@
 
 package com.sk89q.skmcl.install;
 
-import com.sk89q.skmcl.util.Environment;
 import com.sk89q.mclauncher.util.LauncherUtils;
+import com.sk89q.skmcl.util.Environment;
 import com.sk89q.skmcl.util.HttpDownloader;
-import com.sk89q.skmcl.util.ProgressEvent;
+import com.sk89q.skmcl.util.Operation;
 import lombok.Getter;
 
-import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -36,7 +35,7 @@ import java.util.logging.Logger;
 /**
  * Manages an installation procedure.
  */
-public class InstallerRuntime extends SwingWorker<InstallerRuntime, ProgressEvent> {
+public class InstallerRuntime extends Operation<InstallerRuntime> {
 
     private static final Logger logger = LauncherUtils.getLogger(InstallerRuntime.class);
 
@@ -142,9 +141,8 @@ public class InstallerRuntime extends SwingWorker<InstallerRuntime, ProgressEven
     }
 
     @Override
-    protected InstallerRuntime doInBackground() throws Exception {
-        httpDownloader.run();
-        httpDownloader.get();
+    public InstallerRuntime call() throws Exception {
+        httpDownloader.call();
 
         for (Runnable task : tasks) {
             logger.log(Level.INFO, "Executing {0}...", task.toString());

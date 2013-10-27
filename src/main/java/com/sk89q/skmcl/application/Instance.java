@@ -20,9 +20,8 @@ package com.sk89q.skmcl.application;
 
 import com.sk89q.skmcl.launch.LaunchContext;
 import com.sk89q.skmcl.launch.LaunchedProcess;
-import com.sk89q.skmcl.util.ProgressEvent;
+import com.sk89q.skmcl.util.Operation;
 
-import javax.swing.*;
 import java.io.IOException;
 
 /**
@@ -42,7 +41,7 @@ public interface Instance {
      *
      * @return an update worker
      */
-    SwingWorker<Instance, ProgressEvent> getUpdater();
+    Operation<Instance> getUpdater();
 
     /**
      * Launch this instance.

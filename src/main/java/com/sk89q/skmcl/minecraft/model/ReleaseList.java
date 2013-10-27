@@ -19,6 +19,7 @@
 package com.sk89q.skmcl.minecraft.model;
 
 import com.sk89q.skmcl.minecraft.Release;
+import com.sun.istack.internal.NotNull;
 import lombok.Data;
 
 import java.util.List;
@@ -28,6 +29,21 @@ public class ReleaseList {
 
     private LatestReleases latest;
     private List<Release> versions;
+
+    /**
+     * Get a release with the given ID.
+     *
+     * @param id the ID
+     * @return the release
+     */
+    public Release find(@NotNull String id) {
+        for (Release release : getVersions()) {
+            if (release.getId().equals(id)) {
+                return release;
+            }
+        }
+        return null;
+    }
 
     @Data
     public static class LatestReleases {

@@ -44,6 +44,7 @@ public class Minecraft implements Application {
 
     private Version selected;
     private transient Profile profile;
+    private transient ReleaseList releaseList;
 
     /**
      * Get a copy of the profile in use.
@@ -60,6 +61,22 @@ public class Minecraft implements Application {
     }
 
     @Override
+    public Release getLatestStable() throws IOException {
+        Release release = getReleaseList().find(
+                getReleaseList().getLatest().getRelease());
+        if (release != null) {
+            return release;
+        } else {
+            throw new IOException("Failed to get latest stable release");
+        }
+    }
+
+    @Override
+    public Version getLatestSnapshot() throws IOException {
+        return getReleaseList().find(getReleaseList().getLatest().getSnapshot());
+    }
+
+    @Override
     public List<Release> getInstalled() {
         List<Release> versions = new ArrayList<Release>();
         File dir = new File(profile.getContentDir(), "versions");
@@ -73,12 +90,12 @@ public class Minecraft implements Application {
 
     @Override
     public List<Release> getAvailable() throws IOException {
-        return HttpRequest
-                .get(url(VERSIONS_LIST_URL))
-                .execute()
-                .returnContent()
-                .asJson(ReleaseList.class)
-                .getVersions();
+        return getReleaseList().getVersions();
+    }
+
+    @Override
+    public void forgetVersions() {
+        releaseList = null;
     }
 
     @Override
@@ -88,6 +105,26 @@ public class Minecraft implements Application {
         } else {
             throw new IllegalArgumentException("Must be a Release");
         }
+    }
+
+    /**
+     * Get a copy of the release list, fetching it from the web if it's not cached.
+     *
+     * @return the release list
+     * @throws IOException on I/O error
+     */
+    private ReleaseList getReleaseList() throws IOException {
+        if (releaseList == null) {
+            ReleaseList list = HttpRequest
+                    .get(url(VERSIONS_LIST_URL))
+                    .execute()
+                    .returnContent()
+                    .asJson(ReleaseList.class);
+            this.releaseList = list;
+            return list;
+        }
+
+        return releaseList;
     }
 
     /**

@@ -28,9 +28,9 @@ import java.io.File;
 public class SimpleProfile implements Profile {
 
     private Application application;
-    @Getter @Setter
+    @Getter @Setter @NonNull
     private File baseDir;
-    @Getter @Setter
+    @Getter @Setter @NonNull
     private File sharedDir;
 
     public Application getApplication() {

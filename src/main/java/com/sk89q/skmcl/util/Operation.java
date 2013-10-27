@@ -18,5 +18,8 @@
 
 package com.sk89q.skmcl.util;
 
-public class ProgressEvent {
+import java.util.Observable;
+import java.util.concurrent.Callable;
+
+public abstract class Operation<V> extends Observable implements Callable<V> {
 }

@@ -29,14 +29,13 @@ import com.sk89q.skmcl.minecraft.model.ReleaseManifest;
 import com.sk89q.skmcl.profile.Profile;
 import com.sk89q.skmcl.session.Session;
 import com.sk89q.skmcl.util.Environment;
-import com.sk89q.skmcl.util.ProgressEvent;
+import com.sk89q.skmcl.util.Operation;
 import com.sun.istack.internal.NotNull;
 import lombok.Getter;
 import lombok.ToString;
 import org.apache.commons.io.FileUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 
@@ -113,7 +112,7 @@ public class MinecraftInstall implements Instance {
     }
 
     @Override
-    public SwingWorker<Instance, ProgressEvent> getUpdater() {
+    public Operation getUpdater() {
         return new MinecraftUpdater(this);
     }
 

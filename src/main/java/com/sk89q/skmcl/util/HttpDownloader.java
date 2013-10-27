@@ -24,7 +24,6 @@ import lombok.Setter;
 import lombok.ToString;
 import org.apache.commons.codec.digest.DigestUtils;
 
-import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -48,7 +47,7 @@ import java.util.logging.Logger;
  *     each file that was downloaded (or attempted).</li>
  * </ul>
  */
-public class HttpDownloader extends SwingWorker<List<Future<HttpDownloader.RemoteFile>>, ProgressEvent> {
+public class HttpDownloader extends Operation<List<Future<HttpDownloader.RemoteFile>>> {
 
     private static final Logger logger = LauncherUtils.getLogger(HttpDownloader.class);
     public static final int DEFAULT_THREAD_COUNT = 5;
@@ -108,7 +107,7 @@ public class HttpDownloader extends SwingWorker<List<Future<HttpDownloader.Remot
     }
 
     @Override
-    protected List<Future<RemoteFile>> doInBackground() throws Exception {
+    public List<Future<RemoteFile>> call() throws Exception {
         executor.shutdown();
         while (!executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS));
 

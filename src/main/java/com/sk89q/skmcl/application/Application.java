@@ -49,6 +49,22 @@ public interface Application {
     void setProfile(Profile profile);
 
     /**
+     * Get the latest stable version.
+     *
+     * @return the latest stable version
+     * @throws IOException thrown on I/O error
+     */
+    Version getLatestStable() throws IOException;
+
+    /**
+     * Get the latest snapshot version.
+     *
+     * @return the latest snapshot version, or null if none are available
+     * @throws IOException thrown on I/O error
+     */
+    Version getLatestSnapshot() throws IOException;
+
+    /**
      * Get a list of versions that are installed.
      *
      * @return a list of versions installed
@@ -65,6 +81,11 @@ public interface Application {
      */
     @JsonIgnore
     List<? extends Version> getAvailable() throws IOException;
+
+    /**
+     * Forget any cached version information.
+     */
+    void forgetVersions();
 
     /**
      * Given a version, create an object that represents an active installation of
