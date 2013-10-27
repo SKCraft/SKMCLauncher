@@ -121,7 +121,7 @@ public class MinecraftInstall implements Instance {
         Session session = context.getSession();
         ObjectMapper mapper = new ObjectMapper();
         final File extractDir = createExtractDir();
-        JavaProcessBuilder process = new JavaProcessBuilder();
+        JavaProcessBuilder builder = new JavaProcessBuilder();
         ReleaseManifest manifest = mapper.readValue(
                 getManifestPath(), ReleaseManifest.class);
         String sessionId = session.getSessionId() != null ?
@@ -140,7 +140,7 @@ public class MinecraftInstall implements Instance {
                     zipExtract.setExclude(extract.getExclude());
                     zipExtract.run();
                 } else {
-                    process.classPath(path);
+                    builder.classPath(path);
                 }
             }
         }
@@ -152,19 +152,22 @@ public class MinecraftInstall implements Instance {
             arg = arg.replace("${game_directory}", getProfile().getContentDir().getAbsolutePath());
             arg = arg.replace("${game_assets}", getAssetsDir().getAbsolutePath());
             arg = arg.replace("${auth_player_name}", session.getUsername());
+            arg = arg.replace("${auth_username}", session.getUsername());
+            arg = arg.replace("${auth_access_token}", session.getAccessToken());
             arg = arg.replace("${auth_session}", sessionId);
-            process.getArgs().add(arg);
+            builder.getArgs().add(arg);
         }
 
-        process.getFlags().add("-Djava.library.path=" + extractDir.getAbsoluteFile());
-        process.classPath(getJarPath());
-        process.setMainClass(manifest.getMainClass());
+        builder.getFlags().add("-Djava.library.path=" + extractDir.getAbsoluteFile());
+        builder.classPath(getJarPath());
+        builder.setMainClass(manifest.getMainClass());
 
-        ProcessBuilder builder = new ProcessBuilder(process.buildCommand());
-        builder.directory(getProfile().getContentDir());
+        ProcessBuilder processBuilder = new ProcessBuilder(builder.buildCommand());
+        processBuilder.directory(getProfile().getContentDir());
+        Process process = processBuilder.start();
 
         // Return the process
-        return new LaunchedProcess(builder.start()) {
+        return new LaunchedProcess(process) {
             @Override
             public void close() throws IOException {
                 FileUtils.deleteDirectory(extractDir);
