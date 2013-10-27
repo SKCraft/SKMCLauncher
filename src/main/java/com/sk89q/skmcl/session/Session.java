@@ -57,7 +57,6 @@ public interface Session extends Callable<Session> {
     /**
      * Get an access token that will identify the user in place of the password.
      *
-     *
      * @return an access token, or null
      */
     String getAccessToken();
