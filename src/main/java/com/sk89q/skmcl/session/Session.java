@@ -23,7 +23,9 @@ import java.util.concurrent.Callable;
 /**
  * A session is a user login.
  *
- * <p>Sessions must be run (see {@link Callable}) before they can be used.</p>
+ * <p>Sessions must be run (see {@link Callable}) before they can be used. The value
+ * returned by the {@link Callable} will always be a boolean true, because errors will
+ * be thrown with an {@link AuthenticationException}.</p>
  */
 public interface Session extends Callable<Boolean> {
 
