@@ -154,7 +154,8 @@ public class MinecraftInstall implements Instance {
             arg = arg.replace("${game_assets}", getAssetsDir().getAbsolutePath());
             arg = arg.replace("${auth_player_name}", session.getUsername());
             arg = arg.replace("${auth_username}", session.getUsername());
-            arg = arg.replace("${auth_access_token}", session.getAccessToken());
+            arg = arg.replace("${auth_access_token}",
+                    session.getAccessToken() != null ? session.getAccessToken() : "?");
             arg = arg.replace("${auth_session}", sessionId);
             builder.getArgs().add(arg);
         }
