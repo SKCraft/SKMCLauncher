@@ -30,6 +30,7 @@ import com.sk89q.skmcl.profile.Profile;
 import com.sk89q.skmcl.session.Session;
 import com.sk89q.skmcl.util.Environment;
 import com.sk89q.skmcl.util.Operation;
+import com.sk89q.skmcl.util.Platform;
 import com.sun.istack.internal.NotNull;
 import lombok.Getter;
 import lombok.ToString;
@@ -156,6 +157,13 @@ public class MinecraftInstall implements Instance {
             arg = arg.replace("${auth_access_token}", session.getAccessToken());
             arg = arg.replace("${auth_session}", sessionId);
             builder.getArgs().add(arg);
+        }
+
+        // Mac OS X arguments
+        if (getEnvironment().getPlatform() == Platform.MAC_OS_X) {
+            File icnsPath = new File(getAssetsDir(), "icons/minecraft.icns");
+            builder.getFlags().add("-Xdock:icon=" + icnsPath.getAbsolutePath());
+            builder.getFlags().add("-Xdock:name=Minecraft");
         }
 
         builder.getFlags().add("-Djava.library.path=" + extractDir.getAbsoluteFile());
