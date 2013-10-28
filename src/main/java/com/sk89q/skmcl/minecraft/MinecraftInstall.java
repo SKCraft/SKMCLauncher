@@ -31,6 +31,7 @@ import com.sk89q.skmcl.profile.Profile;
 import com.sk89q.skmcl.session.Session;
 import com.sk89q.skmcl.util.Environment;
 import com.sk89q.skmcl.util.Operation;
+import com.sk89q.skmcl.util.Persistence;
 import com.sk89q.skmcl.util.Platform;
 import lombok.Getter;
 import lombok.NonNull;
@@ -57,6 +58,8 @@ public class MinecraftInstall implements Instance {
     private final String versionPath;
     @Getter
     private final Environment environment;
+    @Getter
+    private JarBuilder jarPatcher;
 
     /**
      * Create a new instance.
@@ -72,6 +75,15 @@ public class MinecraftInstall implements Instance {
         this.version = version;
         this.environment = environment;
         versionPath = String.format("versions/%1$s/%1$s", version.getId());
+
+        // JAR patcher configuration
+        File file = new File(getProfile().getContentDir(), versionPath + "-patches.json");
+        File dir = new File(getProfile().getContentDir(), versionPath + "-jar-patches");
+        File patchedJar = new File(getProfile().getContentDir(), versionPath + "-patched.jar");
+
+        jarPatcher = Persistence.load(file, JarBuilder.class);
+        jarPatcher.setPaths(getJarPath(), patchedJar, dir);
+        Persistence.bind(jarPatcher, file);
     }
 
     /**
@@ -169,7 +181,7 @@ public class MinecraftInstall implements Instance {
         }
 
         builder.getFlags().add("-Djava.library.path=" + extractDir.getAbsoluteFile());
-        builder.classPath(getJarPath());
+        builder.classPath(getJarPatcher().getExecutedPath());
         builder.setMainClass(manifest.getMainClass());
 
         ProcessBuilder processBuilder = new ProcessBuilder(builder.buildCommand());
