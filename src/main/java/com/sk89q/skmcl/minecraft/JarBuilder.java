@@ -23,8 +23,10 @@ import lombok.NonNull;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.java.Log;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.codehaus.jackson.annotate.JsonIgnore;
 
 import java.io.*;
 import java.util.*;
@@ -49,17 +51,28 @@ import static org.apache.commons.io.IOUtils.closeQuietly;
 @ToString
 public class JarBuilder {
 
-    @Getter
     private transient File source;
-    @Getter
     private transient File target;
-    @Getter
     private transient File dir;
 
     @Getter @Setter
     private boolean dirty;
     @Getter @Setter @NonNull
     private List<String> included = new ArrayList<String>();
+
+    @JsonIgnore
+    public File getSource() {
+        return source;
+    }
+    @JsonIgnore
+    public File getTarget() {
+        return target;
+    }
+
+    @JsonIgnore
+    public File getDir() {
+        return dir;
+    }
 
     /**
      * Set the paths to use.
@@ -72,6 +85,19 @@ public class JarBuilder {
         this.source = source;
         this.target = target;
         this.dir = dir;
+    }
+
+    /**
+     * Add the given archive tot he list of included patches.
+     *
+     * @param path the path
+     * @throws IOException on I/O error
+     */
+    public void install(File path) throws IOException {
+        String name = path.getName();
+        File dest = new File(getDir(), name);
+        FileUtils.copyFile(path, dest);
+        included.add(name);
     }
 
     /**
@@ -183,14 +209,19 @@ public class JarBuilder {
     }
 
     /**
-     * Get the path to the target .jar File, building it if necessary.
+     * Get the path to the .jar file that can be run.
      *
-     * <p>This method may block of the .jar has to be rebuilt.</p>
+     * <p>This method may block of the .jar has to be rebuilt. The returned path
+     * may point to the original .jar if no changes were necessary.</p>
      *
      * @return the path to the .jar file
-     * @throws IOException
+     * @throws IOException on I/O error
      */
-    public File getBuiltPath() throws IOException {
+    public File getExecutedPath() throws IOException {
+        if (getIncluded().size() == 0) {
+            return getSource();
+        }
+
         if (isDirty() || !getTarget().exists()) {
             rebuild();
         }
