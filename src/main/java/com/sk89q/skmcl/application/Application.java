@@ -72,6 +72,7 @@ public interface Application {
      * @return the latest stable version
      * @throws IOException thrown on I/O error
      */
+    @JsonIgnore
     Version getLatestStable() throws IOException;
 
     /**
@@ -80,6 +81,7 @@ public interface Application {
      * @return the latest snapshot version, or null if none are available
      * @throws IOException thrown on I/O error
      */
+    @JsonIgnore
     Version getLatestSnapshot() throws IOException;
 
     /**
