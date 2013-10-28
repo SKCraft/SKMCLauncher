@@ -24,6 +24,7 @@ import lombok.ToString;
 import org.apache.commons.io.IOUtils;
 
 import java.io.*;
+import java.util.concurrent.Callable;
 
 import static org.apache.commons.io.IOUtils.closeQuietly;
 
@@ -31,7 +32,7 @@ import static org.apache.commons.io.IOUtils.closeQuietly;
  * Copies a file to another location.
  */
 @ToString
-public class FileCopy implements Runnable {
+public class FileCopy implements Runnable, Callable<File> {
 
     @Getter
     private final Resource resource;
@@ -44,26 +45,33 @@ public class FileCopy implements Runnable {
     }
 
     @Override
+    public File call() throws Exception {
+        InputStream is = resource.getInputStream();
+        FileOutputStream fos = null;
+        BufferedOutputStream bos = null;
+
+        destination.getParentFile().mkdirs();
+
+        try {
+            fos = new FileOutputStream(destination);
+            bos = new BufferedOutputStream(fos);
+            IOUtils.copy(is, bos);
+        } finally {
+            closeQuietly(is);
+            closeQuietly(bos);
+            closeQuietly(fos);
+        }
+
+        resource.cleanup();
+
+        return destination;
+    }
+
+    @Override
     public void run() {
         try {
-            InputStream is = resource.getInputStream();
-            FileOutputStream fos = null;
-            BufferedOutputStream bos = null;
-
-            destination.getParentFile().mkdirs();
-
-            try {
-                fos = new FileOutputStream(destination);
-                bos = new BufferedOutputStream(fos);
-                IOUtils.copy(is, bos);
-            } finally {
-                closeQuietly(is);
-                closeQuietly(bos);
-                closeQuietly(fos);
-            }
-
-            resource.cleanup();
-        } catch (IOException e) {
+            call();
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
