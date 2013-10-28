@@ -19,16 +19,19 @@
 package com.sk89q.skmcl.util;
 
 import lombok.NonNull;
+import lombok.extern.java.Log;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.WeakHashMap;
+import java.util.logging.Level;
 
 /**
  * Simple persistence framework that can bind an object to a file and later allow for
  * code utilizing the object to save it globally.
  */
+@Log
 public final class Persistence {
 
     private static final ObjectMapper mapper = new ObjectMapper();
@@ -72,6 +75,43 @@ public final class Persistence {
     /**
      * Read an object from file.
      *
+     * @param file the file
+     * @param cls the class
+     * @param returnNull true to return null if the object could not be loaded
+     * @param <V> the type of class
+     * @return an object
+     */
+    public static <V> V load(File file, Class<V> cls, boolean returnNull) {
+        V object;
+
+        try {
+            object = mapper.readValue(file, cls);
+        } catch (IOException e) {
+            log.log(Level.INFO, "Failed to load " + file.getAbsolutePath() +
+                    " as " + cls.getCanonicalName(), e);
+
+            if (returnNull) {
+                return null;
+            }
+
+            try {
+                object = cls.newInstance();
+            } catch (InstantiationException e1) {
+                throw new RuntimeException(
+                        "Failed to construct object with no-arg constructor", e1);
+            } catch (IllegalAccessException e1) {
+                throw new RuntimeException(
+                        "Failed to construct object with no-arg constructor", e1);
+            }
+        }
+
+        Persistence.bind(object, file);
+        return object;
+    }
+
+    /**
+     * Read an object from file.
+     *
      * <p>If the file does not exist or loading fails, construct a new instance of
      * the given class by using its no-arg constructor.</p>
      *
@@ -81,19 +121,7 @@ public final class Persistence {
      * @return an object
      */
     public static <V> V load(File file, Class<V> cls) {
-        try {
-            return mapper.readValue(file, cls);
-        } catch (IOException e) {
-            try {
-                return cls.newInstance();
-            } catch (InstantiationException e1) {
-                throw new RuntimeException(
-                        "Failed to construct object with no-arg constructor", e1);
-            } catch (IllegalAccessException e1) {
-                throw new RuntimeException(
-                        "Failed to construct object with no-arg constructor", e1);
-            }
-        }
+        return load(file, cls, false);
     }
 
 }
