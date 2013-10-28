@@ -48,7 +48,10 @@ public interface Instance {
      *
      * @param context the launch context
      * @return the launched process
+     * @throws UpdateRequiredException thrown if an update must be performed first
+     * @throws IOException on any sort of I/O error
      */
-    LaunchedProcess launch(LaunchContext context) throws IOException;
+    LaunchedProcess launch(LaunchContext context)
+            throws UpdateRequiredException, IOException;
 
 }

@@ -18,19 +18,22 @@
 
 package com.sk89q.skmcl.application;
 
+import lombok.Data;
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
+
 /**
  * Represents a version.
  */
-public interface Version {
+@Data
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class Version {
 
-    /**
-     * An identifier for the version.
-     *
-     * <p>The identifier can be any string. It may not be meaningful outside the
-     * application.</p>
-     *
-     * @return the identifier
-     */
-    String getId();
+    private String id;
 
+    public Version() {
+    }
+
+    public Version(String id) {
+        this.id = id;
+    }
 }

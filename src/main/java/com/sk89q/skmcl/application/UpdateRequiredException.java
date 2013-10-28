@@ -16,29 +16,26 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.sk89q.skmcl.minecraft;
-
-import com.sk89q.skmcl.application.Version;
-import lombok.Data;
-
-import java.util.Date;
+package com.sk89q.skmcl.application;
 
 /**
- * A version of Minecraft.
+ * Thrown if an update is required before the application can be launched.
  */
-@Data
-public class Release implements Version {
+public class UpdateRequiredException extends Exception {
 
-    private String id;
-    private Date time;
-    private Date releaseTime;
-    private String type;
-
-    public Release() {
+    public UpdateRequiredException() {
     }
 
-    public Release(String id) {
-        this.id = id;
+    public UpdateRequiredException(String message) {
+        super(message);
+    }
+
+    public UpdateRequiredException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public UpdateRequiredException(Throwable cause) {
+        super(cause);
     }
 
 }

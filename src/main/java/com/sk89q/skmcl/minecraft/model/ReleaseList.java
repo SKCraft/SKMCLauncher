@@ -18,17 +18,19 @@
 
 package com.sk89q.skmcl.minecraft.model;
 
-import com.sk89q.skmcl.minecraft.Release;
+import com.sk89q.skmcl.application.Version;
 import lombok.Data;
 import lombok.NonNull;
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 
 import java.util.List;
 
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ReleaseList {
 
     private LatestReleases latest;
-    private List<Release> versions;
+    private List<Version> versions;
 
     /**
      * Get a release with the given ID.
@@ -36,8 +38,8 @@ public class ReleaseList {
      * @param id the ID
      * @return the release
      */
-    public Release find(@NonNull String id) {
-        for (Release release : getVersions()) {
+    public Version find(@NonNull String id) {
+        for (Version release : getVersions()) {
             if (release.getId().equals(id)) {
                 return release;
             }

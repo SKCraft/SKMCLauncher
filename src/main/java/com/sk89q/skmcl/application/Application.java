@@ -49,6 +49,24 @@ public interface Application {
     void setProfile(Profile profile);
 
     /**
+     * Get the currently selected version.
+     *
+     * @return the currently selected version
+     */
+    Version getVersion();
+
+    /**
+     * Set the currently selected version.
+     *
+     * <p>This call should not block. If changes have to be made to the installation,
+     * then those changes must be deferred until an update or launch is
+     * initiated.</p>
+     *
+     * @param version the currently selected version
+     */
+    void setVersion(Version version);
+
+    /**
      * Get the latest stable version.
      *
      * @return the latest stable version
@@ -88,14 +106,13 @@ public interface Application {
     void forgetVersions();
 
     /**
-     * Given a version, create an object that represents an active installation of
-     * that version.
+     * Get an instance representing the current installation for the current
+     * version was returned by
      *
-     * @param version the version
      * @param environment the environment
      * @param <T> the version type
      * @return an instance
      */
-    <T extends Version> Instance getInstance(T version, Environment environment);
+    <T extends Version> Instance getInstance(Environment environment);
 
 }

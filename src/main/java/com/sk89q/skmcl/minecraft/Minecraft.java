@@ -18,13 +18,13 @@
 
 package com.sk89q.skmcl.minecraft;
 
-import com.sk89q.skmcl.util.Environment;
-import com.sk89q.skmcl.util.HttpRequest;
 import com.sk89q.skmcl.application.Application;
 import com.sk89q.skmcl.application.Instance;
-import com.sk89q.skmcl.profile.Profile;
 import com.sk89q.skmcl.application.Version;
 import com.sk89q.skmcl.minecraft.model.ReleaseList;
+import com.sk89q.skmcl.profile.Profile;
+import com.sk89q.skmcl.util.Environment;
+import com.sk89q.skmcl.util.HttpRequest;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -42,7 +42,7 @@ public class Minecraft implements Application {
     public static final String VERSIONS_LIST_URL =
             "http://s3.amazonaws.com/Minecraft.Download/versions/versions.json";
 
-    private Version selected;
+    private Version version;
     private transient Profile profile;
     private transient ReleaseList releaseList;
 
@@ -61,8 +61,18 @@ public class Minecraft implements Application {
     }
 
     @Override
-    public Release getLatestStable() throws IOException {
-        Release release = getReleaseList().find(
+    public Version getVersion() {
+        return version;
+    }
+
+    @Override
+    public void setVersion(Version version) {
+        this.version = version;
+    }
+
+    @Override
+    public Version getLatestStable() throws IOException {
+        Version release = getReleaseList().find(
                 getReleaseList().getLatest().getRelease());
         if (release != null) {
             return release;
@@ -77,19 +87,19 @@ public class Minecraft implements Application {
     }
 
     @Override
-    public List<Release> getInstalled() {
-        List<Release> versions = new ArrayList<Release>();
+    public List<Version> getInstalled() {
+        List<Version> versions = new ArrayList<Version>();
         File dir = new File(profile.getContentDir(), "versions");
         if (dir.exists()) {
             for (File d : dir.listFiles(new VersionFoldersFilter())) {
-                versions.add(new Release(d.getName()));
+                versions.add(new Version(d.getName()));
             }
         }
         return versions;
     }
 
     @Override
-    public List<Release> getAvailable() throws IOException {
+    public List<Version> getAvailable() throws IOException {
         return getReleaseList().getVersions();
     }
 
@@ -99,12 +109,12 @@ public class Minecraft implements Application {
     }
 
     @Override
-    public Instance getInstance(Version version, Environment environment) {
-        if (version instanceof Release) {
-            return new MinecraftInstall(getProfile(), (Release) version, environment);
-        } else {
-            throw new IllegalArgumentException("Must be a Release");
+    public Instance getInstance(Environment environment) {
+        Version current = getVersion();
+        if (current == null) {
+            throw new NullPointerException("No version is set for this application");
         }
+        return new MinecraftInstall(getProfile(), current, environment);
     }
 
     /**

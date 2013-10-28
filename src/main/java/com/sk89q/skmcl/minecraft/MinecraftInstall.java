@@ -19,6 +19,7 @@
 package com.sk89q.skmcl.minecraft;
 
 import com.sk89q.skmcl.application.Instance;
+import com.sk89q.skmcl.application.Version;
 import com.sk89q.skmcl.install.FileResource;
 import com.sk89q.skmcl.install.ZipExtract;
 import com.sk89q.skmcl.launch.JavaProcessBuilder;
@@ -51,7 +52,7 @@ public class MinecraftInstall implements Instance {
     @Getter
     private final Profile profile;
     @Getter
-    private final Release version;
+    private final Version version;
     @Getter
     private final String versionPath;
     @Getter
@@ -65,7 +66,7 @@ public class MinecraftInstall implements Instance {
      * @param environment the environment
      */
     public MinecraftInstall(@NonNull final Profile profile,
-                            @NonNull final Release version,
+                            @NonNull final Version version,
                             @NonNull final Environment environment) {
         this.profile = profile;
         this.version = version;
