@@ -20,13 +20,36 @@ package com.sk89q.skmcl.profile;
 
 import com.sk89q.skmcl.application.Application;
 import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonSubTypes;
+import org.codehaus.jackson.annotate.JsonTypeInfo;
 
 import java.io.File;
 
 /**
  * Represents a profile that contains an installed game.
  */
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "class")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = SimpleProfile.class, name = "simple")
+})
 public interface Profile {
+
+    /**
+     * Get the name of the profile.
+     *
+     * @return the name of the profile
+     */
+    String getName();
+
+    /**
+     * Set the name of the profile.
+     *
+     * @param name the name of the profile
+     */
+    void setName(String name);
 
     /**
      * Get the application installed into this profile.

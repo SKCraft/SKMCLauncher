@@ -22,20 +22,21 @@ import com.sk89q.skmcl.application.Application;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.io.File;
 
+@ToString
 public class SimpleProfile implements Profile {
 
+    @Getter
     private Application application;
+    @Getter @Setter @NonNull
+    private String name;
     @Getter @Setter @NonNull
     private File baseDir;
     @Getter @Setter @NonNull
     private File sharedDir;
-
-    public Application getApplication() {
-        return application;
-    }
 
     public void setApplication(@NonNull Application application) {
         this.application = application;
