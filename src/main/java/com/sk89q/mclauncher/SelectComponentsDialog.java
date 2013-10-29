@@ -136,7 +136,7 @@ public class SelectComponentsDialog extends JDialog {
         buttonsPanel.add(installButton);
         bottomPanel.add(buttonsPanel, BorderLayout.SOUTH);
 
-        installButton.addActionListener(ActionListeners.dipose(this));
+        installButton.addActionListener(ActionListeners.dispose(this));
     }
 
 }

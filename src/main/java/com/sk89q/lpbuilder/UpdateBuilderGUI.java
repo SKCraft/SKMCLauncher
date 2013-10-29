@@ -57,7 +57,7 @@ import com.sk89q.mclauncher.util.FileField;
 import com.sk89q.mclauncher.util.LinkButton;
 import com.sk89q.mclauncher.util.MessageLog;
 import com.sk89q.mclauncher.util.SimpleLogFormatter;
-import com.sk89q.mclauncher.util.SwingHelper;
+import com.sk89q.skmcl.swing.SwingHelper;
 import com.sk89q.mclauncher.util.XmlUtils;
 import com.sk89q.mclauncher.util.Task.ExecutionException;
 

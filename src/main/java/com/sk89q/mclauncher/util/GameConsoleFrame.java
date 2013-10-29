@@ -36,6 +36,7 @@ import javax.swing.SwingUtilities;
 
 import com.sk89q.mclauncher.Launcher;
 import com.sk89q.mclauncher.config.Def;
+import com.sk89q.skmcl.swing.SwingHelper;
 
 public class GameConsoleFrame extends ConsoleFrame {
     

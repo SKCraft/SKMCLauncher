@@ -18,6 +18,8 @@
 
 package com.sk89q.mclauncher.util;
 
+import com.sk89q.skmcl.swing.SwingHelper;
+
 import java.awt.Component;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -38,7 +40,7 @@ public final class ActionListeners {
      * @param window the window
      * @return the listener
      */
-    public static ActionListener dipose(final Window window) {
+    public static ActionListener dispose(final Window window) {
         return new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {

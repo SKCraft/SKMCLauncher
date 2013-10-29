@@ -30,7 +30,7 @@ import com.sk89q.mclauncher.config.Identity;
 import com.sk89q.mclauncher.config.IdentityList;
 import com.sk89q.mclauncher.config.LauncherOptions;
 import com.sk89q.mclauncher.config.MinecraftJar;
-import com.sk89q.mclauncher.util.SwingHelper;
+import com.sk89q.skmcl.swing.SwingHelper;
 import com.sk89q.mclauncher.util.Task;
 import com.sk89q.mclauncher.util.TaskWorker;
 

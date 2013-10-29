@@ -16,12 +16,15 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.sk89q.mclauncher.util;
+package com.sk89q.skmcl.swing;
 
-import java.awt.Component;
-import java.awt.Desktop;
-import java.awt.Dimension;
-import java.awt.Font;
+import com.sk89q.mclauncher.Launcher;
+import com.sk89q.mclauncher.util.LauncherUtils;
+
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import javax.swing.text.JTextComponent;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -30,16 +33,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-
-import javax.imageio.ImageIO;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.text.JTextComponent;
-
-import com.sk89q.mclauncher.Launcher;
 
 /**
  * Swing utility methods.

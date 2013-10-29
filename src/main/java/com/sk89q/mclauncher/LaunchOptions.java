@@ -54,7 +54,7 @@ import com.sk89q.mclauncher.config.LauncherOptions;
 import com.sk89q.mclauncher.config.MinecraftJar;
 import com.sk89q.mclauncher.util.LinkButton;
 import com.sk89q.mclauncher.util.PopupMouseAdapter;
-import com.sk89q.mclauncher.util.SwingHelper;
+import com.sk89q.skmcl.swing.SwingHelper;
 
 /**
  * A set of launch options.

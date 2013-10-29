@@ -47,7 +47,7 @@ import com.sk89q.mclauncher.update.UpdateException;
 import com.sk89q.mclauncher.update.Updater;
 import com.sk89q.mclauncher.update.Updater.UpdateType;
 import com.sk89q.mclauncher.util.LauncherUtils;
-import com.sk89q.mclauncher.util.SwingHelper;
+import com.sk89q.skmcl.swing.SwingHelper;
 import com.sk89q.mclauncher.util.Task;
 
 /**

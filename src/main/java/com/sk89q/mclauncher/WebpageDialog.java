@@ -80,12 +80,12 @@ public class WebpageDialog extends JDialog {
             buttonsPanel.add(Box.createHorizontalStrut(6));
             JButton cancelButton = new JButton("Cancel");
             buttonsPanel.add(cancelButton);
-            cancelButton.addActionListener(ActionListeners.dipose(this));
+            cancelButton.addActionListener(ActionListeners.dispose(this));
         } else {
             buttonsPanel.add(Box.createHorizontalGlue());
             JButton closeButton = new JButton("Close Window");
             buttonsPanel.add(closeButton);
-            closeButton.addActionListener(ActionListeners.dipose(this));
+            closeButton.addActionListener(ActionListeners.dispose(this));
         }
         add(buttonsPanel, BorderLayout.SOUTH);
         

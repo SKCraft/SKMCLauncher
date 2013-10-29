@@ -34,6 +34,7 @@ import com.sk89q.mclauncher.event.ProgressListener;
 import com.sk89q.mclauncher.event.StatusChangeEvent;
 import com.sk89q.mclauncher.event.TitleChangeEvent;
 import com.sk89q.mclauncher.event.ValueChangeEvent;
+import com.sk89q.skmcl.swing.SwingHelper;
 
 /**
  * Used to run a task in a different thread apart from a GUI. The class has

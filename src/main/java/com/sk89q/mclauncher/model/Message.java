@@ -33,7 +33,7 @@ import com.sk89q.mclauncher.WebpagePanel;
 import com.sk89q.mclauncher.update.Phase;
 import com.sk89q.mclauncher.update.UpdateCache;
 import com.sk89q.mclauncher.util.LauncherUtils;
-import com.sk89q.mclauncher.util.SwingHelper;
+import com.sk89q.skmcl.swing.SwingHelper;
 
 public class Message {
     

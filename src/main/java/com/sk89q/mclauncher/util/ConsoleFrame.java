@@ -32,6 +32,7 @@ import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
 import com.sk89q.mclauncher.util.PastebinPoster.PasteCallback;
+import com.sk89q.skmcl.swing.SwingHelper;
 
 public class ConsoleFrame extends JFrame implements PasteCallback {
 

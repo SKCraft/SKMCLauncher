@@ -53,7 +53,7 @@ import com.sk89q.mclauncher.config.LauncherOptions;
 import com.sk89q.mclauncher.config.SettingsList;
 import com.sk89q.mclauncher.util.ActionListeners;
 import com.sk89q.mclauncher.util.DirectoryField;
-import com.sk89q.mclauncher.util.SwingHelper;
+import com.sk89q.skmcl.swing.SwingHelper;
 
 /**
  * Dialog for adding or modifying a {@link Configuration}.
@@ -194,7 +194,7 @@ public class ConfigurationDialog extends JDialog {
             }
         });
         
-        cancelBtn.addActionListener(ActionListeners.dipose(this));
+        cancelBtn.addActionListener(ActionListeners.dispose(this));
         
         add(container, BorderLayout.CENTER);
     }

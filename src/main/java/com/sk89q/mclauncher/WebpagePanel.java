@@ -47,7 +47,7 @@ import javax.swing.event.HyperlinkListener;
 import javax.swing.text.html.HTMLDocument;
 
 import com.sk89q.mclauncher.util.LauncherUtils;
-import com.sk89q.mclauncher.util.SwingHelper;
+import com.sk89q.skmcl.swing.SwingHelper;
 
 public final class WebpagePanel extends JPanel {
 
