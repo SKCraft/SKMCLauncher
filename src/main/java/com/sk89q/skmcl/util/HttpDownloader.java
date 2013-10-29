@@ -18,7 +18,6 @@
 
 package com.sk89q.skmcl.util;
 
-import com.sk89q.mclauncher.util.LauncherUtils;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;

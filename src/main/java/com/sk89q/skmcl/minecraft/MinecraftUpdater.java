@@ -18,7 +18,7 @@
 
 package com.sk89q.skmcl.minecraft;
 
-import com.sk89q.mclauncher.util.LauncherUtils;
+import com.sk89q.skmcl.util.LauncherUtils;
 import com.sk89q.skmcl.application.Version;
 import com.sk89q.skmcl.install.HttpResource;
 import com.sk89q.skmcl.install.InstallerRuntime;
@@ -39,6 +39,7 @@ import java.util.logging.Logger;
 
 import static com.sk89q.skmcl.util.HttpRequest.Form.form;
 import static com.sk89q.skmcl.util.HttpRequest.url;
+import static org.apache.commons.io.IOUtils.closeQuietly;
 
 /**
  * Updates an installation of Minecraft.
@@ -221,7 +222,7 @@ class MinecraftUpdater extends Operation<MinecraftInstall> {
         } catch (IOException e) {
             return "";
         } finally {
-            LauncherUtils.close(is);
+            closeQuietly(is);
         }
     }
 

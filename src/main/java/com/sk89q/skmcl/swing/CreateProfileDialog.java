@@ -18,7 +18,6 @@
 
 package com.sk89q.skmcl.swing;
 
-import com.sk89q.mclauncher.util.ActionListeners;
 import com.sk89q.skmcl.Launcher;
 import com.sk89q.skmcl.application.Application;
 import com.sk89q.skmcl.application.LatestStable;

@@ -18,8 +18,7 @@
 
 package com.sk89q.skmcl.swing;
 
-import com.sk89q.mclauncher.Launcher;
-import com.sk89q.mclauncher.util.LauncherUtils;
+import com.sk89q.skmcl.util.LauncherUtils;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -33,6 +32,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+
+import static org.apache.commons.io.IOUtils.closeQuietly;
 
 /**
  * Swing utility methods.
@@ -222,13 +223,13 @@ public final class SwingHelper {
     public static BufferedImage readIconImage(String path) {
         InputStream in = null;
         try {
-            in = Launcher.class.getResourceAsStream(path);
+            in = SwingHelper.class.getResourceAsStream(path);
             if (in != null) {
                 return ImageIO.read(in);
             }
         } catch (IOException e) {
         } finally {
-            LauncherUtils.close(in);
+            closeQuietly(in);
         }
         return null;
     }

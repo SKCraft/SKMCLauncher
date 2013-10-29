@@ -18,10 +18,7 @@
 
 package com.sk89q.skmcl.install;
 
-import com.sk89q.mclauncher.util.LauncherUtils;
-import com.sk89q.skmcl.util.Environment;
-import com.sk89q.skmcl.util.HttpDownloader;
-import com.sk89q.skmcl.util.Operation;
+import com.sk89q.skmcl.util.*;
 import lombok.Getter;
 
 import java.io.File;
@@ -118,7 +115,7 @@ public class InstallerRuntime extends Operation<InstallerRuntime> {
 
                 try {
                     cache.removeOldEntries();
-                    LauncherUtils.writeJson(file, cache);
+                    Persistence.write(file, cache);
                 } catch (IOException e) {
                     logger.log(Level.WARNING, "Failed to write version cache to {}", file);
                 }

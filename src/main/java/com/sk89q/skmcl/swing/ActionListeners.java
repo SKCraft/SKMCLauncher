@@ -16,9 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.sk89q.mclauncher.util;
-
-import com.sk89q.skmcl.swing.SwingHelper;
+package com.sk89q.skmcl.swing;
 
 import java.awt.Component;
 import java.awt.Window;

@@ -18,7 +18,6 @@
 
 package com.sk89q.skmcl.launch;
 
-import com.sk89q.mclauncher.util.JavaRuntimeFinder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;

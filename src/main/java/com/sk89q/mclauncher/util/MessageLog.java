@@ -18,8 +18,11 @@
 
 package com.sk89q.mclauncher.util;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
+import com.sk89q.skmcl.util.LauncherUtils;
+
+import javax.swing.*;
+import javax.swing.text.*;
+import java.awt.*;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,19 +32,7 @@ import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextPane;
-import javax.swing.ScrollPaneConstants;
-import javax.swing.text.AttributeSet;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.DefaultCaret;
-import javax.swing.text.Document;
-import javax.swing.text.JTextComponent;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
+import static org.apache.commons.io.IOUtils.closeQuietly;
 
 /**
  * A simple message log.
@@ -239,8 +230,8 @@ public class MessageLog extends JPanel {
                     }
                 } catch (IOException e) {
                 } finally {
-                    LauncherUtils.close(in);
-                    LauncherUtils.close(out);
+                    closeQuietly(in);
+                    closeQuietly(out);
                 }
             }
         });

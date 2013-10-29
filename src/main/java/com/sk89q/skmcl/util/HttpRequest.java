@@ -18,7 +18,6 @@
 
 package com.sk89q.skmcl.util;
 
-import com.sk89q.mclauncher.util.LauncherUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -35,7 +34,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.sk89q.mclauncher.util.LauncherUtils.checkInterrupted;
+import static com.sk89q.skmcl.util.LauncherUtils.checkInterrupted;
+import static org.apache.commons.io.IOUtils.closeQuietly;
 
 /**
  * A simple fluent interface for performing HTTP requests that uses
@@ -233,8 +233,8 @@ public class HttpRequest implements Closeable {
 
             saveContent(bos);
         } finally {
-            LauncherUtils.close(bos);
-            LauncherUtils.close(fos);
+            closeQuietly(bos);
+            closeQuietly(fos);
         }
 
         return this;
@@ -440,8 +440,8 @@ public class HttpRequest implements Closeable {
 
                 saveContent(bos);
             } finally {
-                LauncherUtils.close(bos);
-                LauncherUtils.close(fos);
+                closeQuietly(bos);
+                closeQuietly(fos);
             }
 
             return this;

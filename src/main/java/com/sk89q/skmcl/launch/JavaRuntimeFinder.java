@@ -16,18 +16,17 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.sk89q.mclauncher.util;
+package com.sk89q.skmcl.launch;
+
+import com.sk89q.skmcl.util.Environment;
+import com.sk89q.skmcl.util.Platform;
+import com.sk89q.skmcl.util.WinRegistry;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import com.sk89q.skmcl.util.Platform;
-import util.WinRegistry;
-
-import com.sk89q.mclauncher.Launcher;
 
 /**
  * Finds the best Java runtime to use.
@@ -38,8 +37,8 @@ public final class JavaRuntimeFinder {
     }
     
     public static File findBestJavaPath() {
-        if (Launcher.getPlatform() != Platform.WINDOWS) {
-            return null; // Psshhh
+        if (Environment.getInstance().getPlatform() != Platform.WINDOWS) {
+            return null;
         }
         
         List<JREEntry> entries = new ArrayList<JREEntry>();

@@ -18,25 +18,13 @@
 
 package com.sk89q.mclauncher.util;
 
-import java.awt.AWTException;
-import java.awt.Color;
-import java.awt.Image;
-import java.awt.MenuItem;
-import java.awt.PopupMenu;
-import java.awt.SystemTray;
-import java.awt.TrayIcon;
+import com.sk89q.skmcl.swing.SwingHelper;
+
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.PrintWriter;
-
-import javax.swing.Box;
-import javax.swing.JButton;
-import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
-
-import com.sk89q.mclauncher.Launcher;
-import com.sk89q.mclauncher.config.Def;
-import com.sk89q.skmcl.swing.SwingHelper;
 
 public class GameConsoleFrame extends ConsoleFrame {
     
@@ -97,9 +85,7 @@ public class GameConsoleFrame extends ConsoleFrame {
      * @return true to continue force closing
      */
     private boolean confirmKill() {
-        boolean confirmKill = 
-                Launcher.getInstance().getOptions().getSettings().getBool(
-                        Def.CONSOLE_CONFIRM_KILL, true); // Confirm the kill process
+        boolean confirmKill = true; // @TODO
         
         if (confirmKill && JOptionPane
                 .showConfirmDialog(

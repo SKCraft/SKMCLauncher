@@ -18,7 +18,6 @@
 
 package com.sk89q.skmcl.session;
 
-import com.sk89q.mclauncher.util.LauncherUtils;
 import com.sk89q.skmcl.util.HttpRequest;
 import lombok.Data;
 import lombok.Getter;
@@ -66,27 +65,22 @@ public class YggdrasilSession implements Session {
 
     @Override
     public YggdrasilSession call() throws Exception {
-        HttpRequest request = null;
         Object payload = new AuthenticatePayload(id, password);
 
-        try {
-            request = HttpRequest
-                    .post(url)
-                    .bodyJson(payload)
-                    .execute();
+        HttpRequest request = HttpRequest
+                .post(url)
+                .bodyJson(payload)
+                .execute();
 
-            if (request.getResponseCode() != 200) {
-                ErrorResponse error = request.returnContent().asJson(ErrorResponse.class);
-                throw new AuthenticationException(error.getErrorMessage());
-            } else {
-                AuthenticateResponse response =
-                        request.returnContent().asJson(AuthenticateResponse.class);
-                accessToken = response.getAccessToken();
-                sessionId = response.getClientToken();
-                return this;
-            }
-        } finally {
-            LauncherUtils.close(request);
+        if (request.getResponseCode() != 200) {
+            ErrorResponse error = request.returnContent().asJson(ErrorResponse.class);
+            throw new AuthenticationException(error.getErrorMessage());
+        } else {
+            AuthenticateResponse response =
+                    request.returnContent().asJson(AuthenticateResponse.class);
+            accessToken = response.getAccessToken();
+            sessionId = response.getClientToken();
+            return this;
         }
     }
 

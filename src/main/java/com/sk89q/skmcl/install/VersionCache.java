@@ -18,7 +18,7 @@
 
 package com.sk89q.skmcl.install;
 
-import com.sk89q.mclauncher.util.LauncherUtils;
+import com.sk89q.skmcl.util.LauncherUtils;
 import lombok.Getter;
 import lombok.Setter;
 

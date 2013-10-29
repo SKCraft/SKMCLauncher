@@ -68,8 +68,7 @@ public final class Persistence {
             }
         }
 
-        file.getParentFile().mkdirs();
-        mapper.writeValue(file, object);
+        write(file, object);
     }
 
     /**
@@ -124,4 +123,15 @@ public final class Persistence {
         return load(file, cls, false);
     }
 
+    /**
+     * Write an object to file.
+     *
+     * @param file the file
+     * @param object the object
+     * @throws IOException on I/O error
+     */
+    public static void write(File file, Object object) throws IOException {
+        file.getParentFile().mkdirs();
+        mapper.writeValue(file, object);
+    }
 }

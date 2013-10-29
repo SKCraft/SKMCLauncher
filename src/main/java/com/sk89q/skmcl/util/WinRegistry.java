@@ -1,4 +1,5 @@
-package util;
+package com.sk89q.skmcl.util;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
