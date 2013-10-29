@@ -19,21 +19,48 @@
 package com.sk89q.skmcl.application;
 
 import lombok.Data;
-import org.codehaus.jackson.annotate.JsonIgnoreProperties;
+import lombok.NonNull;
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonSubTypes;
+import org.codehaus.jackson.annotate.JsonTypeInfo;
 
 /**
  * Represents a version.
  */
 @Data
-@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "type")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = LatestStable.class, name = "stable"),
+        @JsonSubTypes.Type(value = LatestSnapshot.class, name = "snapshot"),
+        @JsonSubTypes.Type(value = Version.class, name = "version")
+})
 public class Version {
 
+    @NonNull
     private String id;
 
     public Version() {
     }
 
-    public Version(String id) {
+    public Version(@NonNull String id) {
         this.id = id;
+    }
+
+    /**
+     * Get a friendly but identifiable name for the version (if possible).
+     *
+     * @return a name
+     */
+    @JsonIgnore
+    public String getName() {
+        return id;
+    }
+
+    @Override
+    public String toString() {
+        return getName();
     }
 }
