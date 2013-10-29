@@ -166,7 +166,7 @@
           <version>${project.version}</version>
           <internetEnable>true</internetEnable>
           <mainClass>com.sk89q.skmcl.Launcher</mainClass>
-          <javaApplicationStub>${basedir}/src/main/resources/JavaApplicationStub</javaApplicationStub>
+          <javaApplicationStub>${basedir}/resources/JavaApplicationStub</javaApplicationStub>
           <jvmVersion>1.6+</jvmVersion>
           <zipFile>${project.build.directory}/${project.build.finalName}.app.zip</zipFile>
           <diskImageFile>${project.build.directory}/${project.build.finalName}.dmg</diskImageFile>
