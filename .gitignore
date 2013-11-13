@@ -30,3 +30,5 @@
 *.ipr
 *.iws
 .idea/
+
+/_temp*
