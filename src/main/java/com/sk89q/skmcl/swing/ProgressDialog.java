@@ -18,7 +18,7 @@
 
 package com.sk89q.skmcl.swing;
 
-import com.sk89q.skmcl.util.Worker;
+import com.sk89q.skmcl.worker.Worker;
 
 import javax.swing.*;
 import java.awt.*;
@@ -57,7 +57,7 @@ public class ProgressDialog extends JDialog implements Observer {
         initComponents();
         pack();
         setResizable(false);
-        setSize(400, getHeight());
+        setSize(500, getHeight());
         setLocationRelativeTo(owner);
 
         worker.addObserver(this);
@@ -132,7 +132,9 @@ public class ProgressDialog extends JDialog implements Observer {
                 if (progress == -1) {
                     progressBar.setIndeterminate(true);
                 } else {
-                    progressBar.setValue((int) (progress * progressBar.getMaximum()));
+                    double value = progress *
+                            (progressBar.getMaximum() - progressBar.getMinimum());
+                    progressBar.setValue((int) value);
                     progressBar.setIndeterminate(false);
                 }
             }

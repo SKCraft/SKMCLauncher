@@ -18,7 +18,9 @@
 
 package com.sk89q.skmcl.install;
 
+import com.sk89q.skmcl.worker.Segment;
 import com.sk89q.skmcl.util.*;
+import com.sk89q.skmcl.worker.Task;
 import lombok.Getter;
 
 import java.io.File;
@@ -28,6 +30,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static com.sk89q.skmcl.util.LauncherUtils.checkInterrupted;
+import static com.sk89q.skmcl.util.SharedLocale._;
 
 /**
  * Manages an installation procedure.
@@ -139,11 +144,20 @@ public class InstallerRuntime extends Task<InstallerRuntime> {
 
     @Override
     public InstallerRuntime call() throws Exception {
+        Segment step1 = segment(0.8),
+                step2 = segments(0.2, tasks.size());
+
+        step1.push(0, _("installer.downloading"));
+
+        httpDownloader.addObserver(step1);
         httpDownloader.call();
 
         for (Runnable task : tasks) {
+            checkInterrupted();
+            step2.push(0, _("installer.installing"));
             logger.log(Level.INFO, "Executing {0}...", task.toString());
             task.run();
+            step2.advance();
         }
 
         return this;

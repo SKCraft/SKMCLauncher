@@ -18,6 +18,7 @@
 
 package com.sk89q.skmcl.minecraft;
 
+import com.sk89q.skmcl.worker.Segment;
 import com.sk89q.skmcl.util.LauncherUtils;
 import com.sk89q.skmcl.application.Version;
 import com.sk89q.skmcl.install.HttpResource;
@@ -27,7 +28,7 @@ import com.sk89q.skmcl.minecraft.model.Library;
 import com.sk89q.skmcl.minecraft.model.ReleaseManifest;
 import com.sk89q.skmcl.util.Environment;
 import com.sk89q.skmcl.util.HttpRequest;
-import com.sk89q.skmcl.util.Task;
+import com.sk89q.skmcl.worker.Task;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.File;
@@ -39,6 +40,8 @@ import java.util.logging.Logger;
 
 import static com.sk89q.skmcl.util.HttpRequest.Form.form;
 import static com.sk89q.skmcl.util.HttpRequest.url;
+import static com.sk89q.skmcl.util.LauncherUtils.checkInterrupted;
+import static com.sk89q.skmcl.util.SharedLocale._;
 import static org.apache.commons.io.IOUtils.closeQuietly;
 
 /**
@@ -109,11 +112,18 @@ class MinecraftUpdater extends Task<MinecraftInstall> {
 
     @Override
     public MinecraftInstall call() throws Exception {
-        installGame();
-        installAssets();
+        Segment step1 = segment(0.1),
+                step2 = segment(0.1),
+                step3 = segment(0.8);
+
+        installGame(step1);
+        checkInterrupted();
+        installAssets(step2);
+        checkInterrupted();
 
         logger.log(Level.INFO, "Install tasks enumerated; now installing...");
 
+        installer.addObserver(step3);
         installer.call();
 
         return instance;
@@ -122,11 +132,13 @@ class MinecraftUpdater extends Task<MinecraftInstall> {
     /**
      * Install the game.
      *
+     * @param segment segment for progress tacking
      * @throws IOException thrown on I/O error
      * @throws InterruptedException thrown on interruption
      */
-    protected void installGame() throws IOException, InterruptedException {
+    protected void installGame(Segment segment) throws IOException, InterruptedException {
         logger.log(Level.INFO, "Checking for game updates...");
+        segment.push(0, _("minecraftUpdate.checkingGameUpdates"));
 
         File contentDir = instance.getProfile().getContentDir();
         File jarPath = instance.getJarPath();
@@ -155,6 +167,8 @@ class MinecraftUpdater extends Task<MinecraftInstall> {
                 if (!file.exists()) {
                     installer.copyTo(new HttpResource(url), file);
                 }
+
+                checkInterrupted();
             }
         }
     }
@@ -162,10 +176,13 @@ class MinecraftUpdater extends Task<MinecraftInstall> {
     /**
      * Add shared Minecraft assets to the installer.
      *
+     * @param segment segment for progress tacking
      * @throws IOException on I/O error
+     * @throws InterruptedException on interruption
      */
-    protected void installAssets() throws IOException {
+    protected void installAssets(Segment segment) throws IOException, InterruptedException {
         logger.log(Level.INFO, "Checking for asset downloads...");
+        segment.push(0, _("minecraftUpdate.checkingAssets"));
 
         File assetsDir = instance.getAssetsDir();
         String marker = "";
@@ -173,6 +190,7 @@ class MinecraftUpdater extends Task<MinecraftInstall> {
         while (marker != null) {
             URL bucketUrl = getAssetsUrl(marker);
             logger.log(Level.INFO, "Enumerating assets from {0}...", bucketUrl);
+            checkInterrupted();
 
             // Obtain the assets manifest
             AWSBucket bucket = HttpRequest

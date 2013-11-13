@@ -18,19 +18,28 @@
 
 package com.sk89q.skmcl.util;
 
+import com.sk89q.skmcl.worker.ProgressUpdater;
+import com.sk89q.skmcl.worker.Segment;
+import com.sk89q.skmcl.worker.Task;
+import com.sk89q.skmcl.worker.Worker;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TimerTask;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static com.sk89q.skmcl.util.LauncherUtils.checkInterrupted;
+import static com.sk89q.skmcl.util.SharedLocale._;
 
 /**
  * Downloads multiple files from HTTP URLs.
@@ -46,13 +55,17 @@ import java.util.logging.Logger;
  *     each file that was downloaded (or attempted).</li>
  * </ul>
  */
-public class HttpDownloader extends Task<List<Future<HttpDownloader.RemoteFile>>> {
+public class HttpDownloader
+        extends Task<List<Future<HttpDownloader.RemoteFile>>>
+        implements ProgressUpdater {
 
     private static final Logger logger = LauncherUtils.getLogger(HttpDownloader.class);
     public static final int DEFAULT_THREAD_COUNT = 5;
 
     private final ExecutorService executor;
     private final List<Future<RemoteFile>> executed = new ArrayList<Future<RemoteFile>>();
+    private final List<RemoteFile> active = new ArrayList<RemoteFile>();
+    private int numProcessed;
     @Getter @Setter
     private boolean overwrite = false;
     @Getter @Setter
@@ -106,18 +119,31 @@ public class HttpDownloader extends Task<List<Future<HttpDownloader.RemoteFile>>
     }
 
     @Override
-    public List<Future<RemoteFile>> call() throws Exception {
+    public List<Future<RemoteFile>> call() throws ExecutionException, InterruptedException {
         executor.shutdown();
-        while (!executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS));
+        TimerTask timerTask = Worker.updatePeriodically(this);
 
-        // Run through all the jobs to see whether any failed
-        synchronized (executed) {
-            for (Future<?> future : executed) {
-                future.get();
+        try {
+            try {
+                while (!executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS));
+            } catch (InterruptedException e) {
+                executor.shutdownNow();
+                throw new InterruptedException();
             }
-        }
 
-        return executed;
+            Segment parts = segments(1, executed.size());
+
+            // Run through all the jobs to see whether any failed
+            synchronized (executed) {
+                for (Future<RemoteFile> future : executed) {
+                    RemoteFile file = future.get();
+                }
+            }
+
+            return executed;
+        } finally {
+            timerTask.cancel();
+        }
     }
 
     /**
@@ -130,6 +156,8 @@ public class HttpDownloader extends Task<List<Future<HttpDownloader.RemoteFile>>
         private final File destination;
         @Getter
         private final URL url;
+        @Getter
+        private HttpRequest httpRequest;
 
         private RemoteFile(File destination, URL url) {
             this.destination = destination;
@@ -145,41 +173,89 @@ public class HttpDownloader extends Task<List<Future<HttpDownloader.RemoteFile>>
             } else {
                 logger.log(Level.INFO, "Downloading {0}...", this);
 
-                File parentFile = file.getParentFile();
-                parentFile.mkdirs();
-                File tempFile = new File(parentFile, file.getName() + ".tmpdownload");
-                int trial = 0;
+                try {
+                    File parentFile = file.getParentFile();
+                    parentFile.mkdirs();
+                    File tempFile = new File(parentFile, file.getName() + ".tmpdownload");
+                    int trial = 0;
 
-                while (true) {
-                    tempFile.delete();
+                    while (true) {
+                        tempFile.delete();
 
-                    try {
-                        HttpRequest
-                                .get(getUrl())
-                                .execute()
-                                .expectResponseCode(200)
-                                .saveContent(tempFile);
+                        checkInterrupted();
 
-                        break;
-                    } catch (IOException e) {
-                        if (trial >= tryCount) {
-                            logger.log(Level.WARNING, "Failed to download " + getUrl(), e);
-                            throw e;
-                        } else {
-                            logger.log(Level.WARNING, "Waiting to retry downloading " + getUrl(), e);
-                            Thread.sleep(retryDelay);
+                        try {
+                            httpRequest =
+                                    HttpRequest
+                                    .get(getUrl());
+
+                            synchronized (active) {
+                                active.add(this);
+                            }
+
+                            httpRequest
+                                    .execute()
+                                    .expectResponseCode(200)
+                                    .saveContent(tempFile);
+
+                            break;
+                        } catch (IOException e) {
+                            if (trial >= tryCount) {
+                                logger.log(Level.WARNING, "Failed to download " + getUrl(), e);
+                                throw e;
+                            } else {
+                                logger.log(Level.WARNING, "Waiting to retry downloading " + getUrl(), e);
+                                Thread.sleep(retryDelay);
+                            }
                         }
                     }
-                }
 
-                file.delete();
-                if (!tempFile.renameTo(file)) {
-                    throw new IOException(
-                            String.format("Failed to rename %s to %s", tempFile, file));
+                    file.delete();
+                    if (!tempFile.renameTo(file)) {
+                        throw new IOException(
+                                String.format("Failed to rename %s to %s", tempFile, file));
+                    }
+                } finally {
+                    synchronized (active) {
+                        active.remove(this);
+                        numProcessed++;
+                    }
                 }
             }
 
             return this;
         }
     }
+
+    @Override
+    public void updateProgress() {
+        double progress = numProcessed / (double) executed.size();
+
+        synchronized (active) {
+            StringBuilder builder = new StringBuilder();
+            boolean first = true;
+            for (RemoteFile file : active) {
+                if (first) {
+                    first = false;
+                } else {
+                    builder.append(", ");
+                }
+
+                HttpRequest httpRequest = file.getHttpRequest();
+                double itemProgress = httpRequest.getProgress();
+
+                if (itemProgress >= 0) {
+                    builder.append(_("downloader.fileListPct",
+                            FilenameUtils.getName(file.getUrl().getPath()),
+                            itemProgress));
+                } else {
+                    builder.append(FilenameUtils.getName(file.getUrl().getPath()));
+                }
+
+            }
+
+            push(progress, _("downloader.downloadingMany", builder.toString()));
+        }
+    }
+
 }

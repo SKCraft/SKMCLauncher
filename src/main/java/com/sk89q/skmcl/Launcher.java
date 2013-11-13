@@ -18,11 +18,14 @@
 
 package com.sk89q.skmcl;
 
+import com.sk89q.skmcl.application.Application;
+import com.sk89q.skmcl.launch.InstanceLauncher;
 import com.sk89q.skmcl.profile.ProfileManager;
 import com.sk89q.skmcl.swing.CreateProfileDialog;
 import com.sk89q.skmcl.swing.LauncherFrame;
 import com.sk89q.skmcl.swing.SwingHelper;
 import com.sk89q.skmcl.util.SharedLocale;
+import com.sk89q.skmcl.worker.Worker;
 import lombok.Getter;
 import lombok.NonNull;
 
@@ -56,6 +59,11 @@ public class Launcher {
         CreateProfileDialog dialog = new CreateProfileDialog(owner, this);
         dialog.setVisible(true);
         return dialog;
+    }
+
+    public void launchApplication(Window owner, Worker worker, Application application) {
+        InstanceLauncher task = new InstanceLauncher(application);
+        worker.submit(task);
     }
 
     public static void main(String[] args) {

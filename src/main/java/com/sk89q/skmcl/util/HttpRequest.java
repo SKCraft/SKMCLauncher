@@ -18,6 +18,10 @@
 
 package com.sk89q.skmcl.util;
 
+import com.sk89q.skmcl.worker.ProgressUpdater;
+import com.sk89q.skmcl.worker.Segment;
+import com.sk89q.skmcl.worker.Worker;
+import lombok.extern.java.Log;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -29,10 +33,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.sk89q.skmcl.util.LauncherUtils.checkInterrupted;
 import static org.apache.commons.io.IOUtils.closeQuietly;
@@ -41,7 +42,8 @@ import static org.apache.commons.io.IOUtils.closeQuietly;
  * A simple fluent interface for performing HTTP requests that uses
  * {@link java.net.HttpURLConnection} or {@link HttpsURLConnection}.
  */
-public class HttpRequest implements Closeable {
+@Log
+public class HttpRequest extends Segment implements Closeable, ProgressUpdater {
 
     private static final int READ_TIMEOUT = 1000 * 60 * 10;
     private static final int READ_BUFFER_SIZE = 1024 * 8;
@@ -54,6 +56,9 @@ public class HttpRequest implements Closeable {
     private byte[] body;
     private HttpURLConnection conn;
     private InputStream inputStream;
+
+    private long contentLength = -1;
+    private long readBytes = 0;
 
     /**
      * Create a new HTTP request.
@@ -250,6 +255,18 @@ public class HttpRequest implements Closeable {
      */
     public HttpRequest saveContent(OutputStream out) throws IOException, InterruptedException {
         BufferedInputStream bis;
+        TimerTask timerTask = Worker.updatePeriodically(this);
+
+        try {
+            String field = conn.getHeaderField("Content-Length");
+            if (field != null) {
+                long len = Long.parseLong(field);
+                if (len >= 0) { // Let's just not deal with really big numbers
+                    contentLength = len;
+                }
+            }
+        } catch (NumberFormatException e) {
+        }
 
         try {
             bis = new BufferedInputStream(inputStream);
@@ -258,13 +275,26 @@ public class HttpRequest implements Closeable {
             int len = 0;
             while ((len = bis.read(data, 0, READ_BUFFER_SIZE)) >= 0) {
                 out.write(data, 0, len);
+                readBytes += len;
                 checkInterrupted();
             }
         } finally {
+            timerTask.cancel();
             close();
         }
 
         return this;
+    }
+
+    @Override
+    public void updateProgress() {
+        double progress = -1;
+
+        if (contentLength >= 0) {
+            progress = readBytes / (double) contentLength;
+        }
+
+        push(progress, SharedLocale._("downloader.downloadingSingle", url.toString()));
     }
 
     /**

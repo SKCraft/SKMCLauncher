@@ -19,8 +19,9 @@
 package com.sk89q.skmcl.swing;
 
 import com.sk89q.skmcl.Launcher;
-import com.sk89q.skmcl.util.Task;
-import com.sk89q.skmcl.util.Worker;
+import com.sk89q.skmcl.profile.Profile;
+import com.sk89q.skmcl.worker.Task;
+import com.sk89q.skmcl.worker.Worker;
 import lombok.Getter;
 import lombok.NonNull;
 
@@ -33,7 +34,7 @@ import static com.sk89q.skmcl.util.SharedLocale._;
 
 public class LauncherFrame extends JFrame {
 
-    private final Window window = this;
+    private final Window self = this;
     @Getter
     private final Launcher launcher;
     private final Worker worker = new Worker(this);
@@ -65,7 +66,7 @@ public class LauncherFrame extends JFrame {
 
     private void initComponents() {
         LinedBoxPanel bottomPanel;
-        JList profilesList;
+        final JList profilesList;
         JButton launchButton = new JButton(_("launcher.launch"));
         JButton newProfileButton = new JButton(_("launcher.createProfile"));
         JButton optionsButton = new JButton(_("launcher.options"));
@@ -87,10 +88,17 @@ public class LauncherFrame extends JFrame {
         bottomPanel.addElement(launchButton);
         add(bottomPanel, BorderLayout.NORTH);
 
+        launchButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                getLauncher().launchApplication(self, worker, ((Profile) profilesList.getSelectedValue()).getApplication());
+            }
+        });
+
         newProfileButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                launcher.showCreateProfile(window);
+                launcher.showCreateProfile(self);
             }
         });
 

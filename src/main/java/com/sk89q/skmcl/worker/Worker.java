@@ -16,10 +16,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.sk89q.skmcl.util;
+package com.sk89q.skmcl.worker;
 
 import com.sk89q.skmcl.swing.ProgressDialog;
 import com.sk89q.skmcl.swing.SwingHelper;
+import lombok.NonNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -38,54 +39,81 @@ import static com.sk89q.skmcl.util.SharedLocale._;
  */
 public final class Worker extends Observable implements Watchable, Observer {
 
-    private static final int DIALOG_DISPLAY_DELAY = 300;
+    private static final int DIALOG_DISPLAY_DELAY = 250;
+    private static final int PROGRESS_INTERVAL = 500;
     private static final Timer timer = new Timer();
 
     private final Worker self = this;
     private ExecutorService executor = Executors.newCachedThreadPool();
     private final List<Task<?>> inProgress = new ArrayList<Task<?>>();
     private final Window parent;
-    private final Object dialogLock = new Object();
+    private final Object lock = new Object();
     private ProgressDialog dialog;
     private TimerTask dialogShowTask;
+    private boolean dialogVisible = false;
 
-    public Worker(Window parent) {
+    /**
+     * Create a new worker with the parent window given.
+     *
+     * @param parent the parent window from which to show dialogs from
+     */
+    public Worker(@NonNull Window parent) {
         this.parent = parent;
     }
 
-    public void execute(Runnable command) {
-        executor.execute(command);
-    }
-
+    /**
+     * Add a task to the list of running tasks.
+     *
+     * @param task the task
+     */
     private void track(Task<?> task) {
-        synchronized (inProgress) {
+        synchronized (lock) {
             inProgress.add(task);
-            setDialogVisiblity(!inProgress.isEmpty());
+            setDialogVisibility(!inProgress.isEmpty());
+            setChanged();
             notifyObservers();
         }
 
         task.addObserver(this);
     }
 
+    /**
+     * Remove a task from the list of running tasks.
+     *
+     * @param task the task
+     */
     private void stopTracking(Task<?> task) {
-        synchronized (inProgress) {
+        synchronized (lock) {
             inProgress.remove(task);
-            setDialogVisiblity(!inProgress.isEmpty());
+            setDialogVisibility(!inProgress.isEmpty());
+            setChanged();
             notifyObservers();
         }
     }
 
+    /**
+     * Show an error message.
+     *
+     * @param t the exception
+     */
     private void showError(Throwable t) {
         SwingHelper.showError(parent,
                 t.getLocalizedMessage(),
                 _("errorDialog.title"), t);
     }
 
+    /**
+     * Create the dialog.
+     */
     private void createDialog() {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                synchronized (dialogLock) {
+                synchronized (lock) {
+                    if (!dialogVisible) {
+                        return;
+                    }
+
                     dialogShowTask = null;
                     dialog = new ProgressDialog(parent, self);
                 }
@@ -95,8 +123,15 @@ public final class Worker extends Observable implements Watchable, Observer {
         });
     }
 
-    private void setDialogVisiblity(boolean visible) {
-        synchronized (dialogLock) {
+    /**
+     * Set whether the dialog should be visible.
+     *
+     * @param visible true if visible
+     */
+    private void setDialogVisibility(boolean visible) {
+        synchronized (lock) {
+            dialogVisible = visible;
+
             if (visible) {
                 if (dialog == null && dialogShowTask == null) {
                     dialogShowTask = new TimerTask() {
@@ -116,6 +151,7 @@ public final class Worker extends Observable implements Watchable, Observer {
 
                 if (dialogShowTask != null) {
                     dialogShowTask.cancel();
+                    dialogShowTask = null;
                 }
             }
         }
@@ -129,7 +165,7 @@ public final class Worker extends Observable implements Watchable, Observer {
      * @return a future
      */
     public synchronized <T> Future<T> submit(final Task<T> task) {
-        synchronized (inProgress) {
+        synchronized (lock) {
             track(task);
         }
 
@@ -161,9 +197,21 @@ public final class Worker extends Observable implements Watchable, Observer {
         executor = Executors.newCachedThreadPool();
     }
 
+    /**
+     * Schedule a progress updater.
+     *
+     * @param updater the object to call
+     * @return a timer task that can be cancelled
+     */
+    public static TimerTask updatePeriodically(ProgressUpdater updater) {
+        TimerTask timerTask = new ProgressTimerTask(updater);
+        timer.schedule(timerTask, PROGRESS_INTERVAL, PROGRESS_INTERVAL);
+        return timerTask;
+    }
+
     @Override
     public double getProgress() {
-        synchronized (inProgress) {
+        synchronized (lock) {
             if (inProgress.isEmpty()) {
                 return -1;
             } else {
@@ -175,7 +223,7 @@ public final class Worker extends Observable implements Watchable, Observer {
                         return -1;
                     }
 
-                    progress += p / 100.0 / inProgress.size();
+                    progress += p / inProgress.size();
                 }
 
                 return progress;
@@ -185,7 +233,7 @@ public final class Worker extends Observable implements Watchable, Observer {
 
     @Override
     public String getLocalizedTitle() {
-        synchronized (inProgress) {
+        synchronized (lock) {
             if (inProgress.isEmpty()) {
                 return null;
             } else {
@@ -196,7 +244,7 @@ public final class Worker extends Observable implements Watchable, Observer {
 
     @Override
     public String getLocalizedStatus() {
-        synchronized (inProgress) {
+        synchronized (lock) {
             if (inProgress.isEmpty()) {
                 return null;
             } else {
@@ -207,7 +255,7 @@ public final class Worker extends Observable implements Watchable, Observer {
 
     @Override
     public boolean shouldConfirmInterrupt() {
-        synchronized (inProgress) {
+        synchronized (lock) {
             if (inProgress.isEmpty()) {
                 return false;
             } else {
@@ -224,6 +272,7 @@ public final class Worker extends Observable implements Watchable, Observer {
 
     @Override
     public void update(Observable o, Object arg) {
+        setChanged();
         notifyObservers();
     }
 }
