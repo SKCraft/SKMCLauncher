@@ -23,6 +23,7 @@ import lombok.extern.java.Log;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.WeakHashMap;
 import java.util.logging.Level;
@@ -86,8 +87,10 @@ public final class Persistence {
         try {
             object = mapper.readValue(file, cls);
         } catch (IOException e) {
-            log.log(Level.INFO, "Failed to load " + file.getAbsolutePath() +
-                    " as " + cls.getCanonicalName(), e);
+            if (!(e instanceof FileNotFoundException)) {
+                log.log(Level.INFO, "Failed to load " + file.getAbsolutePath() +
+                        " as " + cls.getCanonicalName(), e);
+            }
 
             if (returnNull) {
                 return null;
