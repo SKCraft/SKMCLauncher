@@ -49,6 +49,11 @@
       <artifactId>lombok</artifactId>
       <version>1.12.2</version>
     </dependency>
+    <dependency>
+      <groupId>com.github.insubstantial</groupId>
+      <artifactId>substance</artifactId>
+      <version>7.2.1</version>
+    </dependency>
   </dependencies>
   <build>
     <sourceDirectory>${basedir}/src/main/java/</sourceDirectory>

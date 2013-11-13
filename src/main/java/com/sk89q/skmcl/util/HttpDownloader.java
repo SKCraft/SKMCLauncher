@@ -46,7 +46,7 @@ import java.util.logging.Logger;
  *     each file that was downloaded (or attempted).</li>
  * </ul>
  */
-public class HttpDownloader extends Operation<List<Future<HttpDownloader.RemoteFile>>> {
+public class HttpDownloader extends Task<List<Future<HttpDownloader.RemoteFile>>> {
 
     private static final Logger logger = LauncherUtils.getLogger(HttpDownloader.class);
     public static final int DEFAULT_THREAD_COUNT = 5;

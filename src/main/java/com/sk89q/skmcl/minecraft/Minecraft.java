@@ -103,6 +103,11 @@ public class Minecraft implements Application {
     }
 
     @Override
+    public boolean hasSnapshots() {
+        return true;
+    }
+
+    @Override
     public void forgetVersions() {
         releaseList = null;
     }

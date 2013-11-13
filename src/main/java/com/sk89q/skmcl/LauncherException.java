@@ -16,10 +16,27 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.sk89q.skmcl.util;
+package com.sk89q.skmcl;
 
-import java.util.Observable;
-import java.util.concurrent.Callable;
+/**
+ * A human-readable error wrapper.
+ */
+public class LauncherException extends Exception {
 
-public abstract class Operation<V> extends Observable implements Callable<V> {
+    private final String localizedMessage;
+
+    public LauncherException(String message, String localizedMessage) {
+        super(message);
+        this.localizedMessage = localizedMessage;
+    }
+
+    public LauncherException(String localizedMessage, Throwable cause) {
+        super(cause.getMessage(), cause);
+        this.localizedMessage = localizedMessage;
+    }
+
+    @Override
+    public String getLocalizedMessage() {
+        return localizedMessage;
+    }
 }

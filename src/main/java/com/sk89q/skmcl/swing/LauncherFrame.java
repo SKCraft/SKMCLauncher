@@ -19,6 +19,8 @@
 package com.sk89q.skmcl.swing;
 
 import com.sk89q.skmcl.Launcher;
+import com.sk89q.skmcl.util.Task;
+import com.sk89q.skmcl.util.Worker;
 import lombok.Getter;
 import lombok.NonNull;
 
@@ -34,23 +36,36 @@ public class LauncherFrame extends JFrame {
     private final Window window = this;
     @Getter
     private final Launcher launcher;
+    private final Worker worker = new Worker(this);
 
     public LauncherFrame(@NonNull Launcher launcher) {
         this.launcher = launcher;
 
         setTitle(_("launcher.title"));
         SwingHelper.setIconImage(this, "/resources/icon.png");
-        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         initComponents();
-        setResizable(false);
-        setMinimumSize(new Dimension(600, 0));
-        pack();
+        setResizable(true);
+        setMinimumSize(new Dimension(300, 200));
+        setSize(new Dimension(800, 500));
         setLocationRelativeTo(null);
+
+        worker.submit(new Task<Object>() {
+            @Override
+            protected void run() throws Exception {
+                getLauncher().getProfiles().load();
+            }
+
+            @Override
+            public String getLocalizedTitle() {
+                return _("launcher.loadingProfiles");
+            }
+        });
     }
 
     private void initComponents() {
         LinedBoxPanel bottomPanel;
-        JComboBox profilesCombo;
+        JList profilesList;
         JButton launchButton = new JButton(_("launcher.launch"));
         JButton newProfileButton = new JButton(_("launcher.createProfile"));
         JButton optionsButton = new JButton(_("launcher.options"));
@@ -58,14 +73,19 @@ public class LauncherFrame extends JFrame {
         bottomPanel = new LinedBoxPanel(true).fullyPadded();
         bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
 
-        profilesCombo = new JComboBox(getLauncher().getProfiles());
+        profilesList = new JList(getLauncher().getProfiles());
         launchButton.setFont(launchButton.getFont().deriveFont(Font.BOLD));
 
-        bottomPanel.addElement(profilesCombo);
+        JSplitPane splitPane = new JSplitPane(
+                JSplitPane.HORIZONTAL_SPLIT, profilesList, new JLabel("Something will go here."));
+        splitPane.setDividerLocation(200);
+        add(splitPane, BorderLayout.CENTER);
+
         bottomPanel.addElement(newProfileButton);
+        bottomPanel.addGlue();
         bottomPanel.addElement(optionsButton);
         bottomPanel.addElement(launchButton);
-        add(bottomPanel, BorderLayout.SOUTH);
+        add(bottomPanel, BorderLayout.NORTH);
 
         newProfileButton.addActionListener(new ActionListener() {
             @Override

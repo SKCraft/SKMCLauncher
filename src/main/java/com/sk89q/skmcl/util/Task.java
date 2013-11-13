@@ -16,32 +16,39 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.sk89q.skmcl.application;
+package com.sk89q.skmcl.util;
 
-import static com.sk89q.skmcl.util.SharedLocale._;
+import java.util.Observable;
+import java.util.concurrent.Callable;
 
-/**
- * Indicates the latest stable version.
- */
-public class LatestStable extends Version {
+public abstract class Task<V> extends Observable implements Callable<V>, Watchable {
 
     @Override
-    public String getId() {
-        return "stable";
+    public V call() throws Exception {
+        run();
+        return null;
+    }
+
+    protected void run() throws Exception {
     }
 
     @Override
-    public void setId(String id) {
+    public double getProgress() {
+        return -1;
     }
 
     @Override
-    public String getName() {
-        return _("version.latestStable");
+    public String getLocalizedStatus() {
+        return null;
     }
 
     @Override
-    boolean thisEquals(Version other) {
-        return super.thisEquals(other) && other instanceof LatestStable;
+    public String getLocalizedTitle() {
+        return null;
     }
 
+    @Override
+    public boolean shouldConfirmInterrupt() {
+        return true;
+    }
 }

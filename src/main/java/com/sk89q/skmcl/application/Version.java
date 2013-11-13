@@ -18,28 +18,31 @@
 
 package com.sk89q.skmcl.application;
 
-import lombok.Data;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 
 /**
  * Represents a version.
  */
-@Data
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
         include = JsonTypeInfo.As.PROPERTY,
-        property = "type")
+        property = "class",
+        defaultImpl = Version.class)
 @JsonSubTypes({
         @JsonSubTypes.Type(value = LatestStable.class, name = "stable"),
         @JsonSubTypes.Type(value = LatestSnapshot.class, name = "snapshot"),
         @JsonSubTypes.Type(value = Version.class, name = "version")
 })
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Version {
 
-    @NonNull
+    @Getter @Setter @NonNull
     private String id;
 
     public Version() {
@@ -62,5 +65,23 @@ public class Version {
     @Override
     public String toString() {
         return getName();
+    }
+
+    boolean thisEquals(Version other) {
+        return getId().equals(other.getId());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Version version = (Version) o;
+        return thisEquals(version) && version.thisEquals(this);
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
     }
 }

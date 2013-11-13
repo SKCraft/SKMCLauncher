@@ -30,7 +30,7 @@ import com.sk89q.skmcl.minecraft.model.ReleaseManifest;
 import com.sk89q.skmcl.profile.Profile;
 import com.sk89q.skmcl.session.Session;
 import com.sk89q.skmcl.util.Environment;
-import com.sk89q.skmcl.util.Operation;
+import com.sk89q.skmcl.util.Task;
 import com.sk89q.skmcl.util.Persistence;
 import com.sk89q.skmcl.util.Platform;
 import lombok.Getter;
@@ -126,7 +126,7 @@ public class MinecraftInstall implements Instance {
     }
 
     @Override
-    public Operation getUpdater() {
+    public Task getUpdater() {
         return new MinecraftUpdater(this);
     }
 

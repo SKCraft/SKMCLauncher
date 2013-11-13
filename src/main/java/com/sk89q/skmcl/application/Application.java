@@ -100,7 +100,14 @@ public interface Application {
      * @throws IOException thrown on I/O error
      */
     @JsonIgnore
-    List<? extends Version> getAvailable() throws IOException;
+    List<? extends Version> getAvailable() throws IOException, InterruptedException;
+
+    /**
+     * Return whether snapshot versions are available.
+     *
+     * @return true if snapshot versions are available
+     */
+    boolean hasSnapshots();
 
     /**
      * Forget any cached version information.

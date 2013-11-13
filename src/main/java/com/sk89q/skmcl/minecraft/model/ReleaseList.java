@@ -39,9 +39,9 @@ public class ReleaseList {
      * @return the release
      */
     public Version find(@NonNull String id) {
-        for (Version release : getVersions()) {
-            if (release.getId().equals(id)) {
-                return release;
+        for (Version version : getVersions()) {
+            if (version.getId().equals(id)) {
+                return version;
             }
         }
         return null;

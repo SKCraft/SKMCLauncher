@@ -16,42 +16,40 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.sk89q.skmcl.application;
-
-import com.sk89q.skmcl.launch.LaunchContext;
-import com.sk89q.skmcl.launch.LaunchedProcess;
-import com.sk89q.skmcl.util.Task;
-
-import java.io.IOException;
+package com.sk89q.skmcl.util;
 
 /**
- * An installed application instance.
+ * Represents a task that can provide progress updates.
  */
-public interface Instance {
+public interface Watchable {
 
     /**
-     * Get the current version of this instance.
+     * Return the current progress of the task.
      *
-     * @return the version
+     * @return a number between 0 and 1, inclusive, or -1 if indeterminate
      */
-    Version getVersion();
+    double getProgress();
 
     /**
-     * Get a worker to update the instance.
+     * Return a localized title for this progress.
      *
-     * @return an update worker
+     * @return a title, or null if none is available
      */
-    Task<Instance> getUpdater();
+    String getLocalizedTitle();
 
     /**
-     * Launch this instance.
+     * Return a localized status message describing the current state of the task.
      *
-     * @param context the launch context
-     * @return the launched process
-     * @throws UpdateRequiredException thrown if an update must be performed first
-     * @throws IOException on any sort of I/O error
+     * @return a message, or null if none is available
      */
-    LaunchedProcess launch(LaunchContext context)
-            throws UpdateRequiredException, IOException;
+    String getLocalizedStatus();
+
+    /**
+     * Return whether attempts to cancel this task should first be
+     * confirmed with the user, even if the user initiated the cancellation.
+     *
+     * @return true to suggest a confirmation
+     */
+    boolean shouldConfirmInterrupt();
 
 }

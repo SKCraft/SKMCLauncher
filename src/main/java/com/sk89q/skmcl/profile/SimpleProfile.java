@@ -22,11 +22,9 @@ import com.sk89q.skmcl.application.Application;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import lombok.ToString;
 
 import java.io.File;
 
-@ToString
 public class SimpleProfile implements Profile {
 
     @Getter
@@ -51,4 +49,8 @@ public class SimpleProfile implements Profile {
         return new File(getBaseDir(), "temp");
     }
 
+    @Override
+    public String toString() {
+        return getName();
+    }
 }

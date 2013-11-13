@@ -18,15 +18,15 @@
 
 package com.sk89q.skmcl;
 
-import com.sk89q.skmcl.swing.SwingHelper;
 import com.sk89q.skmcl.profile.ProfileManager;
 import com.sk89q.skmcl.swing.CreateProfileDialog;
 import com.sk89q.skmcl.swing.LauncherFrame;
-import com.sk89q.skmcl.swing.SelectProfileTypeDialog;
+import com.sk89q.skmcl.swing.SwingHelper;
 import com.sk89q.skmcl.util.SharedLocale;
 import lombok.Getter;
 import lombok.NonNull;
 
+import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.util.Locale;
@@ -52,13 +52,7 @@ public class Launcher {
         return frame;
     }
 
-    public SelectProfileTypeDialog showCreateProfile(Window owner) {
-        SelectProfileTypeDialog dialog = new SelectProfileTypeDialog(owner, this);
-        dialog.setVisible(true);
-        return dialog;
-    }
-
-    public CreateProfileDialog showCreateRegularProfile(Window owner) {
+    public CreateProfileDialog showCreateProfile(Window owner) {
         CreateProfileDialog dialog = new CreateProfileDialog(owner, this);
         dialog.setVisible(true);
         return dialog;
@@ -66,10 +60,16 @@ public class Launcher {
 
     public static void main(String[] args) {
         SharedLocale.loadBundle("lang.Launcher", Locale.getDefault());
-        SwingHelper.setLookAndFeel();
 
-        File dir = new File(".");
-        new Launcher(dir).showLauncher();
+        File dir = new File("_tempdata");
+        final Launcher launcher = new Launcher(dir);
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                SwingHelper.setLookAndFeel();
+                launcher.showLauncher();
+            }
+        });
     }
 
 }

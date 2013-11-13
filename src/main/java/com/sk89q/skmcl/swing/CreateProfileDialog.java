@@ -23,25 +23,35 @@ import com.sk89q.skmcl.application.Application;
 import com.sk89q.skmcl.application.LatestStable;
 import com.sk89q.skmcl.application.Version;
 import com.sk89q.skmcl.minecraft.Minecraft;
+import com.sk89q.skmcl.profile.SimpleProfile;
 import lombok.Getter;
 import lombok.NonNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
 
 import static com.sk89q.skmcl.util.SharedLocale._;
 
 public class CreateProfileDialog extends JDialog {
 
+    private final CreateProfileDialog self = this;
     @Getter
     private final Launcher launcher;
-    private Application application = new Minecraft();
+    private Application application;
     private Version version = new LatestStable();
+
+    private JTextField nameField;
 
     public CreateProfileDialog(Window owner, @NonNull Launcher launcher) {
         super(owner, ModalityType.DOCUMENT_MODAL);
 
         this.launcher = launcher;
+        this.application = new Minecraft();
+
+        application.setVersion(new LatestStable());
 
         setTitle(_("createProfile.title"));
         initComponents();
@@ -53,8 +63,8 @@ public class CreateProfileDialog extends JDialog {
 
     private void initComponents() {
         FormPanel form = new FormPanel();
-        JTextField nameField = new JTextField();
-        JButton versionButton = new JButton(version.getName());
+        nameField = new JTextField();
+        final JButton versionButton = new JButton(version.toString());
         LinedBoxPanel buttons = new LinedBoxPanel(true);
         JButton cancelButton = new JButton(_("button.cancel"));
         JButton createButton = new JButton(_("button.create"));
@@ -64,15 +74,54 @@ public class CreateProfileDialog extends JDialog {
         form.addRow(new JLabel(_("createProfile.version")), versionButton);
 
         buttons.addGlue();
-        buttons.addElement(cancelButton);
         buttons.addElement(createButton);
+        buttons.addElement(cancelButton);
 
         add(form, BorderLayout.CENTER);
         add(buttons, BorderLayout.SOUTH);
 
+        createButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                tryCreateProfile();
+            }
+        });
+        versionButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                VersionListDialog dialog = new VersionListDialog(
+                        self, application, version);
+                dialog.setVisible(true);
+                version = dialog.getVersion();
+                versionButton.setText(version.toString());
+            }
+        });
         cancelButton.addActionListener(ActionListeners.dispose(this));
 
         SwingHelper.focusLater(nameField);
+    }
+
+    private void tryCreateProfile() {
+        String name = nameField.getText();
+        name = name.trim();
+
+        if (name.isEmpty()) {
+            SwingHelper.showError(
+                    this, _("createProfile.emptyNameError"), _("invalidInput.title"));
+            return;
+        }
+
+        SimpleProfile profile = new SimpleProfile();
+        application.setVersion(version);
+        profile.setApplication(application);
+        profile.setName(name);
+        try {
+            getLauncher().getProfiles().add(profile);
+            dispose();
+        } catch (IOException e) {
+            SwingHelper.showError(this, _("createProfile.failedToCreateError"),
+                    _("createProfile.title"), e);
+        }
     }
 
 }

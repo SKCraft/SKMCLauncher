@@ -39,4 +39,9 @@ public class LatestSnapshot extends Version {
         return _("version.latestSnapshot");
     }
 
+    @Override
+    boolean thisEquals(Version other) {
+        return super.thisEquals(other) && other instanceof LatestSnapshot;
+    }
+
 }

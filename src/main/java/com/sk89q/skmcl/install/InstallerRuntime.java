@@ -32,7 +32,7 @@ import java.util.logging.Logger;
 /**
  * Manages an installation procedure.
  */
-public class InstallerRuntime extends Operation<InstallerRuntime> {
+public class InstallerRuntime extends Task<InstallerRuntime> {
 
     private static final Logger logger = LauncherUtils.getLogger(InstallerRuntime.class);
 

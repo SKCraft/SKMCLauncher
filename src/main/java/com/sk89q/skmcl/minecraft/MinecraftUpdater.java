@@ -27,7 +27,7 @@ import com.sk89q.skmcl.minecraft.model.Library;
 import com.sk89q.skmcl.minecraft.model.ReleaseManifest;
 import com.sk89q.skmcl.util.Environment;
 import com.sk89q.skmcl.util.HttpRequest;
-import com.sk89q.skmcl.util.Operation;
+import com.sk89q.skmcl.util.Task;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.File;
@@ -44,7 +44,7 @@ import static org.apache.commons.io.IOUtils.closeQuietly;
 /**
  * Updates an installation of Minecraft.
  */
-class MinecraftUpdater extends Operation<MinecraftInstall> {
+class MinecraftUpdater extends Task<MinecraftInstall> {
 
     private static final String VERSION_MANIFEST_URL =
             "http://s3.amazonaws.com/Minecraft.Download/versions/%s/%s.json";

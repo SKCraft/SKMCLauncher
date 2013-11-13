@@ -18,7 +18,7 @@
 
 package com.sk89q.skmcl.swing;
 
-import com.sk89q.skmcl.util.LauncherUtils;
+import lombok.extern.java.Log;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -32,12 +32,14 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.logging.Level;
 
 import static org.apache.commons.io.IOUtils.closeQuietly;
 
 /**
  * Swing utility methods.
  */
+@Log
 public final class SwingHelper {
 
     private static String[] monospaceFontNames = {
@@ -102,17 +104,20 @@ public final class SwingHelper {
      * thread, and it will be made thread-safe.</p>
      * 
      * @param component component
-     * @param title title
      * @param message message
+     * @param title title
+     * @param throwable the exception, or null
      */
-    public static void showError(final Component component, 
-            final String title, final String message) {
+    public static void showError(final Component component,
+                                 final String message,
+                                 final String title,
+                                 final Throwable throwable) {
         if (!SwingUtilities.isEventDispatchThread()) {
             try {
                 SwingUtilities.invokeAndWait(new Runnable() {
                     @Override
                     public void run() {
-                        showError(component, title, message);
+                        showError(component, message, title, throwable);
                     }
                 });
             } catch (InterruptedException e) {
@@ -132,6 +137,23 @@ public final class SwingHelper {
         JOptionPane.showMessageDialog(
                 component, newMessage, title, 
                 JOptionPane.ERROR_MESSAGE);
+
+        if (throwable != null) {
+            log.log(Level.WARNING, "An error has occurred", throwable);
+        }
+    }
+
+    /**
+     * Shows an error dialog.
+     *
+     * @param component component
+     * @param message message
+     * @param title title
+     */
+    public static void showError(final Component component,
+                                 final String message,
+                                 final String title) {
+        showError(component, message, title, null);
     }
 
     /**
@@ -142,8 +164,8 @@ public final class SwingHelper {
      * @param message the message
      * @return true if 'yes' was selected
      */
-    public static boolean confirm(final Component component, 
-            final String title, final String message) {
+    public static boolean confirm(final Component component,
+                                  final String message, final String title) {
         if (!SwingUtilities.isEventDispatchThread()) {
             try {
                 SwingUtilities.invokeAndWait(new Runnable() {
@@ -252,7 +274,12 @@ public final class SwingHelper {
      */
     public static void setLookAndFeel() {
         try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            // UIManager.getSystemLookAndFeelClassName()
+            JFrame.setDefaultLookAndFeelDecorated(true);
+            JDialog.setDefaultLookAndFeelDecorated(true);
+            System.setProperty("sun.awt.noerasebackground", "true");
+            System.setProperty("substancelaf.windowRoundedCorners", "false");
+            UIManager.setLookAndFeel("org.pushingpixels.substance.api.skin.SubstanceMarinerLookAndFeel");
         } catch (Exception e) {
         }
     }
