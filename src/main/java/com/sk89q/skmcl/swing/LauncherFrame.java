@@ -26,18 +26,22 @@ import lombok.Getter;
 import lombok.NonNull;
 
 import javax.swing.*;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import static com.sk89q.skmcl.util.SharedLocale._;
 
-public class LauncherFrame extends JFrame {
+public class LauncherFrame extends JFrame implements ListDataListener {
 
     private final Window self = this;
     @Getter
     private final Launcher launcher;
     private final Worker worker = new Worker(this);
+
+    private JList profilesList;
 
     public LauncherFrame(@NonNull Launcher launcher) {
         this.launcher = launcher;
@@ -46,6 +50,7 @@ public class LauncherFrame extends JFrame {
         SwingHelper.setIconImage(this, "/resources/icon.png");
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         initComponents();
+        initMenu();
         setResizable(true);
         setMinimumSize(new Dimension(300, 200));
         setSize(new Dimension(800, 500));
@@ -65,33 +70,52 @@ public class LauncherFrame extends JFrame {
     }
 
     private void initComponents() {
-        LinedBoxPanel bottomPanel;
-        final JList profilesList;
-        JButton launchButton = new JButton(_("launcher.launch"));
-        JButton newProfileButton = new JButton(_("launcher.createProfile"));
-        JButton optionsButton = new JButton(_("launcher.options"));
-
-        bottomPanel = new LinedBoxPanel(true).fullyPadded();
-        bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
-
+        JPanel contentPanel = new JPanel();
+        JPanel leftPanel = new JPanel();
+        JPanel searchPanel = new JPanel();
+        JTextField filterText = new JTextField();
+        LinedBoxPanel bottomPanel = new LinedBoxPanel(true);
+        JSplitPane splitPane;
         profilesList = new JList(getLauncher().getProfiles());
-        launchButton.setFont(launchButton.getFont().deriveFont(Font.BOLD));
+        ProfilePanel profilePanel = new ProfilePanel(profilesList);
+        JButton newProfileButton = new JButton(_("launcher.createProfile"));
+        JButton installModPackButton = new JButton(_("launcher.installModPack"));
 
-        JSplitPane splitPane = new JSplitPane(
-                JSplitPane.HORIZONTAL_SPLIT, profilesList, new JLabel("Something will go here."));
-        splitPane.setDividerLocation(200);
-        add(splitPane, BorderLayout.CENTER);
+        filterText.setMargin(new Insets(2, 2, 2, 2));
+        TextPrompt prompt = new TextPrompt(_("launcher.filterProfilesPlaceholder"), filterText);
+        prompt.changeAlpha(0.5f);
+        prompt.changeStyle(Font.ITALIC);
+        profilesList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        profilesList.setCellRenderer(new ProfileListCellRenderer());
+        profilesList.setFixedCellHeight(20);
 
+        leftPanel.setLayout(new BorderLayout());
+        searchPanel.setLayout(new BorderLayout());
+        contentPanel.setLayout(new BorderLayout());
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        searchPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 0));
+        bottomPanel.setBorder(BorderFactory.createEmptyBorder(25, 0, 0, 0));
+
+        searchPanel.add(filterText);
         bottomPanel.addElement(newProfileButton);
-        bottomPanel.addGlue();
-        bottomPanel.addElement(optionsButton);
-        bottomPanel.addElement(launchButton);
-        add(bottomPanel, BorderLayout.NORTH);
+        bottomPanel.addElement(installModPackButton);
+        leftPanel.add(searchPanel, BorderLayout.NORTH);
+        leftPanel.add(profilesList, BorderLayout.CENTER);
+        splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+                leftPanel,
+                profilePanel);
+        splitPane.setDividerLocation(200);
+        contentPanel.add(splitPane, BorderLayout.CENTER);
+        contentPanel.add(bottomPanel, BorderLayout.SOUTH);
+        add(contentPanel, BorderLayout.CENTER);
 
-        launchButton.addActionListener(new ActionListener() {
+        profilesList.getModel().addListDataListener(this);
+
+        profilePanel.getLaunchButton().addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                getLauncher().launchApplication(self, worker, ((Profile) profilesList.getSelectedValue()).getApplication());
+                getLauncher().launchApplication(self, worker,
+                        (Profile) profilesList.getSelectedValue());
             }
         });
 
@@ -102,7 +126,38 @@ public class LauncherFrame extends JFrame {
             }
         });
 
-        SwingHelper.focusLater(launchButton);
+        SwingHelper.focusLater(profilePanel.getLaunchButton());
     }
 
+    private void initMenu() {
+        JMenuBar menuBar;
+
+        menuBar = new JMenuBar();
+        menuBar.add(new JMenu(_("launcher.menu.launcher")));
+        menuBar.add(new JMenu(_("launcher.menu.profiles")));
+        menuBar.add(new JMenu(_("launcher.menu.help")));
+
+        menuBar.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        setJMenuBar(menuBar);
+    }
+
+    private void selectDefaultProfile() {
+        ListModel model = profilesList.getModel();
+        if (profilesList.getSelectedValue() == null && model.getSize() > 0) {
+            profilesList.setSelectedValue(model.getElementAt(0), true);
+            model.removeListDataListener(this);
+        }
+    }
+
+    public void intervalAdded(ListDataEvent e) {
+        selectDefaultProfile();
+    }
+
+    public void intervalRemoved(ListDataEvent e) {
+        selectDefaultProfile();
+    }
+
+    public void contentsChanged(ListDataEvent e) {
+        selectDefaultProfile();
+    }
 }

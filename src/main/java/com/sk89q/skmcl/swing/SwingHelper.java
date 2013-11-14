@@ -279,8 +279,9 @@ public final class SwingHelper {
             JDialog.setDefaultLookAndFeelDecorated(true);
             System.setProperty("sun.awt.noerasebackground", "true");
             System.setProperty("substancelaf.windowRoundedCorners", "false");
-            UIManager.setLookAndFeel("org.pushingpixels.substance.api.skin.SubstanceMarinerLookAndFeel");
+            UIManager.setLookAndFeel("com.sk89q.skmcl.skin.LauncherLookAndFeel");
         } catch (Exception e) {
+            log.log(Level.WARNING, "Failed to set LAF", e);
         }
     }
     

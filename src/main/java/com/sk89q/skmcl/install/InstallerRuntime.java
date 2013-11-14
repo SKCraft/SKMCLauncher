@@ -144,17 +144,17 @@ public class InstallerRuntime extends Task<InstallerRuntime> {
 
     @Override
     public InstallerRuntime call() throws Exception {
-        Segment step1 = segment(0.8),
-                step2 = segments(0.2, tasks.size());
+        Segment step1 = segment(0.9),
+                step2 = segments(0.1, tasks.size());
 
-        step1.push(0, _("installer.downloading"));
+        step1.push(0, _("installer.preparingDownload", tasks.size()));
 
         httpDownloader.addObserver(step1);
         httpDownloader.call();
 
         for (Runnable task : tasks) {
             checkInterrupted();
-            step2.push(0, _("installer.installing"));
+            step2.push(0, _("installer.installing", task.toString()));
             logger.log(Level.INFO, "Executing {0}...", task.toString());
             task.run();
             step2.advance();

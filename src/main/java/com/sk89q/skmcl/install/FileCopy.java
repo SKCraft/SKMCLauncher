@@ -20,10 +20,12 @@ package com.sk89q.skmcl.install;
 
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.ToString;
 import org.apache.commons.io.IOUtils;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.util.concurrent.Callable;
 
 import static org.apache.commons.io.IOUtils.closeQuietly;
@@ -31,7 +33,6 @@ import static org.apache.commons.io.IOUtils.closeQuietly;
 /**
  * Copies a file to another location.
  */
-@ToString
 public class FileCopy implements Runnable, Callable<File> {
 
     @Getter
@@ -76,4 +77,8 @@ public class FileCopy implements Runnable, Callable<File> {
         }
     }
 
+    @Override
+    public String toString() {
+        return destination.getName();
+    }
 }

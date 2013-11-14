@@ -68,6 +68,8 @@
         <directory>${basedir}/src/main/resources/</directory>
         <includes>
           <include>*.png</include>
+          <include>*.jpg</include>
+          <include>*.html</include>
         </includes>
       </resource>
       <resource>
@@ -82,6 +84,11 @@
         <targetPath>lang</targetPath>
         <filtering>true</filtering>
         <directory>${basedir}/src/main/resources/lang/</directory>
+      </resource>
+      <resource>
+        <targetPath>com/sk89q/skmcl/skin</targetPath>
+        <filtering>false</filtering>
+        <directory>${basedir}/src/main/resources/com/sk89q/skmcl/skin/</directory>
       </resource>
     </resources>
     <plugins>

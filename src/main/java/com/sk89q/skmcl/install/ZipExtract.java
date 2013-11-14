@@ -126,4 +126,10 @@ public class ZipExtract implements Runnable {
         }
     }
 
+    @Override
+    public String toString() {
+        return destination.getName();
+    }
+
+
 }

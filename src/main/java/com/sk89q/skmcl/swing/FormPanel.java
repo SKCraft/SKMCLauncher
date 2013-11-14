@@ -34,15 +34,15 @@ public class FormPanel extends JPanel {
         fieldConstraints.fill = GridBagConstraints.HORIZONTAL;
         fieldConstraints.weightx = 1.0;
         fieldConstraints.gridwidth = GridBagConstraints.REMAINDER;
-        fieldConstraints.insets = new Insets(2, 5, 2, 5);
+        fieldConstraints.insets = new Insets(5, 5, 2, 5);
 
         labelConstraints = (GridBagConstraints) fieldConstraints.clone();
         labelConstraints.weightx = 0.0;
         labelConstraints.gridwidth = 1;
-        labelConstraints.insets = new Insets(1, 5, 1, 10);
+        labelConstraints.insets = new Insets(4, 5, 1, 10);
 
         wideFieldConstraints = (GridBagConstraints) fieldConstraints.clone();
-        wideFieldConstraints.insets = new Insets(5, 2, 1, 2);
+        wideFieldConstraints.insets = new Insets(7, 2, 1, 2);
     }
 
     public FormPanel() {

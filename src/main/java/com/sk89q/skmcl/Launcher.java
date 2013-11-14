@@ -18,8 +18,8 @@
 
 package com.sk89q.skmcl;
 
-import com.sk89q.skmcl.application.Application;
 import com.sk89q.skmcl.launch.InstanceLauncher;
+import com.sk89q.skmcl.profile.Profile;
 import com.sk89q.skmcl.profile.ProfileManager;
 import com.sk89q.skmcl.swing.CreateProfileDialog;
 import com.sk89q.skmcl.swing.LauncherFrame;
@@ -61,8 +61,8 @@ public class Launcher {
         return dialog;
     }
 
-    public void launchApplication(Window owner, Worker worker, Application application) {
-        InstanceLauncher task = new InstanceLauncher(application);
+    public void launchApplication(Window owner, Worker worker, Profile profile) {
+        InstanceLauncher task = new InstanceLauncher(profile.getApplication());
         worker.submit(task);
     }
 

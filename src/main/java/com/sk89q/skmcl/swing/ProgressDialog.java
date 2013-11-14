@@ -57,7 +57,7 @@ public class ProgressDialog extends JDialog implements Observer {
         initComponents();
         pack();
         setResizable(false);
-        setSize(500, getHeight());
+        setSize(400, getHeight());
         setLocationRelativeTo(owner);
 
         worker.addObserver(this);
@@ -82,7 +82,7 @@ public class ProgressDialog extends JDialog implements Observer {
 
     private void initComponents() {
         JPanel container = new JPanel();
-        container.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        container.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         container.setLayout(new BoxLayout(container, BoxLayout.PAGE_AXIS));
 
         JPanel buttonPanel = new JPanel();
@@ -98,7 +98,7 @@ public class ProgressDialog extends JDialog implements Observer {
         container.add(buttonPanel);
 
         JPanel statusPanel = new JPanel();
-        statusPanel.setBorder(BorderFactory.createEmptyBorder(2, 0, 0, 0));
+        statusPanel.setBorder(BorderFactory.createEmptyBorder(6, 0, 0, 0));
         statusPanel.setLayout(new BoxLayout(statusPanel, BoxLayout.LINE_AXIS));
         statusLabel = new JLabel(defaultStatus, SwingConstants.LEADING);
         statusPanel.add(statusLabel);

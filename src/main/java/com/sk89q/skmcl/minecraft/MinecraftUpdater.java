@@ -112,9 +112,9 @@ class MinecraftUpdater extends Task<MinecraftInstall> {
 
     @Override
     public MinecraftInstall call() throws Exception {
-        Segment step1 = segment(0.1),
-                step2 = segment(0.1),
-                step3 = segment(0.8);
+        Segment step1 = segment(0.02),
+                step2 = segment(0.02),
+                step3 = segment(0.96);
 
         installGame(step1);
         checkInterrupted();
@@ -182,13 +182,13 @@ class MinecraftUpdater extends Task<MinecraftInstall> {
      */
     protected void installAssets(Segment segment) throws IOException, InterruptedException {
         logger.log(Level.INFO, "Checking for asset downloads...");
-        segment.push(0, _("minecraftUpdate.checkingAssets"));
 
         File assetsDir = instance.getAssetsDir();
         String marker = "";
 
         while (marker != null) {
             URL bucketUrl = getAssetsUrl(marker);
+            segment.push(0, _("minecraftUpdate.checkingAssets", bucketUrl.toString()));
             logger.log(Level.INFO, "Enumerating assets from {0}...", bucketUrl);
             checkInterrupted();
 

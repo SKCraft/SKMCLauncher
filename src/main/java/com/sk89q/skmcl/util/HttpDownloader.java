@@ -60,7 +60,7 @@ public class HttpDownloader
         implements ProgressUpdater {
 
     private static final Logger logger = LauncherUtils.getLogger(HttpDownloader.class);
-    public static final int DEFAULT_THREAD_COUNT = 5;
+    public static final int DEFAULT_THREAD_COUNT = 3;
 
     private final ExecutorService executor;
     private final List<Future<RemoteFile>> executed = new ArrayList<Future<RemoteFile>>();
