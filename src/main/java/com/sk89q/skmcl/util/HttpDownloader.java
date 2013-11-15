@@ -229,6 +229,7 @@ public class HttpDownloader
 
     @Override
     public void updateProgress() {
+        double itemProgressTotal = 1 / (double) executed.size();
         double progress = numProcessed / (double) executed.size();
 
         synchronized (active) {
@@ -245,6 +246,8 @@ public class HttpDownloader
                 double itemProgress = httpRequest.getProgress();
 
                 if (itemProgress >= 0) {
+                    progress += itemProgress * itemProgressTotal;
+
                     builder.append(_("downloader.fileListPct",
                             FilenameUtils.getName(file.getUrl().getPath()),
                             itemProgress));
