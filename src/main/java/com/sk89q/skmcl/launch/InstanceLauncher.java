@@ -48,6 +48,8 @@ public class InstanceLauncher extends Task<LaunchedProcess> {
             Task<?> updater = instance.getUpdater();
             updater.addObserver(step1);
             updater.call();
+        } catch (InterruptedException e) {
+            throw e;
         } catch (Exception e) {
             throw new LauncherException(e, _("updater.updateFailed"));
         }
