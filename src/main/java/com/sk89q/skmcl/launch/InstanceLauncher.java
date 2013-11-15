@@ -18,12 +18,15 @@
 
 package com.sk89q.skmcl.launch;
 
+import com.sk89q.skmcl.LauncherException;
 import com.sk89q.skmcl.application.Application;
 import com.sk89q.skmcl.application.Instance;
 import com.sk89q.skmcl.worker.Segment;
 import com.sk89q.skmcl.util.Environment;
 import com.sk89q.skmcl.worker.Task;
 import lombok.Getter;
+
+import static com.sk89q.skmcl.util.SharedLocale._;
 
 public class InstanceLauncher extends Task<LaunchedProcess> {
 
@@ -41,8 +44,12 @@ public class InstanceLauncher extends Task<LaunchedProcess> {
         Segment step1 = segment(0.9),
                 step2 = segment(0.1);
 
-        Task<?> updater = instance.getUpdater();
-        updater.addObserver(step1);
-        updater.call();
+        try {
+            Task<?> updater = instance.getUpdater();
+            updater.addObserver(step1);
+            updater.call();
+        } catch (Exception e) {
+            throw new LauncherException(e, _("updater.updateFailed"));
+        }
     }
 }
