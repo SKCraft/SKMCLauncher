@@ -31,9 +31,7 @@ import org.apache.commons.io.FilenameUtils;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -65,6 +63,7 @@ public class HttpDownloader
     private final ExecutorService executor;
     private final List<Future<RemoteFile>> executed = new ArrayList<Future<RemoteFile>>();
     private final List<RemoteFile> active = new ArrayList<RemoteFile>();
+    private final Set<String> usedHashes = new HashSet<String>();
     private int numProcessed;
     @Getter @Setter
     private boolean overwrite = false;
@@ -109,13 +108,33 @@ public class HttpDownloader
      * @return the destination file
      */
     public File submit(File baseDir, URL url, String versionId) {
-        String id = DigestUtils.shaHex(versionId != null ? versionId : url.toString());
+        String id = makeHashUnique(
+                DigestUtils.shaHex(versionId != null ? versionId : url.toString()));
         String dir = id.substring(0, 1);
         File file = new File(baseDir, dir + "/" + id);
         synchronized (executed) {
             executed.add(executor.submit(new RemoteFile(file, url)));
         }
         return file;
+    }
+
+    /**
+     * Make sure that we aren't re-using hash IDs.
+     *
+     * @param baseId the base ID
+     * @return a unique hash
+     */
+    private String makeHashUnique(String baseId) {
+        String id = baseId;
+        int i = 0;
+
+        while (usedHashes.contains(id)) {
+            id = baseId + (i++);
+        }
+
+        usedHashes.add(id);
+
+        return id;
     }
 
     @Override
