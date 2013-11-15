@@ -73,6 +73,20 @@ public final class Persistence {
     }
 
     /**
+     * Save an object to file, and send all errors to the log.
+     *
+     * @param object the object
+     */
+    public static void commitAndForget(@NonNull Object object)  {
+        try {
+            commit(object);
+        } catch (IOException e) {
+            log.log(Level.WARNING, "Failed to save " + object.getClass() +
+                    ": " + object.toString(), e);
+        }
+    }
+
+    /**
      * Read an object from file.
      *
      * @param file the file
