@@ -197,4 +197,17 @@ public final class LauncherUtils {
         return Logger.getLogger(cls.getCanonicalName());
     }
 
+    /**
+     * Check whether the property {class}.{key} is true.
+     *
+     * @param cls the class
+     * @param key the key
+     * @return true if set
+     */
+    public static boolean hasSystemProperty(Class<?> cls, String key) {
+        String name = cls.getCanonicalName() + "." + key;
+        String value = System.getProperty(name, "false");
+        return value.equalsIgnoreCase("true");
+    }
+
 }

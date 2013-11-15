@@ -18,8 +18,6 @@
 
 package com.sk89q.skmcl.minecraft;
 
-import com.sk89q.skmcl.worker.Segment;
-import com.sk89q.skmcl.util.LauncherUtils;
 import com.sk89q.skmcl.application.Version;
 import com.sk89q.skmcl.install.HttpResource;
 import com.sk89q.skmcl.install.InstallerRuntime;
@@ -28,6 +26,8 @@ import com.sk89q.skmcl.minecraft.model.Library;
 import com.sk89q.skmcl.minecraft.model.ReleaseManifest;
 import com.sk89q.skmcl.util.Environment;
 import com.sk89q.skmcl.util.HttpRequest;
+import com.sk89q.skmcl.util.LauncherUtils;
+import com.sk89q.skmcl.worker.Segment;
 import com.sk89q.skmcl.worker.Task;
 import org.apache.commons.codec.digest.DigestUtils;
 
@@ -41,6 +41,7 @@ import java.util.logging.Logger;
 import static com.sk89q.skmcl.util.HttpRequest.Form.form;
 import static com.sk89q.skmcl.util.HttpRequest.url;
 import static com.sk89q.skmcl.util.LauncherUtils.checkInterrupted;
+import static com.sk89q.skmcl.util.LauncherUtils.hasSystemProperty;
 import static com.sk89q.skmcl.util.SharedLocale._;
 import static org.apache.commons.io.IOUtils.closeQuietly;
 
@@ -118,8 +119,10 @@ class MinecraftUpdater extends Task<MinecraftInstall> {
 
         installGame(step1);
         checkInterrupted();
-        installAssets(step2);
-        checkInterrupted();
+        if (!hasSystemProperty(MinecraftUpdater.class, "skipAssets")) {
+            installAssets(step2);
+            checkInterrupted();
+        }
 
         logger.log(Level.INFO, "Install tasks enumerated; now installing...");
 
@@ -212,6 +215,7 @@ class MinecraftUpdater extends Task<MinecraftInstall> {
                 File file = new File(assetsDir, key);
 
                 if (!file.exists() || !getFileETag(file).equals(hash)) {
+                    logger.log(Level.INFO, "Need to get {0}", key);
                     String id = hash + file.toString();
                     installer.copyTo(new HttpResource(url).withId(id), file);
                 }
