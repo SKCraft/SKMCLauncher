@@ -24,6 +24,7 @@ import com.sk89q.skmcl.profile.ProfileManager;
 import com.sk89q.skmcl.swing.CreateProfileDialog;
 import com.sk89q.skmcl.swing.LauncherFrame;
 import com.sk89q.skmcl.swing.SwingHelper;
+import com.sk89q.skmcl.util.Persistence;
 import com.sk89q.skmcl.util.SharedLocale;
 import com.sk89q.skmcl.worker.Worker;
 import lombok.Getter;
@@ -33,6 +34,7 @@ import lombok.extern.java.Log;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.util.Date;
 import java.util.Locale;
 import java.util.logging.Level;
 
@@ -67,6 +69,10 @@ public class Launcher {
     }
 
     public void launchApplication(Window owner, Worker worker, Profile profile) {
+        profile.setLastLaunchDate(new Date());
+        Persistence.commitAndForget(profile);
+        getProfiles().notifyUpdate();
+
         InstanceLauncher task = new InstanceLauncher(profile.getApplication());
         worker.submit(task);
     }

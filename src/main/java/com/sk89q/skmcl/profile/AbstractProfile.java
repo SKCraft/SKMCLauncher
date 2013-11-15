@@ -18,39 +18,28 @@
 
 package com.sk89q.skmcl.profile;
 
-import com.sk89q.skmcl.application.Application;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 
-import java.io.File;
+import java.util.Date;
 
-public class SimpleProfile extends AbstractProfile {
+public abstract class AbstractProfile implements Profile, Comparable<Profile> {
 
-    @Getter
-    private Application application;
-    @Getter @Setter @NonNull
-    private String name;
-    @Getter @Setter @NonNull
-    private File baseDir;
-    @Getter @Setter @NonNull
-    private File sharedDir;
+    @Getter @Setter
+    private Date lastLaunchDate;
 
-    public void setApplication(@NonNull Application application) {
-        this.application = application;
-        application.setProfile(this);
-    }
+    public int compareTo(@NonNull Profile o) {
+        Date otherDate = o.getLastLaunchDate();
 
-    public File getContentDir() {
-        return new File(getBaseDir(), "content");
-    }
-
-    public File getTemporaryDir() {
-        return new File(getSharedDir(), "temp");
-    }
-
-    @Override
-    public String toString() {
-        return getName();
+        if (otherDate == null && lastLaunchDate == null) {
+            return 0;
+        } else if (otherDate == null) {
+            return -1;
+        } else if (lastLaunchDate == null) {
+            return 1;
+        } else {
+            return -lastLaunchDate.compareTo(otherDate);
+        }
     }
 }

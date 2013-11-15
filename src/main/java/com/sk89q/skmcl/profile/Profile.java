@@ -24,6 +24,7 @@ import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 
 import java.io.File;
+import java.util.Date;
 
 /**
  * Represents a profile that contains an installed game.
@@ -35,7 +36,7 @@ import java.io.File;
 @JsonSubTypes({
         @JsonSubTypes.Type(value = SimpleProfile.class, name = "simple")
 })
-public interface Profile {
+public interface Profile extends Comparable<Profile> {
 
     /**
      * Get the name of the profile.
@@ -64,6 +65,20 @@ public interface Profile {
      * @param application the application
      */
     void setApplication(Application application);
+
+    /**
+     * Get the last date that the profile was launched.
+     *
+     * @return the last launch date
+     */
+    Date getLastLaunchDate();
+
+    /**
+     * Set the last date that the profile was launched.
+     *
+     * @param date the date that the profile was last launched
+     */
+    void setLastLaunchDate(Date date);
 
     /**
      * Get the base directory for this profile.

@@ -29,6 +29,7 @@ import java.io.FileFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -64,11 +65,13 @@ public class ProfileManager extends AbstractListModel implements ComboBoxModel {
 
     public void add(@NonNull Profile profile) throws IOException {
         if (!profiles.contains(profile)) {
+            profile.setLastLaunchDate(new Date());
             File dir = findDir(profile.getName());
             File file = getProfileFile(dir);
             Persistence.bind(profile, file);
             Persistence.commit(profile);
             profiles.add(profile);
+            Collections.sort(profiles);
             fireContentsChanged(this, 0, profiles.size());
         }
     }
@@ -95,6 +98,7 @@ public class ProfileManager extends AbstractListModel implements ComboBoxModel {
 
     public void remove(@NonNull Profile profile) {
         profiles.remove(profile);
+        Collections.sort(profiles);
         fireContentsChanged(this, 0, profiles.size() + 1);
     }
 
@@ -116,6 +120,12 @@ public class ProfileManager extends AbstractListModel implements ComboBoxModel {
             }
         }
 
+        Collections.sort(profiles);
+        fireContentsChanged(this, 0, profiles.size());
+    }
+
+    public void notifyUpdate() {
+        Collections.sort(profiles);
         fireContentsChanged(this, 0, profiles.size());
     }
 
