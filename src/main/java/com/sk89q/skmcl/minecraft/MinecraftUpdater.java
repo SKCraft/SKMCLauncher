@@ -144,6 +144,7 @@ class MinecraftUpdater extends Task<MinecraftInstall> {
         segment.push(0, _("minecraftUpdate.checkingGameUpdates"));
 
         File contentDir = instance.getProfile().getContentDir();
+        File librariesDir = instance.getLibrariesDir();
         File jarPath = instance.getJarPath();
         File manifestPath = instance.getManifestPath();
 
@@ -165,7 +166,7 @@ class MinecraftUpdater extends Task<MinecraftInstall> {
         for (Library library : manifest.getLibraries()) {
             if (library.matches(environment)) {
                 URL url = library.getUrl(environment);
-                File file = new File(contentDir, "libraries/" + library.getPath(environment));
+                File file = new File(librariesDir, library.getPath(environment));
 
                 if (!file.exists()) {
                     installer.copyTo(new HttpResource(url), file);

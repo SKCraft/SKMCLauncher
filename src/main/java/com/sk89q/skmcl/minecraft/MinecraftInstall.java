@@ -114,6 +114,15 @@ public class MinecraftInstall implements Instance {
     }
 
     /**
+     * Get the path to shared libraries directory.
+     *
+     * @return the path
+     */
+    public File getLibrariesDir() {
+        return new File(getProfile().getSharedDir(), "libraries");
+    }
+
+    /**
      * Get the path to a new temporary directory to store extracted libraries.
      *
      * <p>The returned directory can be deleted at any point in time.</p>
@@ -143,8 +152,7 @@ public class MinecraftInstall implements Instance {
 
         // Add libraries to classpath or extract the libraries as necessary
         for (Library library : manifest.getLibraries()) {
-            File path = new File(getProfile().getContentDir(),
-                    "libraries/" + library.getPath(context.getEnvironment()));
+            File path = new File(getLibrariesDir(), library.getPath(context.getEnvironment()));
 
             if (path.exists()) {
                 Extract extract = library.getExtract();
