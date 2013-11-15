@@ -36,4 +36,10 @@ public abstract class Task<V> extends Segment implements Callable<V> {
         return true;
     }
 
+    @Override
+    public String toString() {
+        return String.format("%s{progress=%.2f%%, status=%s}",
+                getClass().toString(), getProgress() * 100, getLocalizedStatus());
+    }
+
 }

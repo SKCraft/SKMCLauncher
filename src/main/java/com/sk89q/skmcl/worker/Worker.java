@@ -184,6 +184,7 @@ public final class Worker extends Observable implements Watchable, Observer {
             @Override
             public T call() throws Exception {
                 try {
+                    log.log(Level.INFO, "Executing {0}...", task);
                     return task.call();
                 } catch (InterruptedException e) {
                     throw e;
@@ -195,6 +196,7 @@ public final class Worker extends Observable implements Watchable, Observer {
                     throw new RuntimeException(t);
                 } finally {
                     stopTracking(task);
+                    log.log(Level.INFO, "{0} is done", task);
                 }
             }
         });

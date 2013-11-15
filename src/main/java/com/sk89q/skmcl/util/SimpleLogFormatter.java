@@ -16,15 +16,15 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.sk89q.mclauncher.util;
+package com.sk89q.skmcl.util;
+
+import lombok.extern.java.Log;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.logging.Formatter;
-import java.util.logging.Handler;
-import java.util.logging.LogRecord;
-import java.util.logging.Logger;
+import java.util.logging.*;
 
+@Log
 public final class SimpleLogFormatter extends Formatter {
 
     private static final String LINE_SEPARATOR = System.getProperty("line.separator");
@@ -33,7 +33,8 @@ public final class SimpleLogFormatter extends Formatter {
     public String format(LogRecord record) {
         StringBuilder sb = new StringBuilder();
 
-        sb.append("[")
+        sb.append(record.getLoggerName())
+            .append(" [")
             .append(record.getLevel().getLocalizedName())
             .append("] ")
             .append(formatMessage(record))
@@ -53,9 +54,22 @@ public final class SimpleLogFormatter extends Formatter {
         return sb.toString();
     }
     
-    public static void setAsFormatter() {
-        for (Handler handler : Logger.getLogger("").getHandlers()) {
+    public static void configureGlobalLogger() {
+        Logger globalLogger = Logger.getLogger("");
+
+        // Set formatter
+        for (Handler handler : globalLogger.getHandlers()) {
             handler.setFormatter(new SimpleLogFormatter());
+        }
+
+        // Set level
+        String logLevel = System.getProperty(
+                SimpleLogFormatter.class.getCanonicalName() + ".logLevel", "INFO");
+        try {
+            Level level = Level.parse(logLevel);
+            globalLogger.setLevel(level);
+        } catch (IllegalArgumentException e) {
+            log.log(Level.WARNING, "Invalid log level of " + logLevel, e);
         }
     }
     

@@ -18,6 +18,7 @@
 
 package com.sk89q.skmcl;
 
+import com.sk89q.skmcl.util.SimpleLogFormatter;
 import com.sk89q.skmcl.launch.InstanceLauncher;
 import com.sk89q.skmcl.profile.Profile;
 import com.sk89q.skmcl.profile.ProfileManager;
@@ -78,10 +79,18 @@ public class Launcher {
     }
 
     public static void main(String[] args) {
+        // Configure the logger
+        SimpleLogFormatter.configureGlobalLogger();
+
+        // Load language
         SharedLocale.loadBundle("lang.Launcher", Locale.getDefault());
 
+        // Initialize launcher
         File dir = new File("_tempdata");
+        log.log(Level.INFO, "Using launcher data directory {0}", dir.getAbsolutePath());
         final Launcher launcher = new Launcher(dir);
+
+        // Load up the UI
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
