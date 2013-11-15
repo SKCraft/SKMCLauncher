@@ -98,8 +98,8 @@ public class VersionListDialog extends JDialog {
                     setVersions(application.getAvailable());
                 } catch (IOException e) {
                     dispose();
-                    throw new LauncherException(
-                            _("versionList.failedFetchError"), e);
+                    throw new LauncherException(e,
+                            _("versionList.failedFetchError"));
                 } catch (InterruptedException e) {
                     dispose();
                 }

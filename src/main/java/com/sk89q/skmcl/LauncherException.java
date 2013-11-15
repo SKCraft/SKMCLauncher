@@ -30,7 +30,7 @@ public class LauncherException extends Exception {
         this.localizedMessage = localizedMessage;
     }
 
-    public LauncherException(String localizedMessage, Throwable cause) {
+    public LauncherException(Throwable cause, String localizedMessage) {
         super(cause.getMessage(), cause);
         this.localizedMessage = localizedMessage;
     }
