@@ -18,6 +18,8 @@
 
 package com.sk89q.skmcl.swing;
 
+import com.sk89q.skmcl.Launcher;
+import lombok.NonNull;
 import lombok.extern.java.Log;
 
 import javax.imageio.ImageIO;
@@ -25,15 +27,15 @@ import javax.swing.*;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
+import static com.sk89q.skmcl.util.SharedLocale._;
 import static org.apache.commons.io.IOUtils.closeQuietly;
 
 /**
@@ -43,81 +45,161 @@ import static org.apache.commons.io.IOUtils.closeQuietly;
 public final class SwingHelper {
 
     private static String[] monospaceFontNames = {
-        "Consolas", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Lucida Console"};
-    
-    private static boolean confirmResult;
-    
+            "Consolas",
+            "DejaVu Sans Mono",
+            "Bitstream Vera Sans Mono",
+            "Lucida Console"};
+
     private SwingHelper() {
     }
     
     /**
-     * Browse to a folder.
+     * Open a system file browser window for the given path.
      * 
      * @param file the path
-     * @param component the component
+     * @param parentComponent the component from which to show any errors
      */
-    public static void browseDir(File file, Component component) {
+    public static void browseDir(@NonNull File file, @NonNull Component parentComponent) {
         try {
-            Desktop.getDesktop().browse(new URL("file://" + file.getAbsolutePath()).toURI());
+            Desktop.getDesktop().browse(
+                    new URL("file://" + file.getAbsolutePath()).toURI());
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(component, "Unable to open '" +
-                    file.getAbsolutePath() + "'. Maybe it doesn't exist?",
-                    "Open failed", JOptionPane.ERROR_MESSAGE);
+            showErrorDialog(parentComponent,
+                    _("errors.unableOpenDir", file.getAbsolutePath()),
+                    _("errors.errorTitle"));
         } catch (URISyntaxException e) {
         }
     }
     
     /**
-     * Opens a URL.
+     * Opens a system web browser for the given URL.
      * 
-     * @param url
-     * @param component
+     * @param url the URL
+     * @param parentComponent the component from which to show any errors
      */
-    public static void openURL(String url, Component component) {
+    public static void openURL(@NonNull String url, @NonNull Component parentComponent) {
         try {
-            openURL(new URL(url), component);
+            openURL(new URL(url), parentComponent);
         } catch (MalformedURLException e) {
         }        
     }
     
     /**
-     * Opens a URL.
-     * 
-     * @param url
-     * @param component
+     * Opens a system web browser for the given URL.
+     *
+     * @param url the URL
+     * @param parentComponent the component from which to show any errors
      */
-    public static void openURL(URL url, Component component) {
+    public static void openURL(URL url, Component parentComponent) {
         try {
             Desktop.getDesktop().browse(url.toURI());
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(component, "Unable to open '" +
-                    url + "'",
-                    "Open failed", JOptionPane.ERROR_MESSAGE);
+            showErrorDialog(parentComponent,
+                    _("errors.unableOpenURL", url.toString()),
+                    _("errors.errorTitle"));
         } catch (URISyntaxException e) {
         }        
     }
-    
+
     /**
-     * Shows an error dialog.
-     * 
-     * <p>This can be called from a different thread from the event dispatch
-     * thread, and it will be made thread-safe.</p>
-     * 
-     * @param component component
-     * @param message message
-     * @param title title
-     * @param throwable the exception, or null
+     * Shows an popup error dialog, with potential extra details shown either immediately
+     * or available on the dialog.
+     *
+     * @param parentComponent the frame from which the dialog is displayed, otherwise
+     *                        null to use the default frame
+     * @param message the message to display
+     * @param title the title string for the dialog
+     * @see #showMessageDialog(java.awt.Component, String, String, String, int) for details
      */
-    public static void showError(final Component component,
-                                 final String message,
-                                 final String title,
-                                 final Throwable throwable) {
-        if (!SwingUtilities.isEventDispatchThread()) {
+    public static void showErrorDialog(Component parentComponent, @NonNull String message,
+                                       @NonNull String title) {
+        showErrorDialog(parentComponent, message, title, null);
+    }
+
+    /**
+     * Shows an popup error dialog, with potential extra details shown either immediately
+     * or available on the dialog.
+     *
+     * @param parentComponent the frame from which the dialog is displayed, otherwise
+     *                        null to use the default frame
+     * @param message the message to display
+     * @param title the title string for the dialog
+     * @param throwable the exception, or null if there is no exception to show
+     * @see #showMessageDialog(java.awt.Component, String, String, String, int) for details
+     */
+    public static void showErrorDialog(Component parentComponent, @NonNull String message,
+                                       @NonNull String title, Throwable throwable) {
+        String detailsText = null;
+
+        // Get a string version of the exception and use that for
+        // the extra details text
+        if (throwable != null) {
+            StringWriter sw = new StringWriter();
+            throwable.printStackTrace(new PrintWriter(sw));
+            detailsText = sw.toString();
+        }
+
+        showMessageDialog(parentComponent, message, title,
+                detailsText, JOptionPane.ERROR_MESSAGE);
+    }
+
+    /**
+     * Show a message dialog using
+     * {@link JOptionPane#showMessageDialog(java.awt.Component, Object, String, int)}.
+     *
+     * <p>The dialog will be shown from the Event Dispatch Thread, regardless of the
+     * thread it is called from. In either case, the method will block until the
+     * user has closed the dialog (or dialog creation fails for whatever reason).</p>
+     *
+     * @param parentComponent the frame from which the dialog is displayed, otherwise
+     *                        null to use the default frame
+     * @param message the message to display
+     * @param title the title string for the dialog
+     * @param messageType see {@link JOptionPane#showMessageDialog(java.awt.Component, Object, String, int)}
+     *                    for available message types
+     */
+    public static void showMessageDialog(final Component parentComponent,
+                                         @NonNull final String message,
+                                         @NonNull final String title,
+                                         final String detailsText,
+                                         final int messageType) {
+
+        if (SwingUtilities.isEventDispatchThread()) {
+            // To force the label to wrap, convert the message to broken HTML
+            String htmlMessage = "<html><div style=\"width: 350px\">" + message
+                    .replace(">", "&gt;")
+                    .replace("<", "&lt;")
+                    .replace("&", "&amp;");
+
+            JPanel panel = new JPanel(new BorderLayout(0, detailsText != null ? 10 : 0));
+
+            // Add the main message
+            panel.add(new JLabel(htmlMessage), BorderLayout.NORTH);
+
+            // Add the extra details
+            if (detailsText != null) {
+                JTextArea textArea = new JTextArea(
+                        _("errors.detailsForDeveloper", detailsText));
+                textArea.setTabSize(2);
+                textArea.setEditable(false);
+                textArea.setComponentPopupMenu(TextFieldPopupMenu.INSTANCE);
+
+                JScrollPane scrollPane = new JScrollPane(textArea);
+                scrollPane.setPreferredSize(new Dimension(350, 150));
+                panel.add(scrollPane, BorderLayout.CENTER);
+            }
+
+            JOptionPane.showMessageDialog(
+                    parentComponent, panel, title, messageType);
+        } else {
+            // Call method again from the Event Dispatch Thread
             try {
                 SwingUtilities.invokeAndWait(new Runnable() {
                     @Override
                     public void run() {
-                        showError(component, message, title, throwable);
+                        showMessageDialog(
+                                parentComponent, message, title,
+                                detailsText, messageType);
                     }
                 });
             } catch (InterruptedException e) {
@@ -125,53 +207,34 @@ public final class SwingHelper {
             } catch (InvocationTargetException e) {
                 throw new RuntimeException(e);
             }
-            return;
-        }
-        
-        String newMessage = message
-                .replace(">", "&gt;")
-                .replace("<", "&lt;")
-                .replace("&", "&amp;");
-        newMessage = "<html>" + newMessage;
-        
-        JOptionPane.showMessageDialog(
-                component, newMessage, title, 
-                JOptionPane.ERROR_MESSAGE);
-
-        if (throwable != null) {
-            log.log(Level.WARNING, "An error has occurred", throwable);
         }
     }
 
     /**
-     * Shows an error dialog.
-     *
-     * @param component component
-     * @param message message
-     * @param title title
-     */
-    public static void showError(final Component component,
-                                 final String message,
-                                 final String title) {
-        showError(component, message, title, null);
-    }
-
-    /**
-     * Asks the user a yes or no question.
+     * Asks the user a binary yes or no question.
      * 
-     * @param component the component
-     * @param title the title
-     * @param message the message
-     * @return true if 'yes' was selected
+     * @param parentComponent the component
+     * @param message the message to display
+     * @param title the title string for the dialog
+     * @return whether 'yes' was selected
      */
-    public static boolean confirm(final Component component,
-                                  final String message, final String title) {
-        if (!SwingUtilities.isEventDispatchThread()) {
+    public static boolean confirmDialog(final Component parentComponent,
+                                        @NonNull final String message,
+                                        @NonNull final String title) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            return JOptionPane.showConfirmDialog(
+                    parentComponent, message, title, JOptionPane.YES_NO_OPTION) ==
+                    JOptionPane.YES_OPTION;
+        } else {
+            // Use an AtomicBoolean to pass the result back from the
+            // Event Dispatcher Thread
+            final AtomicBoolean yesSelected = new AtomicBoolean();
+
             try {
                 SwingUtilities.invokeAndWait(new Runnable() {
                     @Override
                     public void run() {
-                        confirmResult = confirm(component, title, message);
+                        yesSelected.set(confirmDialog(parentComponent, title, message));
                     }
                 });
             } catch (InterruptedException e) {
@@ -180,16 +243,13 @@ public final class SwingHelper {
                 throw new RuntimeException(e);
             }
             
-            return confirmResult;
+            return yesSelected.get();
         }
-        
-        return JOptionPane.showConfirmDialog(
-                component, message, title, JOptionPane.YES_NO_OPTION) == 0;
     }
-    
+
     /**
      * Equalize the width of the given components.
-     * 
+     *
      * @param component component
      */
     public static void equalWidth(Component ... component) {
@@ -200,7 +260,7 @@ public final class SwingHelper {
                 widest = dim.getWidth();
             }
         }
-        
+
         for (Component comp : component) {
             Dimension dim = comp.getPreferredSize();
             comp.setPreferredSize(new Dimension((int) widest, (int) dim.getHeight()));
@@ -212,7 +272,7 @@ public final class SwingHelper {
      * 
      * @param components list of components
      */
-    public static void removeOpaqueness(Component ... components) {
+    public static void removeOpaqueness(@NonNull Component ... components) {
         for (Component component : components) {
             if (component instanceof JComponent) {
                 JComponent jComponent = (JComponent) component;
@@ -225,7 +285,7 @@ public final class SwingHelper {
     /**
      * Get a supported monospace font.
      * 
-     * @return font
+     * @return a font
      */
     public static Font getMonospaceFont() {
         for (String fontName : monospaceFontNames) {
@@ -233,6 +293,7 @@ public final class SwingHelper {
             if (!font.getFamily().equalsIgnoreCase("Dialog"))
                 return font;
         }
+
         return new Font("Monospace", Font.PLAIN, 11);
     }
 
@@ -270,11 +331,22 @@ public final class SwingHelper {
     }
 
     /**
+     * Try to set a safe look and feel.
+     */
+    public static void setSafeLookAndFeel() {
+        try {
+            UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+        } catch (Throwable e) {
+        }
+    }
+
+    /**
      * Try to set the default look and feel.
      */
     public static void setLookAndFeel() {
         try {
-            // UIManager.getSystemLookAndFeelClassName()
+            UIManager.getLookAndFeelDefaults().put("ClassLoader",
+                    Launcher.class.getClassLoader());
             JFrame.setDefaultLookAndFeelDecorated(true);
             JDialog.setDefaultLookAndFeelDecorated(true);
             System.setProperty("sun.awt.noerasebackground", "true");
@@ -292,7 +364,7 @@ public final class SwingHelper {
      * 
      * @param component the component
      */
-    public static void focusLater(final Component component) {
+    public static void focusLater(@NonNull final Component component) {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
@@ -302,21 +374,6 @@ public final class SwingHelper {
                 component.requestFocusInWindow();
             }
         });
-    }
-
-    /**
-     * Invoke, wait, and ignore errors.
-     * 
-     * @param runnable a runnable
-     */
-    public static void invokeAndWait(Runnable runnable) {
-        try {
-            SwingUtilities.invokeAndWait(runnable);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        } catch (InvocationTargetException e) {
-            throw new RuntimeException(e);
-        }
     }
     
 }

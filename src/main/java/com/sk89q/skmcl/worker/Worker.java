@@ -21,6 +21,7 @@ package com.sk89q.skmcl.worker;
 import com.sk89q.skmcl.swing.ProgressDialog;
 import com.sk89q.skmcl.swing.SwingHelper;
 import lombok.NonNull;
+import lombok.extern.java.Log;
 
 import javax.swing.*;
 import java.awt.*;
@@ -31,12 +32,14 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.logging.Level;
 
 import static com.sk89q.skmcl.util.SharedLocale._;
 
 /**
  * A background task executor that will show a progress dialog as needed.
  */
+@Log
 public final class Worker extends Observable implements Watchable, Observer {
 
     private static final int DIALOG_DISPLAY_DELAY = 250;
@@ -97,7 +100,8 @@ public final class Worker extends Observable implements Watchable, Observer {
      * @param t the exception
      */
     private void showError(Throwable t) {
-        SwingHelper.showError(parent,
+        log.log(Level.WARNING, "An uncaught exception was thrown in a worker", t);
+        SwingHelper.showErrorDialog(parent,
                 t.getLocalizedMessage(),
                 _("errorDialog.title"), t);
     }

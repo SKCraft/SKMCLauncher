@@ -70,7 +70,7 @@ public class ProgressDialog extends JDialog implements Observer {
 
     private void tryCancelling() {
         if (worker.shouldConfirmInterrupt()) {
-            if (SwingHelper.confirm(self,
+            if (SwingHelper.confirmDialog(self,
                     _("progressDialog.cancelPrompt"),
                     _("progressDialog.cancelPromptTitle"))) {
                 cancel();

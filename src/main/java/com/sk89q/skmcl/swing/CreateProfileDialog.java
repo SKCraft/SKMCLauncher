@@ -26,15 +26,18 @@ import com.sk89q.skmcl.minecraft.Minecraft;
 import com.sk89q.skmcl.profile.SimpleProfile;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.extern.java.Log;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.util.logging.Level;
 
 import static com.sk89q.skmcl.util.SharedLocale._;
 
+@Log
 public class CreateProfileDialog extends JDialog {
 
     private final CreateProfileDialog self = this;
@@ -106,7 +109,7 @@ public class CreateProfileDialog extends JDialog {
         name = name.trim();
 
         if (name.isEmpty()) {
-            SwingHelper.showError(
+            SwingHelper.showErrorDialog(
                     this, _("createProfile.emptyNameError"), _("invalidInput.title"));
             return;
         }
@@ -119,7 +122,8 @@ public class CreateProfileDialog extends JDialog {
             getLauncher().getProfiles().add(profile);
             dispose();
         } catch (IOException e) {
-            SwingHelper.showError(this, _("createProfile.failedToCreateError"),
+            log.log(Level.WARNING, "Failed to create a profile", e);
+            SwingHelper.showErrorDialog(this, _("createProfile.failedToCreateError"),
                     _("createProfile.title"), e);
         }
     }
