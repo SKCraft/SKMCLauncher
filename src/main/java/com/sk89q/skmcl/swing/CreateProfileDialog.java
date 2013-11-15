@@ -75,6 +75,7 @@ public class CreateProfileDialog extends JDialog {
         form.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         form.addRow(new JLabel(_("createProfile.profileName")), nameField);
         form.addRow(new JLabel(_("createProfile.version")), versionButton);
+        nameField.setComponentPopupMenu(TextFieldPopupMenu.INSTANCE);
 
         buttons.addGlue();
         buttons.addElement(createButton);
