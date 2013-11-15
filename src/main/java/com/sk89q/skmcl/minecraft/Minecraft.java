@@ -70,7 +70,7 @@ public class Minecraft implements Application {
     }
 
     @Override
-    public Version getLatestStable() throws IOException {
+    public Version getLatestStable() throws IOException, InterruptedException {
         Version release = getReleaseList().find(
                 getReleaseList().getLatest().getRelease());
         if (release != null) {
@@ -81,7 +81,7 @@ public class Minecraft implements Application {
     }
 
     @Override
-    public Version getLatestSnapshot() throws IOException {
+    public Version getLatestSnapshot() throws IOException, InterruptedException {
         return getReleaseList().find(getReleaseList().getLatest().getSnapshot());
     }
 
@@ -98,7 +98,7 @@ public class Minecraft implements Application {
     }
 
     @Override
-    public List<Version> getAvailable() throws IOException {
+    public List<Version> getAvailable() throws IOException, InterruptedException {
         return getReleaseList().getVersions();
     }
 
@@ -127,7 +127,7 @@ public class Minecraft implements Application {
      * @return the release list
      * @throws IOException on I/O error
      */
-    private ReleaseList getReleaseList() throws IOException {
+    private ReleaseList getReleaseList() throws IOException, InterruptedException {
         if (releaseList == null) {
             ReleaseList list = HttpRequest
                     .get(url(VERSIONS_LIST_URL))

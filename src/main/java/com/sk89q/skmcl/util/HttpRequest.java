@@ -201,9 +201,10 @@ public class HttpRequest extends Segment implements Closeable, ProgressUpdater {
      * Buffer the returned response.
      *
      * @return the buffered response
-     * @throws IOException
+     * @throws IOException on I/O error
+     * @throws InterruptedException on interruption
      */
-    public BufferedResponse returnContent() throws IOException {
+    public BufferedResponse returnContent() throws IOException, InterruptedException {
         if (inputStream == null) {
             throw new IllegalArgumentException("No input stream available");
         }
@@ -212,6 +213,7 @@ public class HttpRequest extends Segment implements Closeable, ProgressUpdater {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             int b = 0;
             while ((b = inputStream.read()) != -1) {
+                checkInterrupted();
                 bos.write(b);
             }
             return new BufferedResponse(bos.toByteArray());

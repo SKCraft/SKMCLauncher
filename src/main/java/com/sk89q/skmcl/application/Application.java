@@ -71,18 +71,20 @@ public interface Application {
      *
      * @return the latest stable version
      * @throws IOException thrown on I/O error
+     * @throws InterruptedException on interruption
      */
     @JsonIgnore
-    Version getLatestStable() throws IOException;
+    Version getLatestStable() throws IOException, InterruptedException;
 
     /**
      * Get the latest snapshot version.
      *
      * @return the latest snapshot version, or null if none are available
      * @throws IOException thrown on I/O error
+     * @throws InterruptedException on interruption
      */
     @JsonIgnore
-    Version getLatestSnapshot() throws IOException;
+    Version getLatestSnapshot() throws IOException, InterruptedException;
 
     /**
      * Get a list of versions that are installed.
@@ -98,6 +100,7 @@ public interface Application {
      *
      * @return a list of versions that can be installed
      * @throws IOException thrown on I/O error
+     * @throws InterruptedException on interruption
      */
     @JsonIgnore
     List<? extends Version> getAvailable() throws IOException, InterruptedException;
