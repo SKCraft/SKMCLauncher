@@ -88,6 +88,7 @@ public class LauncherFrame extends JFrame implements ListDataListener {
         profilesList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         profilesList.setCellRenderer(new ProfileListCellRenderer());
         profilesList.setFixedCellHeight(20);
+        SelectionKeeper.attach(profilesList);
 
         leftPanel.setLayout(new BorderLayout());
         searchPanel.setLayout(new BorderLayout());
