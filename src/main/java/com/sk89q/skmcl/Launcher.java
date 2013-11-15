@@ -28,15 +28,20 @@ import com.sk89q.skmcl.util.SharedLocale;
 import com.sk89q.skmcl.worker.Worker;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.extern.java.Log;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.util.Locale;
+import java.util.logging.Level;
+
+import static com.sk89q.skmcl.util.SharedLocale._;
 
 /**
  * Main launcher class.
  */
+@Log
 public class Launcher {
 
     @Getter
@@ -74,8 +79,17 @@ public class Launcher {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                SwingHelper.setLookAndFeel();
-                launcher.showLauncher();
+                try {
+                    SwingHelper.setLookAndFeel();
+                    launcher.showLauncher();
+                } catch (Throwable t) {
+                    log.log(Level.SEVERE, "Failed to load", t);
+                    SwingHelper.setSafeLookAndFeel();
+                    SwingHelper.showErrorDialog(null,
+                            _("errors.criticalLoadError"),
+                            _("errors.errorTitle"), t);
+                    System.exit(1);
+                }
             }
         });
     }
