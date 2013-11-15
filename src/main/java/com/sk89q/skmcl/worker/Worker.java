@@ -99,11 +99,18 @@ public final class Worker extends Observable implements Watchable, Observer {
      *
      * @param t the exception
      */
-    private void showError(Throwable t) {
+    private void showError(final Throwable t) {
         log.log(Level.WARNING, "An uncaught exception was thrown in a worker", t);
-        SwingHelper.showErrorDialog(parent,
-                t.getLocalizedMessage(),
-                _("errorDialog.title"), t);
+
+        // If we call showErrorDialog() directly, it will use invokeAndWait(), and this
+        // may block even after the dialog is closed for reasons currently unknown
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                SwingHelper.showErrorDialog(parent,
+                        t.getLocalizedMessage(),
+                        _("errorDialog.title"), t);
+            }
+        });
     }
 
     /**
@@ -178,6 +185,8 @@ public final class Worker extends Observable implements Watchable, Observer {
             public T call() throws Exception {
                 try {
                     return task.call();
+                } catch (InterruptedException e) {
+                    throw e;
                 } catch (Exception e) {
                     showError(e);
                     throw e;
@@ -197,8 +206,14 @@ public final class Worker extends Observable implements Watchable, Observer {
      * <p>New tasks can still be queued after this method is called.</p>
      */
     public synchronized void cancelAll() {
-        executor.shutdownNow();
-        executor = Executors.newCachedThreadPool();
+        synchronized (lock) {
+            executor.shutdownNow();
+            executor = Executors.newCachedThreadPool();
+            inProgress.clear();
+            setDialogVisibility(false);
+            setChanged();
+            notifyObservers();
+        }
     }
 
     /**
