@@ -28,17 +28,24 @@ import lombok.Getter;
 
 import static com.sk89q.skmcl.util.SharedLocale._;
 
-public class InstanceLauncher extends Task<LaunchedProcess> {
+/**
+ * Launches a given application and then returns a {@link LaunchedProcess} on
+ * success, which must be managed by the calling routine.
+ */
+public class LaunchTask extends Task<LaunchedProcess> {
 
     @Getter
     private final Application application;
+    @Getter
+    private final LaunchContext launchContext;
 
-    public InstanceLauncher(Application application) {
+    public LaunchTask(Application application, LaunchContext launchContext) {
         this.application = application;
+        this.launchContext = launchContext;
     }
 
     @Override
-    protected void run() throws Exception {
+    public LaunchedProcess call() throws Exception {
         Instance instance = application.getInstance(Environment.getInstance());
 
         Segment step1 = segment(0.9),
@@ -53,5 +60,9 @@ public class InstanceLauncher extends Task<LaunchedProcess> {
         } catch (Exception e) {
             throw new LauncherException(e, _("updater.updateFailed"));
         }
+
+        step2.push(0, _("launcher.launching"));
+
+        return instance.launch(launchContext);
     }
 }

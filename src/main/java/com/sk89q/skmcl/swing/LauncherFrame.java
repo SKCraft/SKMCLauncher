@@ -120,10 +120,14 @@ public class LauncherFrame extends JFrame implements ListDataListener {
             }
         });
 
+        profilesList.addMouseListener(
+                new DoubleClickToButtonAdapter(
+                        profilePanel.getLaunchButton()));
+
         newProfileButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                launcher.showCreateProfile(self);
+                showCreateProfile();
             }
         });
 
@@ -150,14 +154,22 @@ public class LauncherFrame extends JFrame implements ListDataListener {
         }
     }
 
+    private void showCreateProfile() {
+        CreateProfileDialog dialog = new CreateProfileDialog(this, getLauncher());
+        dialog.setVisible(true);
+    }
+
+    @Override
     public void intervalAdded(ListDataEvent e) {
         selectDefaultProfile();
     }
 
+    @Override
     public void intervalRemoved(ListDataEvent e) {
         selectDefaultProfile();
     }
 
+    @Override
     public void contentsChanged(ListDataEvent e) {
         selectDefaultProfile();
     }

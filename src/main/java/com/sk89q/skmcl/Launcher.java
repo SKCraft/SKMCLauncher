@@ -18,15 +18,18 @@
 
 package com.sk89q.skmcl;
 
-import com.sk89q.skmcl.util.SimpleLogFormatter;
-import com.sk89q.skmcl.launch.InstanceLauncher;
+import com.sk89q.skmcl.launch.LaunchTask;
+import com.sk89q.skmcl.launch.LaunchContext;
+import com.sk89q.skmcl.launch.LaunchWatcher;
 import com.sk89q.skmcl.profile.Profile;
 import com.sk89q.skmcl.profile.ProfileManager;
-import com.sk89q.skmcl.swing.CreateProfileDialog;
+import com.sk89q.skmcl.session.OfflineSession;
 import com.sk89q.skmcl.swing.LauncherFrame;
 import com.sk89q.skmcl.swing.SwingHelper;
+import com.sk89q.skmcl.util.Environment;
 import com.sk89q.skmcl.util.Persistence;
 import com.sk89q.skmcl.util.SharedLocale;
+import com.sk89q.skmcl.util.SimpleLogFormatter;
 import com.sk89q.skmcl.worker.Worker;
 import lombok.Getter;
 import lombok.NonNull;
@@ -51,6 +54,7 @@ public class Launcher {
     private final File baseDir;
     @Getter
     private final ProfileManager profiles;
+    private LauncherFrame mainFrame;
 
     public Launcher(@NonNull File baseDir) {
         this.baseDir = baseDir;
@@ -58,15 +62,19 @@ public class Launcher {
     }
 
     public LauncherFrame showLauncher() {
-        LauncherFrame frame = new LauncherFrame(this);
-        frame.setVisible(true);
-        return frame;
+        if (mainFrame == null) {
+            mainFrame = new LauncherFrame(this);
+            mainFrame.setVisible(true);
+        }
+
+        return mainFrame;
     }
 
-    public CreateProfileDialog showCreateProfile(Window owner) {
-        CreateProfileDialog dialog = new CreateProfileDialog(owner, this);
-        dialog.setVisible(true);
-        return dialog;
+    public void hideLauncher() {
+        if (mainFrame != null) {
+            mainFrame.dispose();
+            mainFrame = null;
+        }
     }
 
     public void launchApplication(Window owner, Worker worker, Profile profile) {
@@ -74,8 +82,13 @@ public class Launcher {
         Persistence.commitAndForget(profile);
         getProfiles().notifyUpdate();
 
-        InstanceLauncher task = new InstanceLauncher(profile.getApplication());
-        worker.submit(task);
+        LaunchContext launchContext = new LaunchContext(
+                Environment.getInstance(),
+                new OfflineSession());
+
+        LaunchTask task = new LaunchTask(profile.getApplication(), launchContext);
+        LaunchWatcher watcher = new LaunchWatcher(this, worker.submit(task));
+        new Thread(watcher).start();
     }
 
     public static void main(String[] args) {
