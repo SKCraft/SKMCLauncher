@@ -83,7 +83,7 @@ Graphite Disabled {
     colorMid=#474747
     colorDark=#3A3A3A
     colorUltraDark=#333333
-    colorForeground=#202020
+    colorForeground=#CCCCCC
 }
 
 Graphite Highlight {
