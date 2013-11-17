@@ -109,7 +109,7 @@
           <archive>
             <addMavenDescriptor>false</addMavenDescriptor>
             <manifest>
-              <mainClass>com.sk89q.skmcl.Launcher</mainClass>
+              <mainClass>com.sk89q.skmcl.LauncherStub</mainClass>
               <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
               <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
             </manifest>
@@ -177,7 +177,7 @@
           <bundleName>${project.name}</bundleName>
           <version>${project.version}</version>
           <internetEnable>true</internetEnable>
-          <mainClass>com.sk89q.skmcl.Launcher</mainClass>
+          <mainClass>com.sk89q.skmcl.LauncherStub</mainClass>
           <javaApplicationStub>${basedir}/resources/JavaApplicationStub</javaApplicationStub>
           <jvmVersion>1.6+</jvmVersion>
           <zipFile>${project.build.directory}/${project.build.finalName}.app.zip</zipFile>
@@ -210,7 +210,7 @@
               <jar>target/${project.build.finalName}.jar</jar>
               <errTitle>${project.name} Error</errTitle>
               <classPath>
-                <mainClass>com.sk89q.skmcl.Launcher</mainClass>
+                <mainClass>com.sk89q.skmcl.LauncherStub</mainClass>
               </classPath>
               <icon>${basedir}/resources/icon.ico</icon>
               <jre>

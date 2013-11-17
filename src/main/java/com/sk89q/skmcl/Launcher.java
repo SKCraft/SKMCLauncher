@@ -91,19 +91,14 @@ public class Launcher {
         new Thread(watcher).start();
     }
 
-    public static void main(String[] args) {
-        // Configure the logger
+    public static void launchFromStub(boolean portable, File dataDir, String[] args) {
         SimpleLogFormatter.configureGlobalLogger();
-
-        // Load language
         SharedLocale.loadBundle("lang.Launcher", Locale.getDefault());
 
-        // Initialize launcher
-        File dir = new File("_tempdata");
-        log.log(Level.INFO, "Using launcher data directory {0}", dir.getAbsolutePath());
-        final Launcher launcher = new Launcher(dir);
+        log.log(Level.INFO,
+                "Using launcher data directory {0}", dataDir.getAbsolutePath());
+        final Launcher launcher = new Launcher(dataDir);
 
-        // Load up the UI
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
