@@ -68,6 +68,8 @@ public class ProfileManager extends AbstractListModel implements ComboBoxModel {
             profile.setLastLaunchDate(new Date());
             File dir = findDir(profile.getName());
             File file = getProfileFile(dir);
+            profile.setSharedDir(getSharedDir());
+            profile.setBaseDir(dir);
             Persistence.bind(profile, file);
             Persistence.commit(profile);
             profiles.add(profile);
