@@ -84,6 +84,8 @@ public class CreateProfileDialog extends JDialog {
         add(form, BorderLayout.CENTER);
         add(buttons, BorderLayout.SOUTH);
 
+        getRootPane().setDefaultButton(createButton);
+
         createButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
