@@ -27,6 +27,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 
+import static com.sk89q.skmcl.util.SharedLocale._;
+
 public class PastebinPoster {
     private static final int CONNECT_TIMEOUT = 5000;
     private static final int READ_TIMEOUT = 5000;
@@ -96,14 +98,14 @@ public class PastebinPoster {
                     if (result.matches("^https?://.*")) {
                         callback.handleSuccess(result.trim());
                     } else {
-                        String err =result.trim();
+                        String err = result.trim();
                         if (err.length() > 100) {
                             err = err.substring(0, 100);
                         }
                         callback.handleError(err);
                     }
                 } else {
-                    callback.handleError("didn't get a 200 response code!");
+                    callback.handleError(_("pastebin.apiError"));
                 }
             } catch (IOException e) {
                 callback.handleError(e.getMessage());

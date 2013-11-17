@@ -16,8 +16,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.sk89q.mclauncher.util;
+package com.sk89q.skmcl.swing;
 
+import com.sk89q.mclauncher.util.LimitLinesDocumentListener;
 import com.sk89q.skmcl.util.LauncherUtils;
 
 import javax.swing.*;
@@ -40,7 +41,6 @@ import static org.apache.commons.io.IOUtils.closeQuietly;
 public class MessageLog extends JPanel {
 
     private static final Logger rootLogger = Logger.getLogger("");
-    private static final long serialVersionUID = -1470963240447538893L;
     
     private final int numLines;
     private final boolean colorEnabled;
@@ -60,29 +60,23 @@ public class MessageLog extends JPanel {
         this.colorEnabled = colorEnabled;
         
         this.highlightedAttributes = new SimpleAttributeSet();
-        StyleConstants.setForeground(highlightedAttributes, Color.BLACK);
-        StyleConstants.setBackground(highlightedAttributes, Color.YELLOW);
+        StyleConstants.setForeground(highlightedAttributes, new Color(250, 226, 106));
         
         this.errorAttributes = new SimpleAttributeSet();
-        StyleConstants.setForeground(errorAttributes, new Color(200, 0, 0));
+        StyleConstants.setForeground(errorAttributes, new Color(252, 162, 162));
         this.infoAttributes = new SimpleAttributeSet();
-        StyleConstants.setForeground(infoAttributes, new Color(200, 0, 0));
         this.debugAttributes = new SimpleAttributeSet();
-        StyleConstants.setForeground(debugAttributes, Color.DARK_GRAY);
 
         setLayout(new BorderLayout());
         
-        addComponents();
+        initComponents();
     }
-    
-    private void addComponents() {
+
+    private void initComponents() {
         if (colorEnabled) {
             JTextPane text = new JTextPane() {
-                private static final long serialVersionUID = 6814733823000144811L;
-
                 @Override
-                public boolean getScrollableTracksViewportWidth()
-                {
+                public boolean getScrollableTracksViewportWidth() {
                     return true;
                 }
             };
@@ -93,9 +87,11 @@ public class MessageLog extends JPanel {
             text.setLineWrap(true);
             text.setWrapStyleWord(true);
         }
-        
+
+        textComponent.setBackground(getBackground());
         textComponent.setFont(new JLabel().getFont());
         textComponent.setEditable(false);
+        textComponent.setComponentPopupMenu(TextFieldPopupMenu.INSTANCE);
         DefaultCaret caret = (DefaultCaret) textComponent.getCaret();
         caret.setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
         document = textComponent.getDocument();
@@ -107,6 +103,7 @@ public class MessageLog extends JPanel {
                 ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         scrollText.setHorizontalScrollBarPolicy(
                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        SwingHelper.removeOpaqueness(scrollText, this);
         
         add(scrollText, BorderLayout.CENTER);
     }
