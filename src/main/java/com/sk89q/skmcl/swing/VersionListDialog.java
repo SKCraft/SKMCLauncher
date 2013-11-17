@@ -80,6 +80,7 @@ public class VersionListDialog extends JDialog {
         add(buttonsPanel, BorderLayout.SOUTH);
 
         cancelButton.addActionListener(ActionListeners.dispose(this));
+
         selectButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -90,6 +91,11 @@ public class VersionListDialog extends JDialog {
                 dispose();
             }
         });
+
+        getRootPane().setDefaultButton(selectButton);
+
+        versionsList.addMouseListener(
+                new DoubleClickToButtonAdapter(selectButton));
 
         worker.submit(new Task<Object>() {
             @Override
