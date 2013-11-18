@@ -18,12 +18,14 @@
 
 package com.sk89q.skmcl.application;
 
+import java.io.IOException;
+
 import static com.sk89q.skmcl.util.SharedLocale._;
 
 /**
  * Represents the latest snapshot version.
  */
-public class LatestSnapshot extends Version {
+public class LatestSnapshot extends OnlineVersion {
 
     @Override
     public String getId() {
@@ -37,6 +39,16 @@ public class LatestSnapshot extends Version {
     @Override
     public String getName() {
         return _("version.latestSnapshot");
+    }
+
+    @Override
+    public Version resolveOnline(Application application) throws IOException {
+        try {
+            return application.getLatestSnapshot();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException("Interrupted");
+        }
     }
 
     @Override

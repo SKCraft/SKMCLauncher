@@ -122,9 +122,13 @@ public interface Application {
      * version was returned by
      *
      * @param environment the environment
+     * @param offline whether the instance will eb used offline
      * @param <T> the version type
      * @return an instance
+     * @throws ResolutionException on error getting the instance
+     * @throws OnlineRequiredException thrown if online mode is required
      */
-    <T extends Version> Instance getInstance(Environment environment);
+    <T extends Version> Instance getInstance(Environment environment, boolean offline)
+            throws ResolutionException, OnlineRequiredException;
 
 }

@@ -18,41 +18,23 @@
 
 package com.sk89q.skmcl.application;
 
-import java.io.IOException;
-
-import static com.sk89q.skmcl.util.SharedLocale._;
-
 /**
- * Indicates the latest stable version.
+ * Thrown if online mode is required.
  */
-public class LatestStable extends OnlineVersion {
+public class OnlineRequiredException extends Exception {
 
-    @Override
-    public String getId() {
-        return "stable";
+    public OnlineRequiredException() {
     }
 
-    @Override
-    public void setId(String id) {
+    public OnlineRequiredException(String message) {
+        super(message);
     }
 
-    @Override
-    public String getName() {
-        return _("version.latestStable");
+    public OnlineRequiredException(String message, Throwable cause) {
+        super(message, cause);
     }
 
-    @Override
-    public Version resolveOnline(Application application) throws IOException {
-        try {
-            return application.getLatestStable();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new IOException("Interrupted");
-        }
-    }
-
-    @Override
-    boolean thisEquals(Version other) {
-        return super.thisEquals(other) && other instanceof LatestStable;
+    public OnlineRequiredException(Throwable cause) {
+        super(cause);
     }
 }

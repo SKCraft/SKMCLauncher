@@ -67,6 +67,24 @@ public class Version {
         return getName();
     }
 
+    /**
+     * Returns a concrete version that cen be updated and launched.
+     *
+     * <p>For concrete versions, this method will simply return the same object.
+     * For virtual versions (such as "latest stable" or "latest beta), this method will
+     * attempt to find a concrete version to return</p>
+     *
+     * @param application the application to resolve the version for
+     * @param offline true if the cached version should be returned instead
+     * @return a concrete version
+     * @throws OnlineRequiredException thrown if online mode is required
+     * @throws ResolutionException thrown on resolution error
+     */
+    public Version resolve(@NonNull Application application, boolean offline)
+            throws OnlineRequiredException, ResolutionException {
+        return this;
+    }
+
     boolean thisEquals(Version other) {
         return getId().equals(other.getId());
     }

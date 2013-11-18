@@ -19,6 +19,8 @@
 package com.sk89q.skmcl.minecraft;
 
 import com.sk89q.skmcl.application.Application;
+import com.sk89q.skmcl.application.OnlineRequiredException;
+import com.sk89q.skmcl.application.ResolutionException;
 import com.sk89q.skmcl.application.Version;
 import com.sk89q.skmcl.minecraft.model.ReleaseList;
 import com.sk89q.skmcl.profile.Profile;
@@ -113,12 +115,14 @@ public class Minecraft implements Application {
     }
 
     @Override
-    public MinecraftInstall getInstance(Environment environment) {
+    public MinecraftInstall getInstance(Environment environment, boolean offline)
+            throws ResolutionException, OnlineRequiredException {
         Version current = getVersion();
         if (current == null) {
             throw new NullPointerException("No version is set for this application");
         }
-        return new MinecraftInstall(getProfile(), current, environment);
+        return new MinecraftInstall(getProfile(),
+                current.resolve(this, offline), environment);
     }
 
     /**

@@ -117,12 +117,13 @@ class MinecraftUpdater extends Task<MinecraftInstall> {
                 step2 = segment(0.02),
                 step3 = segment(0.96);
 
-        installGame(step1);
-        checkInterrupted();
         if (!hasSystemProperty(MinecraftUpdater.class, "skipAssets")) {
-            installAssets(step2);
+            installAssets(step1);
             checkInterrupted();
         }
+
+        installGame(step2);
+        checkInterrupted();
 
         logger.log(Level.INFO, "Install tasks enumerated; now installing...");
 

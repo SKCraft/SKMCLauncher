@@ -19,6 +19,7 @@
 package com.sk89q.skmcl.minecraft;
 
 import com.sk89q.skmcl.application.Instance;
+import com.sk89q.skmcl.application.UpdateRequiredException;
 import com.sk89q.skmcl.application.Version;
 import com.sk89q.skmcl.install.FileResource;
 import com.sk89q.skmcl.install.ZipExtract;
@@ -140,7 +141,12 @@ public class MinecraftInstall implements Instance {
     }
 
     @Override
-    public LaunchedProcess launch(final LaunchContext context) throws IOException {
+    public LaunchedProcess launch(final LaunchContext context)
+            throws IOException, UpdateRequiredException {
+        if (!getJarPath().exists()) {
+            throw new UpdateRequiredException("Not yet installed");
+        }
+
         Session session = context.getSession();
         ObjectMapper mapper = new ObjectMapper();
         final File extractDir = createExtractDir();

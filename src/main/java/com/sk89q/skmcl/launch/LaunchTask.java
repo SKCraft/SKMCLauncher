@@ -19,12 +19,21 @@
 package com.sk89q.skmcl.launch;
 
 import com.sk89q.skmcl.LauncherException;
-import com.sk89q.skmcl.application.Application;
-import com.sk89q.skmcl.application.Instance;
-import com.sk89q.skmcl.worker.Segment;
+import com.sk89q.skmcl.application.*;
+import com.sk89q.skmcl.profile.Profile;
+import com.sk89q.skmcl.session.OfflineSession;
+import com.sk89q.skmcl.session.Session;
+import com.sk89q.skmcl.swing.SwingHelper;
 import com.sk89q.skmcl.util.Environment;
+import com.sk89q.skmcl.util.Persistence;
+import com.sk89q.skmcl.worker.Segment;
 import com.sk89q.skmcl.worker.Task;
 import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.java.Log;
+
+import java.io.IOException;
+import java.util.logging.Level;
 
 import static com.sk89q.skmcl.util.SharedLocale._;
 
@@ -32,37 +41,122 @@ import static com.sk89q.skmcl.util.SharedLocale._;
  * Launches a given application and then returns a {@link LaunchedProcess} on
  * success, which must be managed by the calling routine.
  */
+@Log
 public class LaunchTask extends Task<LaunchedProcess> {
 
     @Getter
-    private final Application application;
+    private final Profile profile;
     @Getter
-    private final LaunchContext launchContext;
+    private final Application application;
+    @Getter @Setter
+    private Environment environment = Environment.getInstance();
+    @Getter @Setter
+    private Session session = new OfflineSession();
+    @Getter @Setter
+    private boolean offline;
 
-    public LaunchTask(Application application, LaunchContext launchContext) {
-        this.application = application;
-        this.launchContext = launchContext;
+    public LaunchTask(Profile profile) {
+        this.profile = profile;
+        this.application = profile.getApplication();
     }
 
-    @Override
-    public LaunchedProcess call() throws Exception {
-        Instance instance = application.getInstance(Environment.getInstance());
+    private Instance getInstance() throws InterruptedException, LauncherException {
+        while (true) {
+            try {
+                return application.getInstance(environment, offline);
+            } catch (OnlineRequiredException e) {
+                throw new LauncherException(e, _("launch.onlineModeRequired"));
+            } catch (ResolutionException e) {
+                if (offline || !e.isOfflineAvailable()) {
+                    throw new LauncherException(
+                            "Failed to resolve version",
+                            _("launch.cannotResolveVersion"));
+                } else {
+                    log.log(Level.WARNING, "Version resolution failure", e);
 
-        Segment step1 = segment(0.9),
-                step2 = segment(0.1);
+                    if (SwingHelper.confirmDialog(null,
+                            _("launch.switchOffline"),
+                            _("launch.switchOfflineTitle"))) {
+                        offline = true;
+                    } else {
+                        throw new InterruptedException();
+                    }
+                }
+            }
+        }
+    }
 
+    private LaunchedProcess launch(Instance instance)
+            throws IOException, UpdateRequiredException {
+        LaunchContext context = new LaunchContext(environment, session);
+        return instance.launch(context);
+    }
+
+    
+    private void update(Instance instance, Segment segment)
+            throws LauncherException, InterruptedException {
         try {
             Task<?> updater = instance.getUpdater();
-            updater.addObserver(step1);
+            updater.addObserver(segment);
             updater.call();
         } catch (InterruptedException e) {
             throw e;
         } catch (Exception e) {
             throw new LauncherException(e, _("updater.updateFailed"));
         }
+    }
 
-        step2.push(0, _("launcher.launching"));
+    @Override
+    public LaunchedProcess call() throws LauncherException, InterruptedException {
+        Segment step1 = segment(0.1),
+                step2 = segment(0.8),
+                step3 = segment(0.1);
 
-        return instance.launch(launchContext);
+        // First resolve the version (i.e. latest -> which version is "latest"?)
+
+        setLocalizedTitle(_("launch.launchingTitle", profile.toString()));
+        step1.push(0, _("launch.checkingVersion"));
+
+        Instance instance = getInstance();
+        Persistence.commitAndForget(profile);
+
+        // Then attempt to launch
+        // But an update MAY be required
+
+        step2.push(0, _("launch.launching"));
+
+        try {
+            return launch(instance);
+        } catch (UpdateRequiredException e) {
+            // Update required, so we're going to go to the update step
+        } catch (IOException e) {
+            throw new LauncherException(e, _("launch.launchFailed"));
+        }
+
+        // If we're here, then it looks like an update is required
+
+        if (!offline) {
+            setLocalizedTitle(_("launch.updatingTitle", profile.toString()));
+            step2.push(0, _("launch.updating"));
+            update(instance, step2);
+        } else {
+            throw new LauncherException(
+                    "Can't update if offline", _("launch.onlineModeRequired"));
+        }
+
+        // Update's done, so let's try launching one more time
+
+        setLocalizedTitle(_("launch.launchingTitle", profile.toString()));
+        step3.push(0, _("launch.launching"));
+
+        try {
+            return launch(instance);
+        } catch (UpdateRequiredException e) {
+            // This shouldn't be thrown here, since we've already updated,
+            // but perhaps something failed
+            throw new LauncherException(e, _("updater.launchFailed"));
+        } catch (IOException e) {
+            throw new LauncherException(e, _("updater.launchFailed"));
+        }
     }
 }

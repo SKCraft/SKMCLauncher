@@ -19,14 +19,11 @@
 package com.sk89q.skmcl;
 
 import com.sk89q.skmcl.launch.LaunchTask;
-import com.sk89q.skmcl.launch.LaunchContext;
 import com.sk89q.skmcl.launch.LaunchWatcher;
 import com.sk89q.skmcl.profile.Profile;
 import com.sk89q.skmcl.profile.ProfileManager;
-import com.sk89q.skmcl.session.OfflineSession;
 import com.sk89q.skmcl.swing.LauncherFrame;
 import com.sk89q.skmcl.swing.SwingHelper;
-import com.sk89q.skmcl.util.Environment;
 import com.sk89q.skmcl.util.Persistence;
 import com.sk89q.skmcl.util.SharedLocale;
 import com.sk89q.skmcl.util.SimpleLogFormatter;
@@ -82,11 +79,7 @@ public class Launcher {
         Persistence.commitAndForget(profile);
         getProfiles().notifyUpdate();
 
-        LaunchContext launchContext = new LaunchContext(
-                Environment.getInstance(),
-                new OfflineSession());
-
-        LaunchTask task = new LaunchTask(profile.getApplication(), launchContext);
+        LaunchTask task = new LaunchTask(profile);
         LaunchWatcher watcher = new LaunchWatcher(this, worker.submit(task));
         new Thread(watcher).start();
     }
