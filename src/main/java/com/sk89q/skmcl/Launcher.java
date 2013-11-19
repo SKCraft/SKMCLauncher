@@ -22,6 +22,7 @@ import com.sk89q.skmcl.launch.LaunchTask;
 import com.sk89q.skmcl.launch.LaunchWatcher;
 import com.sk89q.skmcl.profile.Profile;
 import com.sk89q.skmcl.profile.ProfileManager;
+import com.sk89q.skmcl.session.IdentityManager;
 import com.sk89q.skmcl.swing.LauncherFrame;
 import com.sk89q.skmcl.swing.SwingHelper;
 import com.sk89q.skmcl.util.Persistence;
@@ -51,11 +52,15 @@ public class Launcher {
     private final File baseDir;
     @Getter
     private final ProfileManager profiles;
+    @Getter
+    private final IdentityManager identities;
     private LauncherFrame mainFrame;
 
     public Launcher(@NonNull File baseDir) {
         this.baseDir = baseDir;
         this.profiles = new ProfileManager(baseDir);
+        this.identities =
+                Persistence.load(new File(baseDir, "identities.dat"), IdentityManager.class);
     }
 
     public LauncherFrame showLauncher() {
@@ -69,6 +74,7 @@ public class Launcher {
 
     public void hideLauncher() {
         if (mainFrame != null) {
+            mainFrame.removeListeners();
             mainFrame.dispose();
             mainFrame = null;
         }

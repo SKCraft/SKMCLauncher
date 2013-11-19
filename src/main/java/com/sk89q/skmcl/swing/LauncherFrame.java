@@ -20,6 +20,7 @@ package com.sk89q.skmcl.swing;
 
 import com.sk89q.skmcl.Launcher;
 import com.sk89q.skmcl.profile.Profile;
+import com.sk89q.skmcl.session.IdentityManagerModel;
 import com.sk89q.skmcl.worker.Task;
 import com.sk89q.skmcl.worker.Worker;
 import lombok.Getter;
@@ -31,6 +32,8 @@ import javax.swing.event.ListDataListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 import static com.sk89q.skmcl.util.SharedLocale._;
 
@@ -42,19 +45,32 @@ public class LauncherFrame extends JFrame implements ListDataListener {
     private final Worker worker = new Worker(this);
 
     private JList profilesList;
+    private IdentityPanel identityPanel;
+    @Getter
+    private final IdentityManagerModel selectedIdentity;
 
     public LauncherFrame(@NonNull Launcher launcher) {
         this.launcher = launcher;
+        this.selectedIdentity = new IdentityManagerModel(launcher.getIdentities());
 
         setTitle(_("launcher.title"));
         SwingHelper.setIconImage(this, "/resources/icon.png");
-        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         initComponents();
         initMenu();
         setResizable(true);
         setMinimumSize(new Dimension(300, 200));
         setSize(new Dimension(800, 500));
         setLocationRelativeTo(null);
+
+        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent event) {
+                removeListeners();
+                dispose();
+                System.exit(0);
+            }
+        });
 
         worker.submit(new Task<Object>() {
             @Override
@@ -69,6 +85,11 @@ public class LauncherFrame extends JFrame implements ListDataListener {
         });
     }
 
+    public void removeListeners() {
+        profilesList.setModel(new DefaultListModel());
+        identityPanel.setModel(null);
+    }
+
     private void initComponents() {
         JPanel contentPanel = new JPanel();
         JPanel leftPanel = new JPanel();
@@ -80,6 +101,7 @@ public class LauncherFrame extends JFrame implements ListDataListener {
         ProfilePanel profilePanel = new ProfilePanel(profilesList);
         JButton newProfileButton = new JButton(_("launcher.createProfile"));
         JButton installModPackButton = new JButton(_("launcher.installModPack"));
+        identityPanel = new IdentityPanel(selectedIdentity);
 
         filterText.setMargin(new Insets(2, 2, 2, 2));
         TextPrompt prompt = new TextPrompt(_("launcher.filterProfilesPlaceholder"), filterText);
@@ -90,16 +112,22 @@ public class LauncherFrame extends JFrame implements ListDataListener {
         profilesList.setFixedCellHeight(20);
         SelectionKeeper.attach(profilesList);
 
+        newProfileButton.setAlignmentY(BOTTOM_ALIGNMENT);
+        installModPackButton.setAlignmentY(BOTTOM_ALIGNMENT);
+        identityPanel.setAlignmentY(BOTTOM_ALIGNMENT);
+
         leftPanel.setLayout(new BorderLayout());
         searchPanel.setLayout(new BorderLayout());
         contentPanel.setLayout(new BorderLayout());
         contentPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         searchPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 0));
-        bottomPanel.setBorder(BorderFactory.createEmptyBorder(25, 0, 0, 0));
+        bottomPanel.setBorder(BorderFactory.createEmptyBorder(15, 0, 0, 0));
 
         searchPanel.add(filterText);
         bottomPanel.addElement(newProfileButton);
         bottomPanel.addElement(installModPackButton);
+        bottomPanel.addGlue();
+        bottomPanel.addElement(identityPanel);
         leftPanel.add(searchPanel, BorderLayout.NORTH);
         leftPanel.add(profilesList, BorderLayout.CENTER);
         splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
@@ -131,6 +159,12 @@ public class LauncherFrame extends JFrame implements ListDataListener {
             }
         });
 
+        identityPanel.getIdentityButton().addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                showLogin();
+            }
+        });
+
         SwingHelper.focusLater(profilePanel.getLaunchButton());
     }
 
@@ -157,6 +191,12 @@ public class LauncherFrame extends JFrame implements ListDataListener {
     private void showCreateProfile() {
         CreateProfileDialog dialog = new CreateProfileDialog(this, getLauncher());
         dialog.setVisible(true);
+    }
+
+    private void showLogin() {
+        LoginDialog dialog = new LoginDialog(this, getLauncher(), selectedIdentity);
+        dialog.setVisible(true);
+        identityPanel.updateSelected();
     }
 
     @Override

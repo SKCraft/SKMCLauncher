@@ -198,6 +198,15 @@ public class HttpRequest extends Segment implements Closeable, ProgressUpdater {
     }
 
     /**
+     * Get the input stream.
+     *
+     * @return the input stream
+     */
+    public InputStream getInputStream() {
+        return inputStream;
+    }
+
+    /**
      * Buffer the returned response.
      *
      * @return the buffered response
@@ -412,6 +421,14 @@ public class HttpRequest extends Segment implements Closeable, ProgressUpdater {
             this.data = data;
         }
 
+        /**
+         * Return the result as bytes.
+         *
+         * @return the data
+         */
+        public byte[] asBytes() {
+            return data;
+        }
 
         /**
          * Return the result as a string.

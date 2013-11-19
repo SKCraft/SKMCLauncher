@@ -94,7 +94,9 @@ public class ProfilePanel extends JPanel implements ListSelectionListener {
     }
 
     public void setProfile(Profile profile) {
-        titleLabel.setText(profile.getName());
+        if (profile != null) {
+            titleLabel.setText(profile.getName());
+        }
     }
 
     @Override
