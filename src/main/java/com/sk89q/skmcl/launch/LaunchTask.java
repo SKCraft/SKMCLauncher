@@ -92,7 +92,6 @@ public class LaunchTask extends Task<LaunchedProcess> {
         return instance.launch(context);
     }
 
-    
     private void update(Instance instance, Segment segment)
             throws LauncherException, InterruptedException {
         try {
