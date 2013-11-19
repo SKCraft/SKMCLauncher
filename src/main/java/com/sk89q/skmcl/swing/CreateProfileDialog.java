@@ -57,6 +57,7 @@ public class CreateProfileDialog extends JDialog {
         application.setVersion(new LatestStable());
 
         setTitle(_("createProfile.title"));
+        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         initComponents();
         pack();
         setMinimumSize(new Dimension(350, 0));

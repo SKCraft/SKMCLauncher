@@ -75,7 +75,6 @@ public class ConsoleFrame extends JFrame {
             setIconImage(TRAY_OK_IMAGE);
         }
         setSize(new Dimension(650, 400));
-        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         initComponents();
 
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);

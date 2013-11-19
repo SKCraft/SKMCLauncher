@@ -54,6 +54,7 @@ public class VersionListDialog extends JDialog {
         this.version = version;
 
         setTitle(_("selectVersions.title"));
+        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         initComponents();
         setSize(new Dimension(250, 380));
         setResizable(true);
