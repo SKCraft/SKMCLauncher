@@ -41,7 +41,7 @@ import java.util.concurrent.Future;
 @Log
 public class LaunchWatcher implements Runnable {
 
-    private static final int CONSOLE_NUM_LINES = 1000;
+    private static final int CONSOLE_NUM_LINES = 10000;
 
     private final Launcher launcher;
     private final Future<LaunchedProcess> processFuture;
