@@ -69,7 +69,6 @@ public class WorkUnit extends Observable implements ProgressObservable, Observer
 
     public void advance() {
         offset += interval;
-        deleteObservers();
     }
 
     @Override
