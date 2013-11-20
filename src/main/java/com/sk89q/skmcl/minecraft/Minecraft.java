@@ -41,7 +41,7 @@ import static com.sk89q.skmcl.util.HttpRequest.url;
 public class Minecraft implements Application {
 
     public static final String VERSIONS_LIST_URL =
-            "http://s3.amazonaws.com/Minecraft.Download/versions/versions.json";
+            "https://s3.amazonaws.com/Minecraft.Download/versions/versions.json";
 
     private Version version;
     private transient Profile profile;

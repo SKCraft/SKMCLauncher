@@ -51,9 +51,9 @@ import static org.apache.commons.io.IOUtils.closeQuietly;
 class MinecraftUpdater extends AbstractWorker<MinecraftInstall> {
 
     private static final String VERSION_MANIFEST_URL =
-            "http://s3.amazonaws.com/Minecraft.Download/versions/%s/%s.json";
+            "https://s3.amazonaws.com/Minecraft.Download/versions/%s/%s.json";
     private static final String ASSETS_URL =
-            "https://s3.amazonaws.com/Minecraft.Resources/";
+            "https://s3.amazonaws.com/MinecraftResources/";
 
     private static final Logger logger = LauncherUtils.getLogger(MinecraftUpdater.class);
     private final MinecraftInstall instance;
