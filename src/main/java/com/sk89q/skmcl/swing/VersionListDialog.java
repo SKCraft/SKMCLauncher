@@ -23,8 +23,9 @@ import com.sk89q.skmcl.application.Application;
 import com.sk89q.skmcl.application.LatestSnapshot;
 import com.sk89q.skmcl.application.LatestStable;
 import com.sk89q.skmcl.application.Version;
-import com.sk89q.skmcl.worker.Task;
-import com.sk89q.skmcl.worker.Worker;
+import com.sk89q.skmcl.concurrent.AbstractWorker;
+import com.sk89q.skmcl.concurrent.BackgroundExecutor;
+import com.sk89q.skmcl.concurrent.SwingProgressObserver;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -40,7 +41,7 @@ import static com.sk89q.skmcl.util.SharedLocale._;
 
 public class VersionListDialog extends JDialog {
 
-    private final Worker worker = new Worker(this);
+    private final BackgroundExecutor executor = new BackgroundExecutor();
     private final Application application;
     private JList versionsList;
     @Getter @Setter @NonNull
@@ -52,6 +53,8 @@ public class VersionListDialog extends JDialog {
 
         this.application = application;
         this.version = version;
+
+        new SwingProgressObserver(this).setExecutor(executor);
 
         setTitle(_("selectVersions.title"));
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
@@ -98,7 +101,7 @@ public class VersionListDialog extends JDialog {
         versionsList.addMouseListener(
                 new DoubleClickToButtonAdapter(selectButton));
 
-        worker.submit(new Task<Object>() {
+        executor.submit(new AbstractWorker<Object>() {
             @Override
             protected void run() throws Exception {
                 try {

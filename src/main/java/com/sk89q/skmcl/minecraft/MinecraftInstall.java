@@ -21,6 +21,7 @@ package com.sk89q.skmcl.minecraft;
 import com.sk89q.skmcl.application.Instance;
 import com.sk89q.skmcl.application.UpdateRequiredException;
 import com.sk89q.skmcl.application.Version;
+import com.sk89q.skmcl.concurrent.AbstractWorker;
 import com.sk89q.skmcl.install.FileResource;
 import com.sk89q.skmcl.install.ZipExtract;
 import com.sk89q.skmcl.launch.JavaProcessBuilder;
@@ -31,7 +32,6 @@ import com.sk89q.skmcl.minecraft.model.ReleaseManifest;
 import com.sk89q.skmcl.profile.Profile;
 import com.sk89q.skmcl.session.Session;
 import com.sk89q.skmcl.util.Environment;
-import com.sk89q.skmcl.worker.Task;
 import com.sk89q.skmcl.util.Persistence;
 import com.sk89q.skmcl.util.Platform;
 import lombok.Getter;
@@ -136,7 +136,7 @@ public class MinecraftInstall implements Instance {
     }
 
     @Override
-    public Task getUpdater() {
+    public AbstractWorker getUpdater() {
         return new MinecraftUpdater(this);
     }
 

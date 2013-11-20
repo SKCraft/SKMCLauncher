@@ -19,10 +19,11 @@
 package com.sk89q.skmcl.swing;
 
 import com.sk89q.skmcl.Launcher;
+import com.sk89q.skmcl.concurrent.AbstractWorker;
+import com.sk89q.skmcl.concurrent.BackgroundExecutor;
+import com.sk89q.skmcl.concurrent.SwingProgressObserver;
 import com.sk89q.skmcl.profile.Profile;
 import com.sk89q.skmcl.session.IdentityManagerModel;
-import com.sk89q.skmcl.worker.Task;
-import com.sk89q.skmcl.worker.Worker;
 import lombok.Getter;
 import lombok.NonNull;
 
@@ -42,7 +43,7 @@ public class LauncherFrame extends JFrame implements ListDataListener {
     private final Window self = this;
     @Getter
     private final Launcher launcher;
-    private final Worker worker = new Worker(this);
+    private final BackgroundExecutor executor = new BackgroundExecutor();
 
     private JList profilesList;
     private IdentityPanel identityPanel;
@@ -52,6 +53,8 @@ public class LauncherFrame extends JFrame implements ListDataListener {
     public LauncherFrame(@NonNull Launcher launcher) {
         this.launcher = launcher;
         this.selectedIdentity = new IdentityManagerModel(launcher.getIdentities());
+
+        new SwingProgressObserver(this).setExecutor(executor);
 
         setTitle(_("launcher.title"));
         SwingHelper.setIconImage(this, "/resources/icon.png");
@@ -72,7 +75,7 @@ public class LauncherFrame extends JFrame implements ListDataListener {
             }
         });
 
-        worker.submit(new Task<Object>() {
+        executor.submit(new AbstractWorker<Object>() {
             @Override
             protected void run() throws Exception {
                 getLauncher().getProfiles().load();
@@ -143,7 +146,7 @@ public class LauncherFrame extends JFrame implements ListDataListener {
         profilePanel.getLaunchButton().addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                getLauncher().launchApplication(self, worker,
+                getLauncher().launchApplication(self, executor,
                         (Profile) profilesList.getSelectedValue());
             }
         });

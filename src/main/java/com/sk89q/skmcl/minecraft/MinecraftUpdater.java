@@ -19,6 +19,8 @@
 package com.sk89q.skmcl.minecraft;
 
 import com.sk89q.skmcl.application.Version;
+import com.sk89q.skmcl.concurrent.AbstractWorker;
+import com.sk89q.skmcl.concurrent.WorkUnit;
 import com.sk89q.skmcl.install.HttpResource;
 import com.sk89q.skmcl.install.InstallerRuntime;
 import com.sk89q.skmcl.minecraft.model.AWSBucket;
@@ -27,8 +29,6 @@ import com.sk89q.skmcl.minecraft.model.ReleaseManifest;
 import com.sk89q.skmcl.util.Environment;
 import com.sk89q.skmcl.util.HttpRequest;
 import com.sk89q.skmcl.util.LauncherUtils;
-import com.sk89q.skmcl.worker.Segment;
-import com.sk89q.skmcl.worker.Task;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.File;
@@ -48,7 +48,7 @@ import static org.apache.commons.io.IOUtils.closeQuietly;
 /**
  * Updates an installation of Minecraft.
  */
-class MinecraftUpdater extends Task<MinecraftInstall> {
+class MinecraftUpdater extends AbstractWorker<MinecraftInstall> {
 
     private static final String VERSION_MANIFEST_URL =
             "http://s3.amazonaws.com/Minecraft.Download/versions/%s/%s.json";
@@ -113,9 +113,9 @@ class MinecraftUpdater extends Task<MinecraftInstall> {
 
     @Override
     public MinecraftInstall call() throws Exception {
-        Segment step1 = segment(0.02),
-                step2 = segment(0.02),
-                step3 = segment(0.96);
+        WorkUnit step1 = split(0.02),
+                step2 = split(0.02),
+                step3 = split(0.96);
 
         if (!hasSystemProperty(MinecraftUpdater.class, "skipAssets")) {
             installAssets(step1);
@@ -136,13 +136,13 @@ class MinecraftUpdater extends Task<MinecraftInstall> {
     /**
      * Install the game.
      *
-     * @param segment segment for progress tacking
+     * @param workUnit split for progress tacking
      * @throws IOException thrown on I/O error
      * @throws InterruptedException thrown on interruption
      */
-    protected void installGame(Segment segment) throws IOException, InterruptedException {
+    protected void installGame(WorkUnit workUnit) throws IOException, InterruptedException {
         logger.log(Level.INFO, "Checking for game updates...");
-        segment.push(0, _("minecraftUpdate.checkingGameUpdates"));
+        workUnit.push(0, _("minecraftUpdate.checkingGameUpdates"));
 
         File contentDir = instance.getProfile().getContentDir();
         File librariesDir = instance.getLibrariesDir();
@@ -181,11 +181,11 @@ class MinecraftUpdater extends Task<MinecraftInstall> {
     /**
      * Add shared Minecraft assets to the installer.
      *
-     * @param segment segment for progress tacking
+     * @param workUnit split for progress tacking
      * @throws IOException on I/O error
      * @throws InterruptedException on interruption
      */
-    protected void installAssets(Segment segment) throws IOException, InterruptedException {
+    protected void installAssets(WorkUnit workUnit) throws IOException, InterruptedException {
         logger.log(Level.INFO, "Checking for asset downloads...");
 
         File assetsDir = instance.getAssetsDir();
@@ -193,7 +193,7 @@ class MinecraftUpdater extends Task<MinecraftInstall> {
 
         while (marker != null) {
             URL bucketUrl = getAssetsUrl(marker);
-            segment.push(0, _("minecraftUpdate.checkingAssets", bucketUrl.toString()));
+            workUnit.push(0, _("minecraftUpdate.checkingAssets", bucketUrl.toString()));
             logger.log(Level.INFO, "Enumerating assets from {0}...", bucketUrl);
             checkInterrupted();
 

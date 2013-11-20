@@ -18,7 +18,7 @@
 
 package com.sk89q.skmcl.swing;
 
-import com.sk89q.skmcl.worker.Worker;
+import com.sk89q.skmcl.concurrent.BackgroundExecutor;
 
 import javax.swing.*;
 import java.awt.*;
@@ -36,15 +36,15 @@ public class ProgressDialog extends JDialog implements Observer {
     private final ProgressDialog self = this;
     private final String defaultTitle = _("progressDialog.title");
     private final String defaultStatus = _("progressDialog.working");
-    private final Worker worker;
+    private final BackgroundExecutor executor;
     private JProgressBar progressBar;
     private JLabel statusLabel;
     private JButton cancelButton;
 
-    public ProgressDialog(Window owner, Worker worker) {
+    public ProgressDialog(Window owner, BackgroundExecutor executor) {
         super(owner, _("progressDialog.title"), Dialog.ModalityType.DOCUMENT_MODAL);
 
-        this.worker = worker;
+        this.executor = executor;
 
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
@@ -60,16 +60,16 @@ public class ProgressDialog extends JDialog implements Observer {
         setSize(400, getHeight());
         setLocationRelativeTo(owner);
 
-        worker.addObserver(this);
+        executor.addObserver(this);
     }
 
     private void cancel() {
-        worker.cancelAll();
+        executor.cancelAll();
         dispose();
     }
 
     private void tryCancelling() {
-        if (worker.shouldConfirmInterrupt()) {
+        if (executor.shouldConfirmInterrupt()) {
             if (SwingHelper.confirmDialog(self,
                     _("progressDialog.cancelPrompt"),
                     _("progressDialog.cancelPromptTitle"))) {
@@ -115,14 +115,14 @@ public class ProgressDialog extends JDialog implements Observer {
         });
 
         // Initial state
-        update(worker, null);
+        update(executor, null);
     }
 
     @Override
     public synchronized void update(Observable o, Object arg) {
-        final String title = worker.getLocalizedTitle();
-        final String status = worker.getLocalizedStatus();
-        final double progress = worker.getProgress();
+        final String title = executor.getLocalizedTitle();
+        final String status = executor.getLocalizedStatus();
+        final double progress = executor.getProgress();
 
         SwingUtilities.invokeLater(new Runnable() {
             @Override

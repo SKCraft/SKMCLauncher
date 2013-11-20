@@ -18,9 +18,9 @@
 
 package com.sk89q.skmcl.install;
 
-import com.sk89q.skmcl.worker.Segment;
+import com.sk89q.skmcl.concurrent.AbstractWorker;
+import com.sk89q.skmcl.concurrent.WorkUnit;
 import com.sk89q.skmcl.util.*;
-import com.sk89q.skmcl.worker.Task;
 import lombok.Getter;
 
 import java.io.File;
@@ -37,7 +37,7 @@ import static com.sk89q.skmcl.util.SharedLocale._;
 /**
  * Manages an installation procedure.
  */
-public class InstallerRuntime extends Task<InstallerRuntime> {
+public class InstallerRuntime extends AbstractWorker<InstallerRuntime> {
 
     private static final Logger logger = LauncherUtils.getLogger(InstallerRuntime.class);
 
@@ -144,8 +144,8 @@ public class InstallerRuntime extends Task<InstallerRuntime> {
 
     @Override
     public InstallerRuntime call() throws Exception {
-        Segment step1 = segment(0.9),
-                step2 = segments(0.1, tasks.size());
+        WorkUnit step1 = split(0.9),
+                step2 = split(0.1, tasks.size());
 
         step1.push(0, _("installer.preparingDownload", tasks.size()));
 

@@ -20,14 +20,14 @@ package com.sk89q.skmcl.launch;
 
 import com.sk89q.skmcl.LauncherException;
 import com.sk89q.skmcl.application.*;
+import com.sk89q.skmcl.concurrent.WorkUnit;
 import com.sk89q.skmcl.profile.Profile;
 import com.sk89q.skmcl.session.OfflineSession;
 import com.sk89q.skmcl.session.Session;
 import com.sk89q.skmcl.swing.SwingHelper;
 import com.sk89q.skmcl.util.Environment;
 import com.sk89q.skmcl.util.Persistence;
-import com.sk89q.skmcl.worker.Segment;
-import com.sk89q.skmcl.worker.Task;
+import com.sk89q.skmcl.concurrent.AbstractWorker;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.java.Log;
@@ -42,7 +42,7 @@ import static com.sk89q.skmcl.util.SharedLocale._;
  * success, which must be managed by the calling routine.
  */
 @Log
-public class LaunchTask extends Task<LaunchedProcess> {
+public class LaunchWorker extends AbstractWorker<LaunchedProcess> {
 
     @Getter
     private final Profile profile;
@@ -55,7 +55,7 @@ public class LaunchTask extends Task<LaunchedProcess> {
     @Getter @Setter
     private boolean offline;
 
-    public LaunchTask(Profile profile) {
+    public LaunchWorker(Profile profile) {
         this.profile = profile;
         this.application = profile.getApplication();
     }
@@ -72,7 +72,7 @@ public class LaunchTask extends Task<LaunchedProcess> {
                             "Failed to resolve version",
                             _("launch.cannotResolveVersion"));
                 } else {
-                    log.log(Level.WARNING, "Version resolution failure", e);
+                    LaunchWorker.log.log(Level.WARNING, "Version resolution failure", e);
 
                     if (SwingHelper.confirmDialog(null,
                             _("launch.switchOffline"),
@@ -92,11 +92,11 @@ public class LaunchTask extends Task<LaunchedProcess> {
         return instance.launch(context);
     }
 
-    private void update(Instance instance, Segment segment)
+    private void update(Instance instance, WorkUnit workUnit)
             throws LauncherException, InterruptedException {
         try {
-            Task<?> updater = instance.getUpdater();
-            updater.addObserver(segment);
+            AbstractWorker<?> updater = instance.getUpdater();
+            updater.addObserver(workUnit);
             updater.call();
         } catch (InterruptedException e) {
             throw e;
@@ -107,9 +107,9 @@ public class LaunchTask extends Task<LaunchedProcess> {
 
     @Override
     public LaunchedProcess call() throws LauncherException, InterruptedException {
-        Segment step1 = segment(0.1),
-                step2 = segment(0.8),
-                step3 = segment(0.1);
+        WorkUnit step1 = split(0.1),
+                step2 = split(0.8),
+                step3 = split(0.1);
 
         // First resolve the version (i.e. latest -> which version is "latest"?)
 

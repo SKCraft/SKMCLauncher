@@ -18,10 +18,10 @@
 
 package com.sk89q.skmcl.util;
 
-import com.sk89q.skmcl.worker.ProgressUpdater;
-import com.sk89q.skmcl.worker.Segment;
-import com.sk89q.skmcl.worker.Task;
-import com.sk89q.skmcl.worker.Worker;
+import com.sk89q.skmcl.concurrent.AbstractWorker;
+import com.sk89q.skmcl.concurrent.SwingProgressObserver;
+import com.sk89q.skmcl.concurrent.WorkUnit;
+import com.sk89q.skmcl.concurrent.ProgressUpdater;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -54,7 +54,7 @@ import static com.sk89q.skmcl.util.SharedLocale._;
  * </ul>
  */
 public class HttpDownloader
-        extends Task<List<Future<HttpDownloader.RemoteFile>>>
+        extends AbstractWorker<List<Future<HttpDownloader.RemoteFile>>>
         implements ProgressUpdater {
 
     private static final Logger logger = LauncherUtils.getLogger(HttpDownloader.class);
@@ -140,7 +140,7 @@ public class HttpDownloader
     @Override
     public List<Future<RemoteFile>> call() throws ExecutionException, InterruptedException {
         executor.shutdown();
-        TimerTask timerTask = Worker.updatePeriodically(this);
+        TimerTask timerTask = SwingProgressObserver.updatePeriodically(this);
 
         try {
             try {
@@ -150,7 +150,7 @@ public class HttpDownloader
                 throw new InterruptedException();
             }
 
-            Segment parts = segments(1, executed.size());
+            WorkUnit parts = split(1, executed.size());
 
             // Run through all the jobs to see whether any failed
             synchronized (executed) {

@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.sk89q.skmcl.worker;
+package com.sk89q.skmcl.concurrent;
 
 import java.util.TimerTask;
 

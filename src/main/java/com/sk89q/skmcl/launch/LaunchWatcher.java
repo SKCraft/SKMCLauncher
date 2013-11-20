@@ -24,6 +24,7 @@ import com.sk89q.skmcl.swing.ProcessConsoleFrame;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import lombok.extern.java.Log;
 
 import javax.swing.*;
 import java.util.concurrent.ExecutionException;
@@ -37,6 +38,7 @@ import java.util.concurrent.Future;
  * view the application's stdout/stderr output, as well as force close the application
  * on command.</p>
  */
+@Log
 public class LaunchWatcher implements Runnable {
 
     private static final int CONSOLE_NUM_LINES = 1000;
@@ -67,6 +69,8 @@ public class LaunchWatcher implements Runnable {
         LaunchedProcess process;
         final Process p;
 
+        log.info("Getting process...");
+
         try {
             process = processFuture.get();
         } catch (InterruptedException e) {
@@ -82,13 +86,17 @@ public class LaunchWatcher implements Runnable {
         // Dispose of the main launcher frame
         launcher.hideLauncher();
 
+        log.info("Launcher hidden.");
+
         if (isExitingOnLaunch()) {
+            log.info("exitingOnLaunch = true");
             System.exit(0);
             return;
         }
 
         // Show the console if it's enabled
         if (isConsoleEnabled()) {
+            log.info("consoleEnabled = true");
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
@@ -102,12 +110,16 @@ public class LaunchWatcher implements Runnable {
             });
         }
 
+        log.info("Waiting for process to end...");
+
         // Wait for the process to end
         try {
             p.waitFor();
         } catch (InterruptedException e) {
             // Orphan process
         }
+
+        log.info("Process ended, re-showing launcher...");
 
         // Restore the launcher
         SwingUtilities.invokeLater(new Runnable() {

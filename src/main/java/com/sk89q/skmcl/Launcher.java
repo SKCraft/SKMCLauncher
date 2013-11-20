@@ -18,8 +18,9 @@
 
 package com.sk89q.skmcl;
 
-import com.sk89q.skmcl.launch.LaunchTask;
+import com.sk89q.skmcl.concurrent.BackgroundExecutor;
 import com.sk89q.skmcl.launch.LaunchWatcher;
+import com.sk89q.skmcl.launch.LaunchWorker;
 import com.sk89q.skmcl.profile.Profile;
 import com.sk89q.skmcl.profile.ProfileManager;
 import com.sk89q.skmcl.session.IdentityManager;
@@ -28,7 +29,6 @@ import com.sk89q.skmcl.swing.SwingHelper;
 import com.sk89q.skmcl.util.Persistence;
 import com.sk89q.skmcl.util.SharedLocale;
 import com.sk89q.skmcl.util.SimpleLogFormatter;
-import com.sk89q.skmcl.worker.Worker;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.java.Log;
@@ -80,13 +80,13 @@ public class Launcher {
         }
     }
 
-    public void launchApplication(Window owner, Worker worker, Profile profile) {
+    public void launchApplication(Window owner, BackgroundExecutor executor, Profile profile) {
         profile.setLastLaunchDate(new Date());
         Persistence.commitAndForget(profile);
         getProfiles().notifyUpdate();
 
-        LaunchTask task = new LaunchTask(profile);
-        LaunchWatcher watcher = new LaunchWatcher(this, worker.submit(task));
+        LaunchWorker task = new LaunchWorker(profile);
+        LaunchWatcher watcher = new LaunchWatcher(this, executor.submit(task));
         new Thread(watcher).start();
     }
 

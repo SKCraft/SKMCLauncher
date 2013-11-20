@@ -16,12 +16,14 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.sk89q.skmcl.worker;
+package com.sk89q.skmcl.concurrent;
+
+import java.util.Observer;
 
 /**
  * Represents a task that can provide progress updates.
  */
-public interface Watchable {
+public interface ProgressObservable {
 
     /**
      * Return the current progress of the task.
@@ -51,5 +53,23 @@ public interface Watchable {
      * @return true to suggest a confirmation
      */
     boolean shouldConfirmInterrupt();
+
+    /**
+     * Adds an observer to the set of observers for this object, provided
+     * that it is not the same as some observer already in the set.
+     * The order in which notifications will be delivered to multiple
+     * observers is not specified. See the class comment.
+     *
+     * @param o an observer to be added.
+     */
+    void addObserver(Observer o);
+
+    /**
+     * Deletes an observer from the set of observers of this object.
+     * Passing <CODE>null</CODE> to this method will have no effect.
+     *
+     * @param o the observer to be deleted
+     */
+    void deleteObserver(Observer o);
 
 }

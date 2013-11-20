@@ -18,9 +18,9 @@
 
 package com.sk89q.skmcl.application;
 
+import com.sk89q.skmcl.concurrent.AbstractWorker;
 import com.sk89q.skmcl.launch.LaunchContext;
 import com.sk89q.skmcl.launch.LaunchedProcess;
-import com.sk89q.skmcl.worker.Task;
 
 import java.io.IOException;
 
@@ -41,7 +41,7 @@ public interface Instance {
      *
      * @return an update worker
      */
-    Task<Instance> getUpdater();
+    AbstractWorker<Instance> getUpdater();
 
     /**
      * Launch this instance.

@@ -18,9 +18,9 @@
 
 package com.sk89q.skmcl.util;
 
-import com.sk89q.skmcl.worker.ProgressUpdater;
-import com.sk89q.skmcl.worker.Segment;
-import com.sk89q.skmcl.worker.Worker;
+import com.sk89q.skmcl.concurrent.SwingProgressObserver;
+import com.sk89q.skmcl.concurrent.WorkUnit;
+import com.sk89q.skmcl.concurrent.ProgressUpdater;
 import lombok.extern.java.Log;
 import org.codehaus.jackson.map.ObjectMapper;
 
@@ -43,7 +43,7 @@ import static org.apache.commons.io.IOUtils.closeQuietly;
  * {@link java.net.HttpURLConnection} or {@link HttpsURLConnection}.
  */
 @Log
-public class HttpRequest extends Segment implements Closeable, ProgressUpdater {
+public class HttpRequest extends WorkUnit implements Closeable, ProgressUpdater {
 
     private static final int READ_TIMEOUT = 1000 * 60 * 10;
     private static final int READ_BUFFER_SIZE = 1024 * 8;
@@ -266,7 +266,7 @@ public class HttpRequest extends Segment implements Closeable, ProgressUpdater {
      */
     public HttpRequest saveContent(OutputStream out) throws IOException, InterruptedException {
         BufferedInputStream bis;
-        TimerTask timerTask = Worker.updatePeriodically(this);
+        TimerTask timerTask = SwingProgressObserver.updatePeriodically(this);
 
         try {
             String field = conn.getHeaderField("Content-Length");

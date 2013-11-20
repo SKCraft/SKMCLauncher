@@ -16,30 +16,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.sk89q.skmcl.worker;
+package com.sk89q.skmcl.concurrent;
 
-import java.util.concurrent.Callable;
+import java.util.EventListener;
 
-public abstract class Task<V> extends Segment implements Callable<V> {
+public interface ExecutorListener extends EventListener {
 
-    @Override
-    public V call() throws Exception {
-        run();
-        return null;
-    }
-
-    protected void run() throws Exception {
-    }
-
-    @Override
-    public boolean shouldConfirmInterrupt() {
-        return true;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("%s{progress=%.2f%%, status=%s}",
-                getClass().toString(), getProgress() * 100, getLocalizedStatus());
-    }
+    void exceptionThrown(ExceptionEvent event);
 
 }
