@@ -18,9 +18,9 @@
 
 package com.sk89q.skmcl.util;
 
+import com.sk89q.skmcl.concurrent.ProgressUpdater;
 import com.sk89q.skmcl.concurrent.SwingProgressObserver;
 import com.sk89q.skmcl.concurrent.WorkUnit;
-import com.sk89q.skmcl.concurrent.ProgressUpdater;
 import lombok.extern.java.Log;
 import org.codehaus.jackson.map.ObjectMapper;
 
@@ -29,10 +29,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLEncoder;
+import java.net.*;
 import java.util.*;
 
 import static com.sk89q.skmcl.util.LauncherUtils.checkInterrupted;
@@ -124,7 +121,7 @@ public class HttpRequest extends WorkUnit implements Closeable, ProgressUpdater 
                 throw new IllegalArgumentException("Connection already executed");
             }
 
-            conn = (HttpURLConnection) url.openConnection();
+            conn = (HttpURLConnection) reformat(url).openConnection();
 
             if (body != null) {
                 conn.setRequestProperty("Content-Type", contentType);
@@ -308,6 +305,11 @@ public class HttpRequest extends WorkUnit implements Closeable, ProgressUpdater 
         push(progress, SharedLocale._("downloader.downloadingSingle", url.toString()));
     }
 
+    @Override
+    public void close() throws IOException {
+        if (conn != null) conn.disconnect();
+    }
+
     /**
      * Perform a GET request.
      *
@@ -355,9 +357,25 @@ public class HttpRequest extends WorkUnit implements Closeable, ProgressUpdater 
         }
     }
 
-    @Override
-    public void close() throws IOException {
-        if (conn != null) conn.disconnect();
+    /**
+     * URL may contain spaces and other nasties that will cause a failure.
+     *
+     * @param existing the existing URL to transform
+     * @return the new URL, or old one if there was a failure
+     */
+    private static URL reformat(URL existing) {
+        try {
+            URL url = new URL(existing.toString());
+            URI uri = new URI(
+                    url.getProtocol(), url.getUserInfo(), url.getHost(), url.getPort(),
+                    url.getPath(), url.getQuery(), url.getRef());
+            url = uri.toURL();
+            return url;
+        } catch (MalformedURLException e) {
+            return existing;
+        } catch (URISyntaxException e) {
+            return existing;
+        }
     }
 
     /**
@@ -510,4 +528,5 @@ public class HttpRequest extends WorkUnit implements Closeable, ProgressUpdater 
             return this;
         }
     }
+
 }
