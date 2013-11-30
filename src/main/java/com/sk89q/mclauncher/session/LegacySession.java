@@ -18,6 +18,8 @@
 
 package com.sk89q.mclauncher.session;
 
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -25,15 +27,7 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-
-import com.sk89q.mclauncher.Launcher;
-import com.sk89q.mclauncher.security.X509KeyRing.Ring;
 
 /**
  * Manages a login session.
@@ -75,15 +69,8 @@ public class LegacySession implements MinecraftSession {
                 URLEncoder.encode(password, "UTF-8"),
                 URLEncoder.encode(LAUNCHER_VERSION, "UTF-8"));
 
-        TrustManager[] trustManagers = new TrustManager[] {
-                    Launcher.getInstance().getKeyRing().getKeyStore(Ring.MINECRAFT_LOGIN)
-                };
-
         try {
             conn = (HttpsURLConnection) loginURL.openConnection();
-            SSLContext ctx = SSLContext.getInstance("TLS");
-            ctx.init(null, trustManagers, null);
-            conn.setSSLSocketFactory(ctx.getSocketFactory());
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type",
                     "application/x-www-form-urlencoded");
@@ -141,10 +128,6 @@ public class LegacySession implements MinecraftSession {
                     throw new LoginException(result.trim());
                 }
             }
-        } catch (KeyManagementException e) {
-            throw new LoginException("Failed to process PKI keys: " + e.getMessage(), e);
-        } catch (NoSuchAlgorithmException e) {
-            throw new LoginException("Failed to initiate TLS: " + e.getMessage(), e);
         } finally {
             if (conn != null) conn.disconnect();
             conn = null;
