@@ -54,6 +54,8 @@ public class Launcher {
     private final ProfileManager profiles;
     @Getter
     private final IdentityManager identities;
+    @Getter
+    private final Configuration configuration;
     private LauncherFrame mainFrame;
 
     public Launcher(@NonNull File baseDir) {
@@ -61,6 +63,8 @@ public class Launcher {
         this.profiles = new ProfileManager(baseDir);
         this.identities =
                 Persistence.load(new File(baseDir, "identities.dat"), IdentityManager.class);
+        this.configuration =
+                Persistence.load(new File(baseDir, "config.json"), Configuration.class);
     }
 
     public LauncherFrame showLauncher() {
