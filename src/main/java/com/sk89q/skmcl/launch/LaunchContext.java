@@ -18,14 +18,15 @@
 
 package com.sk89q.skmcl.launch;
 
-import com.sk89q.skmcl.session.Session;
+import com.sk89q.skmcl.session.Identity;
 import com.sk89q.skmcl.util.Environment;
 import lombok.Data;
+import lombok.NonNull;
 
 @Data
 public class LaunchContext {
 
-    private final Environment environment;
-    private final Session session;
+    private final @NonNull Environment environment;
+    private final @NonNull Identity identity;
 
 }

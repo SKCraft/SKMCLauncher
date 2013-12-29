@@ -19,63 +19,36 @@
 package com.sk89q.skmcl.session;
 
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.Setter;
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 
-import java.util.Date;
-
-public class Identity implements Comparable<Identity> {
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class Identity {
 
     @Getter @Setter
     private String id;
     @Getter @Setter
+    private String name;
+
+    private String clientToken;
     private String accessToken;
-    @Getter @Setter
-    private Date lastUsed;
-    @Getter @Setter
-    private String cachedUsername;
 
-    public Identity() {
+    @JsonIgnore
+    public String getClientToken() {
+        return clientToken;
     }
 
-    public Identity(String id) {
-        setId(id);
+    public void setClientToken(String clientToken) {
+        this.clientToken = clientToken;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Identity identity = (Identity) o;
-
-        if (!id.equalsIgnoreCase(identity.id)) return false;
-
-        return true;
+    @JsonIgnore
+    public String getAccessToken() {
+        return accessToken;
     }
 
-    @Override
-    public int hashCode() {
-        return id.toLowerCase().hashCode();
-    }
-
-    @Override
-    public int compareTo(@NonNull Identity o) {
-        Date otherDate = o.getLastUsed();
-
-        if (otherDate == null && lastUsed == null) {
-            return 0;
-        } else if (otherDate == null) {
-            return -1;
-        } else if (lastUsed == null) {
-            return 1;
-        } else {
-            return -lastUsed.compareTo(otherDate);
-        }
-    }
-
-    @Override
-    public String toString() {
-        return getId();
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
     }
 }

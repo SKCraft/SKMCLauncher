@@ -18,13 +18,15 @@
 
 package com.sk89q.skmcl.swing;
 
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.sk89q.skmcl.LauncherException;
 import com.sk89q.skmcl.application.Application;
 import com.sk89q.skmcl.application.LatestSnapshot;
 import com.sk89q.skmcl.application.LatestStable;
 import com.sk89q.skmcl.application.Version;
 import com.sk89q.skmcl.concurrent.AbstractWorker;
-import com.sk89q.skmcl.concurrent.BackgroundExecutor;
+import com.sk89q.skmcl.concurrent.ExecutorWorkerService;
 import com.sk89q.skmcl.concurrent.SwingProgressObserver;
 import lombok.Getter;
 import lombok.NonNull;
@@ -36,12 +38,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.Executors;
 
 import static com.sk89q.skmcl.util.SharedLocale._;
 
 public class VersionListDialog extends JDialog {
 
-    private final BackgroundExecutor executor = new BackgroundExecutor();
+    private final ExecutorWorkerService executor = new ExecutorWorkerService(
+            MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor()));
     private final Application application;
     private JList versionsList;
     @Getter @Setter @NonNull
@@ -54,7 +58,7 @@ public class VersionListDialog extends JDialog {
         this.application = application;
         this.version = version;
 
-        new SwingProgressObserver(this).setExecutor(executor);
+        new SwingProgressObserver(this, executor);
 
         setTitle(_("selectVersions.title"));
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
@@ -101,7 +105,7 @@ public class VersionListDialog extends JDialog {
         versionsList.addMouseListener(
                 new DoubleClickToButtonAdapter(selectButton));
 
-        executor.submit(new AbstractWorker<Object>() {
+        ListenableFuture<?> future = executor.submit(new AbstractWorker<Object>() {
             @Override
             protected void run() throws Exception {
                 try {
@@ -125,6 +129,8 @@ public class VersionListDialog extends JDialog {
                 return false;
             }
         });
+
+        SwingHelper.addErrorDialogCallback(future, this);
     }
 
     private void setVersions(final List<? extends Version> versions) {

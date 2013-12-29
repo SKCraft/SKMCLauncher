@@ -18,7 +18,7 @@
 
 package com.sk89q.skmcl.swing;
 
-import com.sk89q.skmcl.concurrent.BackgroundExecutor;
+import com.sk89q.skmcl.concurrent.WorkerService;
 
 import javax.swing.*;
 import java.awt.*;
@@ -36,15 +36,15 @@ public class ProgressDialog extends JDialog implements Observer {
     private final ProgressDialog self = this;
     private final String defaultTitle = _("progressDialog.title");
     private final String defaultStatus = _("progressDialog.working");
-    private final BackgroundExecutor executor;
+    private final WorkerService workerService;
     private JProgressBar progressBar;
     private JLabel statusLabel;
     private JButton cancelButton;
 
-    public ProgressDialog(Window owner, BackgroundExecutor executor) {
+    public ProgressDialog(Window owner, WorkerService workerService) {
         super(owner, _("progressDialog.title"), Dialog.ModalityType.DOCUMENT_MODAL);
 
-        this.executor = executor;
+        this.workerService = workerService;
 
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
@@ -60,16 +60,19 @@ public class ProgressDialog extends JDialog implements Observer {
         setSize(400, getHeight());
         setLocationRelativeTo(owner);
 
-        executor.addObserver(this);
+        workerService.addObserver(this);
+
+        // Initial state
+        updateDisplay();
     }
 
     private void cancel() {
-        executor.cancelAll();
+        workerService.cancelAll();
         dispose();
     }
 
     private void tryCancelling() {
-        if (executor.shouldConfirmInterrupt()) {
+        if (workerService.shouldConfirmInterrupt()) {
             if (SwingHelper.confirmDialog(self,
                     _("progressDialog.cancelPrompt"),
                     _("progressDialog.cancelPromptTitle"))) {
@@ -113,16 +116,12 @@ public class ProgressDialog extends JDialog implements Observer {
                 tryCancelling();
             }
         });
-
-        // Initial state
-        update(executor, null);
     }
 
-    @Override
-    public synchronized void update(Observable o, Object arg) {
-        final String title = executor.getLocalizedTitle();
-        final String status = executor.getLocalizedStatus();
-        final double progress = executor.getProgress();
+    private synchronized void updateDisplay() {
+        final String title = workerService.getLocalizedTitle();
+        final String status = workerService.getLocalizedStatus();
+        final double progress = workerService.getProgress();
 
         SwingUtilities.invokeLater(new Runnable() {
             @Override
@@ -139,5 +138,10 @@ public class ProgressDialog extends JDialog implements Observer {
                 }
             }
         });
+    }
+
+    @Override
+    public synchronized void update(Observable o, Object arg) {
+        updateDisplay();
     }
 }

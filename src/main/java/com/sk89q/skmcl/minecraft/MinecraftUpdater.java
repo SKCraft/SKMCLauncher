@@ -35,6 +35,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -56,6 +58,7 @@ class MinecraftUpdater extends AbstractWorker<MinecraftInstall> {
             "https://s3.amazonaws.com/MinecraftResources/";
 
     private static final Logger logger = LauncherUtils.getLogger(MinecraftUpdater.class);
+    private final ExecutorService executor = Executors.newFixedThreadPool(6);
     private final MinecraftInstall instance;
     private final Environment environment;
     private final InstallerRuntime installer;
@@ -71,7 +74,7 @@ class MinecraftUpdater extends AbstractWorker<MinecraftInstall> {
 
         File temporaryDir = instance.getProfile().getTemporaryDir();
 
-        installer = new InstallerRuntime(environment);
+        installer = new InstallerRuntime(executor, environment);
         installer.setTemporaryDir(temporaryDir);
     }
 
@@ -113,24 +116,28 @@ class MinecraftUpdater extends AbstractWorker<MinecraftInstall> {
 
     @Override
     public MinecraftInstall call() throws Exception {
-        WorkUnit step1 = split(0.02),
-                step2 = split(0.02),
-                step3 = split(0.96);
+        try {
+            WorkUnit step1 = split(0.02),
+                    step2 = split(0.02),
+                    step3 = split(0.96);
 
-        if (!hasSystemProperty(MinecraftUpdater.class, "skipAssets")) {
-            installAssets(step1);
+            if (!hasSystemProperty(MinecraftUpdater.class, "skipAssets")) {
+                installAssets(step1);
+                checkInterrupted();
+            }
+
+            installGame(step2);
             checkInterrupted();
+
+            logger.log(Level.INFO, "Install tasks enumerated; now installing...");
+
+            installer.addObserver(step3);
+            installer.call();
+
+            return instance;
+        } finally {
+            executor.shutdownNow();
         }
-
-        installGame(step2);
-        checkInterrupted();
-
-        logger.log(Level.INFO, "Install tasks enumerated; now installing...");
-
-        installer.addObserver(step3);
-        installer.call();
-
-        return instance;
     }
 
     /**

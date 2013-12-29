@@ -19,151 +19,75 @@
 package com.sk89q.skmcl.concurrent;
 
 import com.sk89q.skmcl.swing.ProgressDialog;
-import com.sk89q.skmcl.swing.SwingHelper;
 import lombok.NonNull;
 import lombok.extern.java.Log;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.*;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.Timer;
-import java.util.logging.Level;
+import java.util.TimerTask;
 
-import static com.sk89q.skmcl.util.SharedLocale._;
-
-/**
- * An observer for a {@link BackgroundExecutor} to observe progress updates and
- * show a progress window if necessary.
- */
 @Log
-public final class SwingProgressObserver implements Observer, ExecutorListener {
+public final class SwingProgressObserver implements Observer {
 
-    private static final int DIALOG_DISPLAY_DELAY = 250;
     private static final int PROGRESS_INTERVAL = 500;
     private static final Timer timer = new Timer();
 
-    private BackgroundExecutor executor;
     private final Window parent;
-    private ProgressDialog dialog;
-    private TimerTask dialogShowTask;
-    private boolean wantDialog = false;
+    private final WorkerService workerService;
+    private boolean dialogRequested = false;
+    private Window dialog;
 
-    /**
-     * Create a new worker with the parent window given.
-     *
-     * @param parent the parent window from which to show dialogs from
-     */
-    public SwingProgressObserver(@NonNull Window parent) {
+    public SwingProgressObserver(@NonNull Window parent, @NonNull WorkerService workerService) {
         this.parent = parent;
+        this.workerService = workerService;
+        workerService.addObserver(this);
+        checkDialogVisibility();
     }
 
-    /**
-     * Set the current executor to observe.
-     *
-     * @param executor the executor, or null to stop observing
-     */
-    public void setExecutor(BackgroundExecutor executor) {
-        if (this.executor != null) {
-            this.executor.deleteObserver(this);
-            this.executor.removeExecutorListener(this);
-        }
-
-        this.executor = executor;
-        if (executor != null) {
-            executor.addObserver(this);
-            executor.addExecutorListener(this);
-        }
-
-        update(executor, null);
-    }
-
-    /**
-     * Create the dialog.
-     */
     private void createDialog() {
-        final SwingProgressObserver self = this;
-        final BackgroundExecutor executor = this.executor;
-
-        synchronized (this) {
-            if (executor == null) {
-                wantDialog = false;
-                dialogShowTask = null;
-            }
-        }
-
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                synchronized (self) {
-                    if (!wantDialog) {
-                        return;
-                    }
-
-                    dialogShowTask = null;
-                    dialog = new ProgressDialog(parent, executor);
+                if (dialogRequested) {
+                    dialog = new ProgressDialog(parent, workerService);
+                    dialog.setVisible(true);
                 }
-
-                dialog.setVisible(true);
             }
         });
     }
 
-    /**
-     * Set whether the dialog should be visible.
-     *
-     * @param visible true if visible
-     */
-    private synchronized void setDialogVisibility(boolean visible) {
-        wantDialog = visible;
+    private synchronized void setVisibility(boolean visible) {
+        if (dialogRequested != visible) {
+            dialogRequested = visible;
 
-        if (visible) {
-            if (dialog == null && dialogShowTask == null) {
-                dialogShowTask = new TimerTask() {
-                    @Override
-                    public void run() {
-                        createDialog();
-                    }
-                };
-
-                timer.schedule(dialogShowTask, DIALOG_DISPLAY_DELAY);
-            }
-        } else {
-            if (dialog != null) {
-                final JDialog d = dialog;
-                SwingUtilities.invokeLater(new Runnable() {
-                    public void run() {
-                        d.dispose();
-                    }
-                });
+            if (visible) {
+                createDialog();
+            } else {
+                final Window lastDialog = dialog;
                 dialog = null;
-            }
 
-            if (dialogShowTask != null) {
-                dialogShowTask.cancel();
-                dialogShowTask = null;
+                if (lastDialog != null) {
+                    SwingUtilities.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            lastDialog.dispose();
+                        }
+                    });
+                }
             }
         }
+    }
+
+    private synchronized void checkDialogVisibility() {
+        setVisibility(workerService.size() > 0);
     }
 
     @Override
     public synchronized void update(Observable o, Object arg) {
-        setDialogVisibility(executor != null && executor.getActiveTaskCount() > 0);
-    }
-
-    @Override
-    public void exceptionThrown(ExceptionEvent event) {
-        final Throwable throwable = event.getThrowable();
-
-        log.log(Level.WARNING,
-                "An uncaught exception was thrown in a worker", throwable);
-
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                SwingHelper.showErrorDialog(parent,
-                        throwable.getLocalizedMessage(),
-                        _("errorDialog.title"), throwable);
-            }
-        });
+        checkDialogVisibility();
     }
 
     /**

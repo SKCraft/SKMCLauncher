@@ -18,16 +18,12 @@
 
 package com.sk89q.skmcl.session;
 
-import java.util.concurrent.Callable;
+import java.util.List;
 
 /**
  * A session is a user login.
- *
- * <p>Sessions must be run (see {@link Callable}) before they can be used. The value
- * returned by the {@link Callable} will always be a boolean true, because errors will
- * be thrown with an {@link AuthenticationException}.</p>
  */
-public interface Session extends Callable<Session> {
+public interface Session {
 
     /**
      * Returns whether the session can be used in its current state.
@@ -40,19 +36,18 @@ public interface Session extends Callable<Session> {
     boolean isValid();
 
     /**
-     * Get the username. If a login was successful, this will be the correct
-     * form of the username.
+     * Get the identities available for this account.
      *
-     * @return username
+     * @return a list of identities
      */
-    String getUsername();
+    List<Identity> getIdentities();
 
     /**
-     * Get a session ID.
+     * Get the client token ID.
      *
-     * @return session ID, or null
+     * @return client token, or null
      */
-    String getSessionId();
+    String getClientToken();
 
     /**
      * Get an access token that will identify the user in place of the password.

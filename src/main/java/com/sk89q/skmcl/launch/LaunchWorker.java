@@ -20,15 +20,15 @@ package com.sk89q.skmcl.launch;
 
 import com.sk89q.skmcl.LauncherException;
 import com.sk89q.skmcl.application.*;
+import com.sk89q.skmcl.concurrent.AbstractWorker;
 import com.sk89q.skmcl.concurrent.WorkUnit;
 import com.sk89q.skmcl.profile.Profile;
-import com.sk89q.skmcl.session.OfflineSession;
-import com.sk89q.skmcl.session.Session;
+import com.sk89q.skmcl.session.Identity;
 import com.sk89q.skmcl.swing.SwingHelper;
 import com.sk89q.skmcl.util.Environment;
 import com.sk89q.skmcl.util.Persistence;
-import com.sk89q.skmcl.concurrent.AbstractWorker;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 import lombok.extern.java.Log;
 
@@ -50,14 +50,15 @@ public class LaunchWorker extends AbstractWorker<LaunchedProcess> {
     private final Application application;
     @Getter @Setter
     private Environment environment = Environment.getInstance();
-    @Getter @Setter
-    private Session session = new OfflineSession();
+    @Getter
+    private final Identity identity;
     @Getter @Setter
     private boolean offline;
 
-    public LaunchWorker(Profile profile) {
+    public LaunchWorker(Profile profile, @NonNull Identity identity) {
         this.profile = profile;
         this.application = profile.getApplication();
+        this.identity = identity;
     }
 
     private Instance getInstance() throws InterruptedException, LauncherException {
@@ -88,7 +89,7 @@ public class LaunchWorker extends AbstractWorker<LaunchedProcess> {
 
     private LaunchedProcess launch(Instance instance)
             throws IOException, UpdateRequiredException {
-        LaunchContext context = new LaunchContext(environment, session);
+        LaunchContext context = new LaunchContext(environment, identity);
         return instance.launch(context);
     }
 

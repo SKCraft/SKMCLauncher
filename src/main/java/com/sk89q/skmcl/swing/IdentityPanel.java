@@ -18,10 +18,13 @@
 
 package com.sk89q.skmcl.swing;
 
+import com.sk89q.skmcl.session.Account;
 import com.sk89q.skmcl.session.Identity;
 import lombok.Getter;
 
 import javax.swing.*;
+
+import java.util.List;
 
 import static com.sk89q.skmcl.util.SharedLocale._;
 
@@ -68,10 +71,11 @@ public class IdentityPanel extends JPanel {
         if (item == null) {
             facePanel.setUsername(null);
             identityButton.setText(_("identityPanel.notLoggedIn"));
-        } else if (item instanceof Identity) {
-            String username = ((Identity) item).getCachedUsername();
-            facePanel.setUsername(username);
-            if (username != null) {
+        } else if (item instanceof Account) {
+            List<Identity> identities = ((Account) item).getIdentities();
+            if (identities.size() > 0) {
+                String username = identities.get(0).getName();
+                facePanel.setUsername(username);
                 identityButton.setText(_("identityPanel.hello", username));
             } else {
                 identityButton.setText(_("identityPanel.loggedIn"));

@@ -19,9 +19,11 @@
 package com.sk89q.skmcl.session;
 
 import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
 import lombok.ToString;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * An offline session.
@@ -29,8 +31,17 @@ import lombok.ToString;
 @ToString
 public class OfflineSession implements Session {
 
-    @Getter @Setter @NonNull
-    private String username = "Player";
+    @Getter
+    private final List<Identity> identities;
+
+    public OfflineSession() {
+        List<Identity> identities = new ArrayList<Identity>();
+        Identity identity = new Identity();
+        identity.setId("0");
+        identity.setName("Player");
+        identities.add(identity);
+        this.identities = Collections.unmodifiableList(identities);
+    }
 
     @Override
     public boolean isValid() {
@@ -38,8 +49,8 @@ public class OfflineSession implements Session {
     }
 
     @Override
-    public String getSessionId() {
-        return "offline";
+    public List<Identity> getIdentities() {
+        return identities;
     }
 
     @Override
@@ -48,8 +59,8 @@ public class OfflineSession implements Session {
     }
 
     @Override
-    public OfflineSession call() throws Exception {
-        return this;
+    public String getClientToken() {
+        return null;
     }
 
 }

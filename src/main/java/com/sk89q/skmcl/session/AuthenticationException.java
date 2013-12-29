@@ -18,24 +18,18 @@
 
 package com.sk89q.skmcl.session;
 
+import com.sk89q.skmcl.LauncherException;
+
 /**
  * Thrown on authentication error.
  */
-public class AuthenticationException extends Exception {
+public class AuthenticationException extends LauncherException {
 
-    public AuthenticationException() {
+    public AuthenticationException(String message, String localizedMessage) {
+        super(message, localizedMessage);
     }
 
-    public AuthenticationException(String message) {
-        super(message);
+    public AuthenticationException(Throwable cause, String localizedMessage) {
+        super(cause, localizedMessage);
     }
-
-    public AuthenticationException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public AuthenticationException(Throwable cause) {
-        super(cause);
-    }
-
 }

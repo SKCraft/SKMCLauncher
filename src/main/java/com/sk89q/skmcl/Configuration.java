@@ -18,6 +18,9 @@
 
 package com.sk89q.skmcl;
 
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Configuration {
 
 }

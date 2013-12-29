@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -45,7 +46,7 @@ public class InstallerRuntime extends AbstractWorker<InstallerRuntime> {
     private final Environment environment;
     private final InstallLog previousLog;
     private final InstallLog newLog = new InstallLog();
-    private final HttpDownloader httpDownloader = new HttpDownloader();
+    private final HttpDownloader httpDownloader;
     private final List<Runnable> tasks = new ArrayList<Runnable>();
 
     @Getter
@@ -55,21 +56,24 @@ public class InstallerRuntime extends AbstractWorker<InstallerRuntime> {
     /**
      * Create a new installer runtime.
      *
+     * @param executor the executor
      * @param environment the environment to install for
      */
-    public InstallerRuntime(Environment environment) {
-        this(environment, new InstallLog());
+    public InstallerRuntime(ExecutorService executor, Environment environment) {
+        this(executor, environment, new InstallLog());
     }
 
     /**
      * Create a new installer runtime.
      *
+     * @param executor the executor
      * @param environment the environment to install for
      * @param previousLog the existing install log
      */
-    public InstallerRuntime(Environment environment, InstallLog previousLog) {
+    public InstallerRuntime(ExecutorService executor, Environment environment, InstallLog previousLog) {
         this.environment = environment;
         this.previousLog = previousLog;
+        httpDownloader = new HttpDownloader(executor);
     }
 
     /**

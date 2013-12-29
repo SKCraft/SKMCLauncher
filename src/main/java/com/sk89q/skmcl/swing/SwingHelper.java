@@ -18,6 +18,9 @@
 
 package com.sk89q.skmcl.swing;
 
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.sk89q.skmcl.Launcher;
 import lombok.NonNull;
 import lombok.extern.java.Log;
@@ -375,5 +378,26 @@ public final class SwingHelper {
             }
         });
     }
-    
+
+    public static void addErrorDialogCallback(final ListenableFuture<?> future, final Window owner) {
+        Futures.addCallback(future, new FutureCallback<Object>() {
+            @Override
+            public void onSuccess(Object result) {
+
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                log.log(Level.WARNING, "An error has occurred in " + String.valueOf(future), t);
+                String message = t.getLocalizedMessage();
+                if (message == null) {
+                    message = t.getMessage();
+                }
+                if (message == null) {
+                    message = _("errors.unknownErrorOccurred");
+                }
+                SwingHelper.showErrorDialog(owner, message, _("errors.errorTitle"), t);
+            }
+        });
+    }
 }

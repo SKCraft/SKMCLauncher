@@ -30,6 +30,7 @@ import com.sk89q.skmcl.launch.LaunchedProcess;
 import com.sk89q.skmcl.minecraft.model.Library;
 import com.sk89q.skmcl.minecraft.model.ReleaseManifest;
 import com.sk89q.skmcl.profile.Profile;
+import com.sk89q.skmcl.session.Identity;
 import com.sk89q.skmcl.session.Session;
 import com.sk89q.skmcl.util.Environment;
 import com.sk89q.skmcl.util.Persistence;
@@ -147,14 +148,13 @@ public class MinecraftInstall implements Instance {
             throw new UpdateRequiredException("Not yet installed");
         }
 
-        Session session = context.getSession();
+        Identity identity = context.getIdentity();
         ObjectMapper mapper = new ObjectMapper();
         final File extractDir = createExtractDir();
         JavaProcessBuilder builder = new JavaProcessBuilder();
         ReleaseManifest manifest = mapper.readValue(
                 getManifestPath(), ReleaseManifest.class);
-        String sessionId = session.getSessionId() != null ?
-                session.getSessionId() : "offline";
+        String clientToken = identity.getClientToken();
 
         // Add libraries to classpath or extract the libraries as necessary
         for (Library library : manifest.getLibraries()) {
@@ -179,11 +179,10 @@ public class MinecraftInstall implements Instance {
             arg = arg.replace("${version_name}", manifest.getId());
             arg = arg.replace("${game_directory}", getProfile().getContentDir().getAbsolutePath());
             arg = arg.replace("${game_assets}", getAssetsDir().getAbsolutePath());
-            arg = arg.replace("${auth_player_name}", session.getUsername());
-            arg = arg.replace("${auth_username}", session.getUsername());
-            arg = arg.replace("${auth_access_token}",
-                    session.getAccessToken() != null ? session.getAccessToken() : "?");
-            arg = arg.replace("${auth_session}", sessionId);
+            arg = arg.replace("${auth_player_name}", identity.getName());
+            arg = arg.replace("${auth_username}", identity.getName());
+            arg = arg.replace("${auth_access_token}", identity.getAccessToken());
+            arg = arg.replace("${auth_session}", clientToken);
             builder.getArgs().add(arg);
         }
 

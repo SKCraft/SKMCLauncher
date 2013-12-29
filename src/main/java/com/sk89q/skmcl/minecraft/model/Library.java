@@ -164,8 +164,8 @@ public class Library {
         }
 
         public boolean matches(Environment environment) {
-            return getPlatform().equals(environment.getPlatform()) &&
-                    getVersion().matcher(environment.getPlatformVersion()).matches();
+            return (getPlatform() == null || getPlatform().equals(environment.getPlatform())) &&
+                    (getVersion() == null || getVersion().matcher(environment.getPlatformVersion()).matches());
         }
     }
 

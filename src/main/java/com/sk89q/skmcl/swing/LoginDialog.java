@@ -18,56 +18,63 @@
 
 package com.sk89q.skmcl.swing;
 
-import com.sk89q.skmcl.Launcher;
-import com.sk89q.skmcl.session.IdentityManagerModel;
+import com.sk89q.skmcl.session.Account;
+import com.sk89q.skmcl.session.AccountList;
+import com.sk89q.skmcl.util.Persistence;
+import lombok.Getter;
 
 import javax.swing.*;
-
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Date;
 
 import static com.sk89q.skmcl.util.SharedLocale._;
 
-public class LoginDialog extends JDialog {
+public abstract class LoginDialog extends JDialog {
 
-    private final Launcher launcher;
-    private final IdentityManagerModel selectedIdentity;
+    @Getter
+    private final AccountList accounts;
 
-    public LoginDialog(Window owner, Launcher launcher, IdentityManagerModel selectedIdentity) {
+    private JComboBox idCombo;
+    private final JPasswordField passwordText = new JPasswordField();
+    private final JCheckBox rememberIdCheck = new JCheckBox(_("loginDialog.rememberId"));
+    private final JCheckBox rememberPassCheck = new JCheckBox(_("loginDialog.rememberPassword"));
+    private final JButton loginButton = new JButton(_("loginDialog.login"));
+    private final JButton forgotLogin = new JButton(_("loginDialog.forgotLogin"));
+    private final JButton cancelButton = new JButton(_("button.cancel"));
+
+    public LoginDialog(Window owner, AccountList accounts) {
         super(owner, ModalityType.DOCUMENT_MODAL);
 
-        this.launcher = launcher;
-        this.selectedIdentity = selectedIdentity;
+        this.accounts = accounts;
 
         setTitle(_("loginDialog.title"));
         initComponents();
+        bindListeners();
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        pack();
         setMinimumSize(new Dimension(420, 0));
         setResizable(false);
+        pack();
         setLocationRelativeTo(owner);
     }
 
     private void initComponents() {
-        final IdentityManagerModel tempSelectedIdentity = selectedIdentity.clone();
+        idCombo = new JComboBox(getAccounts());
+        updateSelection();
 
         FormPanel formPanel = new FormPanel();
-        JComboBox idCombo = new JComboBox(tempSelectedIdentity);
-        JPasswordField passwordText = new JPasswordField();
         LinedBoxPanel buttonsPanel = new LinedBoxPanel(true);
-        JCheckBox rememberCheck = new JCheckBox(_("loginDialog.rememberAccount"));
-        JButton loginButton = new JButton(_("loginDialog.login"));
-        JButton forgotLogin = new JButton(_("loginDialog.forgotLogin"));
-        JButton cancelButton = new JButton(_("button.cancel"));
 
-        rememberCheck.setBorder(BorderFactory.createEmptyBorder());
+        rememberIdCheck.setBorder(BorderFactory.createEmptyBorder());
+        rememberPassCheck.setBorder(BorderFactory.createEmptyBorder());
         idCombo.setEditable(true);
         idCombo.getEditor().selectAll();
 
         formPanel.addRow(new JLabel(_("loginDialog.id")), idCombo);
         formPanel.addRow(new JLabel(_("loginDialog.password")), passwordText);
-        formPanel.addRow(new JLabel(), rememberCheck);
+        formPanel.addRow(new JLabel(), rememberIdCheck);
+        formPanel.addRow(new JLabel(), rememberPassCheck);
         buttonsPanel.setBorder(BorderFactory.createEmptyBorder(26, 13, 13, 13));
 
         buttonsPanel.addElement(forgotLogin);
@@ -78,18 +85,105 @@ public class LoginDialog extends JDialog {
         add(formPanel, BorderLayout.CENTER);
         add(buttonsPanel, BorderLayout.SOUTH);
 
+        getRootPane().setDefaultButton(loginButton);
+    }
+
+    private void bindListeners() {
         idCombo.setComponentPopupMenu(TextFieldPopupMenu.INSTANCE);
         passwordText.setComponentPopupMenu(TextFieldPopupMenu.INSTANCE);
-        getRootPane().setDefaultButton(loginButton);
+
+        idCombo.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                updateSelection();
+            }
+        });
+
+        forgotLogin.addActionListener(ActionListeners.openURL(forgotLogin, "https://minecraft.net/resetpassword"));
 
         loginButton.addActionListener(new ActionListener() {
+            @Override
             public void actionPerformed(ActionEvent e) {
-                selectedIdentity.setSelectedItem(tempSelectedIdentity.getSelectedItem());
-                dispose();
+                prepareLogin();
             }
         });
 
         cancelButton.addActionListener(ActionListeners.dispose(this));
+
+        rememberPassCheck.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (rememberPassCheck.isSelected()) {
+                    rememberIdCheck.setSelected(true);
+                }
+            }
+        });
+
+        rememberIdCheck.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!rememberIdCheck.isSelected()) {
+                    rememberPassCheck.setSelected(false);
+                }
+            }
+        });
     }
+
+    private void updateSelection() {
+        Object selected = idCombo.getSelectedItem();
+
+        if (selected != null && selected instanceof Account) {
+            Account account = (Account) selected;
+            String password = account.getPassword();
+
+            rememberIdCheck.setSelected(true);
+            if (password != null) {
+                rememberPassCheck.setSelected(true);
+                passwordText.setText(password);
+            } else {
+                rememberPassCheck.setSelected(false);
+                passwordText.setText("");
+            }
+        } else {
+            passwordText.setText("");
+            rememberIdCheck.setSelected(true);
+            rememberPassCheck.setSelected(false);
+        }
+    }
+
+    private void prepareLogin() {
+        Object selected = idCombo.getSelectedItem();
+
+        if (selected != null && selected instanceof Account) {
+            Account account = (Account) selected;
+            String password = passwordText.getText();
+
+            if (password == null || password.isEmpty()) {
+                SwingHelper.showErrorDialog(this, _("loginDialog.missingPassword"), _("errors.errorTitle"));
+            } else {
+                if (rememberPassCheck.isSelected()) {
+                    account.setPassword(password);
+                } else {
+                    account.setPassword(null);
+                }
+
+                if (rememberIdCheck.isSelected()) {
+                    accounts.add(account);
+                } else {
+                    accounts.remove(account);
+                }
+
+                account.setLastUsed(new Date());
+
+                Persistence.commitAndForget(accounts);
+
+                attemptLogin(account, password);
+            }
+        } else {
+            SwingHelper.showErrorDialog(this, _("loginDialog.missingId"), _("errors.errorTitle"));
+        }
+    }
+
+    protected abstract void attemptLogin(Account account, String password);
 
 }

@@ -18,13 +18,17 @@
 
 package com.sk89q.skmcl;
 
-import com.sk89q.skmcl.concurrent.BackgroundExecutor;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.sk89q.skmcl.concurrent.ExecutorWorkerService;
 import com.sk89q.skmcl.launch.LaunchWatcher;
 import com.sk89q.skmcl.launch.LaunchWorker;
+import com.sk89q.skmcl.launch.LaunchedProcess;
 import com.sk89q.skmcl.profile.Profile;
 import com.sk89q.skmcl.profile.ProfileManager;
-import com.sk89q.skmcl.session.IdentityManager;
+import com.sk89q.skmcl.session.AccountList;
+import com.sk89q.skmcl.session.Identity;
 import com.sk89q.skmcl.swing.LauncherFrame;
+import com.sk89q.skmcl.swing.LoginController;
 import com.sk89q.skmcl.swing.SwingHelper;
 import com.sk89q.skmcl.util.Persistence;
 import com.sk89q.skmcl.util.SharedLocale;
@@ -42,29 +46,24 @@ import java.util.logging.Level;
 
 import static com.sk89q.skmcl.util.SharedLocale._;
 
-/**
- * Main launcher class.
- */
 @Log
 public class Launcher {
 
-    @Getter
-    private final File baseDir;
-    @Getter
-    private final ProfileManager profiles;
-    @Getter
-    private final IdentityManager identities;
-    @Getter
-    private final Configuration configuration;
+    @Getter private final File baseDir;
+    @Getter private final ProfileManager profiles;
+    @Getter private final AccountList accounts;
+    @Getter private final Configuration configuration;
     private LauncherFrame mainFrame;
 
     public Launcher(@NonNull File baseDir) {
         this.baseDir = baseDir;
         this.profiles = new ProfileManager(baseDir);
-        this.identities =
-                Persistence.load(new File(baseDir, "identities.dat"), IdentityManager.class);
-        this.configuration =
-                Persistence.load(new File(baseDir, "config.json"), Configuration.class);
+        this.accounts = Persistence.load(new File(baseDir, "accounts.dat"), AccountList.class);
+        this.configuration = Persistence.load(new File(baseDir, "config.json"), Configuration.class);
+
+        if (accounts.getSize() > 0) {
+            accounts.setSelectedItem(accounts.getElementAt(0));
+        }
     }
 
     public LauncherFrame showLauncher() {
@@ -84,14 +83,22 @@ public class Launcher {
         }
     }
 
-    public void launchApplication(Window owner, BackgroundExecutor executor, Profile profile) {
+    public void launchApplication(Window owner, ExecutorWorkerService executor, Profile profile) {
         profile.setLastLaunchDate(new Date());
         Persistence.commitAndForget(profile);
         getProfiles().notifyUpdate();
 
-        LaunchWorker task = new LaunchWorker(profile);
-        LaunchWatcher watcher = new LaunchWatcher(this, executor.submit(task));
-        new Thread(watcher).start();
+        LoginController loginDialog = new LoginController(owner, this);
+        loginDialog.setVisible(true);
+        Identity identity = loginDialog.getIdentity();
+
+        if (identity != null) {
+            LaunchWorker task = new LaunchWorker(profile, identity);
+            ListenableFuture<LaunchedProcess> future = executor.submit(task);
+            SwingHelper.addErrorDialogCallback(future, owner);
+            LaunchWatcher watcher = new LaunchWatcher(this, future);
+            new Thread(watcher).start();
+        }
     }
 
     public static void launchFromStub(boolean portable, File dataDir, String[] args) {

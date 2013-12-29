@@ -58,7 +58,6 @@ public class HttpDownloader
         implements ProgressUpdater {
 
     private static final Logger logger = LauncherUtils.getLogger(HttpDownloader.class);
-    public static final int DEFAULT_THREAD_COUNT = 3;
 
     private final ExecutorService executor;
     private final List<Future<RemoteFile>> executed = new ArrayList<Future<RemoteFile>>();
@@ -79,24 +78,6 @@ public class HttpDownloader
      */
     public HttpDownloader(ExecutorService executor) {
         this.executor = executor;
-    }
-
-    /**
-     * Create a new downloader using a fixed thread executor with the given number
-     * of simultaneous download threads.
-     *
-     * @param numThreads the number of threads
-     */
-    public HttpDownloader(int numThreads) {
-        this(Executors.newFixedThreadPool(numThreads));
-    }
-
-    /**
-     * Create a new downloader with a default number of threads, as indicated by
-     * {@link #DEFAULT_THREAD_COUNT}.
-     */
-    public HttpDownloader() {
-        this(DEFAULT_THREAD_COUNT);
     }
 
     /**
